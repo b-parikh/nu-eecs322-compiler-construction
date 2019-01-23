@@ -1,0 +1,110 @@
+// print the fibonacci numbers up to the end parameter established in main
+define :main () {
+	
+	// declare how many fibonacci numbers to print 
+	end <- 10
+
+	call :fib (end)
+
+	// on success
+	success <- call :encode (0)
+	call print (success)
+}
+
+define :fib (end) {
+	
+	array <- call allocate(end, 1)
+
+	call :fillArray (arr, end)
+}
+
+define :fillArray (arr, end) {
+	
+	checkParams <- arr
+    checkParams <- 1 & arr
+    arrayCondition <- checkParams
+    br arrayCondition :isArray :error
+    
+    :error
+    	return
+
+	:isArray
+	i <- 0
+
+	:check
+	condition <- i <= end
+
+	br condition :loop :end
+
+	zeroCondition <- i = 0
+	br zeroCondition :zero :cont
+
+	:cont
+	oneCondition <- i = 1
+	br oneCondition :one :normal
+	
+	:zero
+		// one of the first two values so we just store 1
+		store arr <- 1
+		
+		// print the new value updated in the array
+		printV <- load arr
+		printV <- call :encode (printV)
+		call print (printV)
+
+		// update array pointer, and the iterator i
+		arr <- arr + 8
+		itmp <- i
+		i <- itmp + 1
+
+		:check
+
+	:one
+		// one of the first two values so we just store 1
+		store arr <- 1
+		
+		// print the new value updated in the array
+		printV <- load arr
+		printV <- call :encode (printV)
+		call print (printV)
+
+		// update array pointer, and the iterator i
+		arr <- arr + 8
+		itmp <- i
+		i <- itmp + 1
+
+		:check
+
+	:normal
+		first <- arr - 16
+		second <- arr - 8
+
+		f <- load first
+		s <- load second
+
+		newVal = f + s
+		store arr <- newVal
+
+		// print the new value updated in the array
+		printV <- load arr
+		printV <- call :encode (printV)
+		call print (printV)
+
+		// update array pointer, and the iterator i
+		arr <- arr + 8
+		itmp <- i
+		i <- itmp + 1
+
+		:check
+
+	:end 
+		return
+}
+
+define :encode(val){
+	// encode the value
+	// used for printing
+	val <- val << 1
+	val <- val + 1
+	return val
+}

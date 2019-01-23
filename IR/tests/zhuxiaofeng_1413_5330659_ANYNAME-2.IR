@@ -1,0 +1,372 @@
+define void :main () {
+	:entry
+	int64 %myRes
+	int64 %v1
+	int64 %v2
+	%myRes <- call :myF(5)
+	%v1 <- %myRes * 4
+	%v2 <- %myRes + %v1
+	int64[] %array
+	%array <- new Array (3) // encoded
+	%array[0] <- 3 // index not encoded, value 3 encoded
+	%array[1] <- 5 // index not encoded, value 5 encoded
+	%array[2] <- 7 // index not encoded, value 7 encoded
+	int64 %value_index_0
+	%value_index_0 <- %array[0] // index not encoded, %value_index_0 encoded
+	call print (%value_index_0) // %value_index_0 encoded
+	%length_array <- length %array 0 // not encoded, %length_array encoded
+	call print (%length_array)
+	int64 %var1
+	%var1 <- 1
+	int64 %var2
+	%var2 <- 2
+	int64 %var3
+	%var3 <- %var1 = %var2
+	int64 %var4
+	%var4 <- %va1 < %var2
+	int64 %var5
+	%var5 <- %var1 + %var2
+	int64 %var6
+	%var6 <- %var << %var2
+	int64 %var7
+	%var7 <- call :isNumber(%var6)
+	int64 %var8
+	%var8 <- call :isAddress(%var5)
+	//br %var8 :isAddressLabel :isNotAddressLabel
+	//:isNotAddressLabel	
+	int64 %var9
+	%var9 <- %var8 * 3
+	%var9 <- %var9 + 2
+	int64 %var10
+	%var10 <- call :lea(%var7)
+	int64 %encoded
+	%encoded <- %var10	
+	%encoded <- %encoded << 1
+	%encoded <- %encoded + 1	
+	call print(%encoded)
+	int64[][] %array_2d
+	int64 %e
+	int64 %l0
+	int64 %l1
+	%array_2d <- new Array(7, 7)
+	%array_2d[0][0] <- 3
+	%array_2d[2][1] <- 7
+	%e <- %array_2d[0][0]
+	%e <- call :encode(%e)
+	call print(%e)
+	tuple %t
+	tuple %tuple_example
+	%tuple_example <- new Tuple(5)
+	%tuple_example <- call :createTuple(9)
+	%l0 <- length %array_2d 0
+	%l1 <- length %array_2d 1
+	int64 %var11
+	%var11 <- 77
+	int64 %var12
+	%var12 <- %var10 > %var11
+	int64 %var13
+	%var13 <- call :decreaseOne(%var9)
+	int64 %var14
+	%var14 <- call :aop_plus(%var12, %var13)
+	int64 %var15
+	%var15 <- call :aop_minus(%var1, %var13)
+	int64 %var16
+	%var16 <- call :aop_and(%var11, %var12)
+	int64 %var_checker
+	%var_checker <- call :isAddress(%var16)
+	%checkArgs <- %var_checker = 1
+	//br %var_checker :true :false
+	//:false	
+	int64 %var17
+	%var17 <- call :increaseOne(%var9)
+	int64 %var18
+	%var18 <- call :aop_product(%var2, %var13)
+	int64 %var20
+	%var20 <- call :isEqual(%var11, %var8)
+	int64 %var21
+	%var21 <- call :isSmallerAndEqual(%var20, %var1)
+	int64 %var22	
+	%var22 <- call :isSmaller(%var20, %var2)
+	//:true
+	%newVar3 <- %array + 32
+	%var13 <- %var13 + 8
+	%callFL <- :otherF
+	call :otherF ()
+	call %callFL ()
+	%callerFP <- :otherF2
+	%res1 <- call %callerFP (2)
+	%res2 <- call :otherF2 (%var3)
+	%res2 <- %res2 - 1
+	call print(%res2)
+	//:isAddressLabel	
+	%var1 <- 1
+	%var2 <- 2
+	%var3 <- %var1 = %var2
+	%var4 <- %va1 < %var2
+	%var5 <- %var1 + %var2
+	%var6 <- %var << %var2
+	%var7 <- call :addOne(%var6)
+	%var8 <- call :sum2(%var6, %var7)
+	%var9 <- %var8 * 3
+	%var9 <- %var9 + 2
+	%var10 <- call :sum3(%var7, %var8, %var9)
+	%encoded <- 7	
+	%encoded <- %encoded << 1
+	%encoded <- %encoded + 1
+	call print(%encoded)
+	%var11 <- %array + 24
+	%var12 <- %var10 > %var11
+	%var13 <- call :sum4(%var9, %var10, %var11, %var12)
+	%var14 <- call :substract(%var12, %var13)
+	%var15 <- call :substract3(%var1, %var13, %var14)
+	%var16 <- call :substract4(%var11, %var12, %var13, %var9)
+	%var17 <- call :sum4(%var9, %var10, %var11, %var12)
+	%var18 <- call :product(%var2, %var13)
+	%var19 <- call :product3(%var1, %var2, %var7)
+	%var20 <- call :product4(%var11, %var8, %var5, %var9)
+	%var21 <- call :left_shift(%var20, %var1)	
+	%var22 <- call :right_shift(%var20, %var2)
+
+	%array_3d <- new Array(3, 5, 7)
+	%array_len_0 <- length %array_3d 0	
+	%array_len_1 <- length %array_3d 1
+	%array_len_2 <- length %array_3d 2
+	call print(%array_len_0)
+	call print(%array_len_1)
+	call print(%array_len_2)
+	%tuple_example[2] <- :myF
+	code %fp
+	%fp <- %tuple_example[2]
+	%index <- 2
+	%tuple_example <- call :assignValue(%tuple_example, %index)
+	return
+}
+
+define tuple :assignValue(tuple %tuple_example, int64 %index) {
+	:entry
+	%tuple_example[%index] <- 55
+	return %tuple_example
+}
+
+define int64 :myF (int64 %p1) {
+	:entry
+	int64 %p2
+	%p2 <- %p1 + 1
+	return %p2
+}
+
+define int64 :isNumber (int64 %p1){
+	:entry
+	int64 %p2
+	%p2 <- %p1 & 1
+	%p2 <- %p2 = 0
+	br %p2 :isAddress :isNumber
+	:isAddress
+	return 0
+	:isNumber
+	return 1
+}
+define int64 :isAddress (int64 %p1){
+	:entry
+	int64 %p2
+	%p2 <- %p1 & 1
+	%p2 <- %p2 = 0
+	br %p2 :isAddress :isNumber
+	:isAddress
+	return 1
+	:isNumber
+	return 0
+}
+define int64 :lea (int64 %p1){
+	:entry
+	int64 %p2
+	%p2 <- %p1 * 4
+	int64 %p3
+	%p3 <- %p1 + %p2
+	return %p3
+}
+define int64 :decreaseOne (int64 %p1){
+	:entry
+	int64 %res
+	%res <- %p1 - 1
+	return %res
+}
+define int64 :increaseOne (int64 %p1){
+	:entry
+	int64 %p5
+	%p5 <- %p1 + 1
+	return %p5
+}
+define void :otherF () {
+	:entry
+	int64 %p1
+	%p1 <- 11
+	return
+}
+define int64 :otherF2 (int64 %var) {
+	:entry
+	%var <- %var * %var
+	return %var
+}
+define int64 :aop_minus (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 - %P2
+	return %p3
+}
+define int64 :aop_plus (int64 %p1, int64 %p2){
+	:entry
+	int64 %p4
+	%p4 <- %p1 + %P2
+	return %p4
+}
+define int64 :aop_and (int64 %p1, int64 %p2){
+	:entry
+	int64 %p5
+	%p5 <- %p1 & %P2
+	return %p5
+}
+define int64 :aop_product (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 * %P2
+	return %p3
+}
+define int64 :isSmaller (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 < 1
+	br %p3 :smaller :larger
+	:smaller
+	return 1
+	:larger
+	return 0
+}
+define int64 :isSmallerAndEqual (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 <= 1
+	br %p3 :smaller :larger
+	:smaller
+	return 1
+	:larger
+	return 0
+}
+define int64 :isEqual (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 = %P2
+	br %p3 :smaller :larger
+	:smaller
+	return 1
+	:larger
+	return 0
+}
+define int64 :addOne (int64 %p1){
+	:entry
+	int64 %p2
+	%p2 <- %p1 + 1
+	return %p2
+}
+define int64 :sum2 (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 + %P2
+	return %p3
+}
+define int64 :sum3 (int64 %p1, int64 %p2, int64 %p3){
+	:entry
+	int64 %p4
+	%p4 <- %p1 + %P2
+	int64 %p5
+	%p5 <- %p4 + %p3
+	return %p5
+}
+define int64 :sum4 (int64 %p1, int64 %p2, int64 %p3, int64 %p4){
+	:entry
+	int64 %p5
+	%p5 <- %p1 + %P2
+	int64 %p6
+	%p6 <- %p5 + %p3
+	int64 %p7
+	%p7 <- %p6 + %p4
+	return %p7
+}
+define int64 :substract (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 - %P2
+	return %p3
+}
+define int64 :substract3 (int64 %p1, int64 %p2, int64 %p3){
+	:entry
+	int64 %p4
+	%p4 <- %p1 - %P2
+	int64 %p5
+	%p5 <- %p4 - %p3
+	return %p5
+}
+define int64 :substract4 (int64 %p1, int64 %p2, int64 %p3, int64 %p4){
+	:entry
+	int64 %p5
+	%p5 <- %p1 - %P2
+	int64 %p6
+	%p6 <- %p5 - %p3
+	int64 %p7
+	%p7 <- %p6 - %p4
+	return %p7
+}
+define int64 :product (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 * %P2
+	return %p3
+}
+define int64 :product3 (int64 %p1, int64 %p2, int64 %p3){
+	:entry
+	int64 %p4
+	%p4 <- %p1 * %P2
+	int64 %p5
+	%p5 <- %p4 * %p3
+	return %p5
+}
+define int64 :product4 (int64 %p1, int64 %p2, int64 %p3, int64 %p4){
+	:entry
+	int64 %p5
+	%p5 <- %p1 * %P2
+	int64 %p6
+	%p6 <- %p5 * %p3
+	int64 %p7
+	%p7 <- %p6 * %p4
+	return %p7
+}
+define int64 :left_shift (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 << %P2
+	return %p3
+}
+define int64 :right_shift (int64 %p1, int64 %p2){
+	:entry
+	int64 %p3
+	%p3 <- %p1 >> %P2
+	return %p3
+}
+define tuple :createTuple(int64 %p1) {
+	:entry
+	int64 %value
+	%value <- 35
+	tuple %tuple_to_be_returned
+	%tuple_to_be_returned <- new Tuple(%p1)
+	%tuple_to_be_returned[0] <- 0
+	%tuple_to_be_returned[1] <- 1
+	%tuple_to_be_returned[2] <- 3
+	%tuple_to_be_returned[3] <- %value
+	return %tuple_to_be_returned
+}
+define int64 :encode (int64 %var) {
+     :entry
+     %var <- %var << 1
+     %var <- %var + 1
+     return %var
+}

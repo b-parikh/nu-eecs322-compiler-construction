@@ -1,0 +1,129 @@
+    define :main () { 
+        len <- call :encode(20)
+        init_v <- call :encode(0)
+        ptr <- call allocate (len, init_v)
+        vec_ptr_1 <- ptr
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        
+        len <- call :encode (5)
+        init_v <- call :encode (0)
+        vec_ptr_2 <- call allocate(len, init_v)
+        
+        call print (vec_ptr_1)
+        call print (vec_ptr_2)
+
+        combined <- call :extend_array(vec_ptr_1, vec_ptr_2)
+
+        call print (combined)
+        return
+    }
+
+    define :encode (data) {
+        data <- data << 1
+        data <- data + 1
+        return data
+    }
+ 
+    define :extend_array(vec_1, vec_2)
+        r12 <- rdi //pointer to array1
+        r13 <- rsi //pointer to array2
+
+        r8  -- size 1
+        rdi -- size 2
+        size_1 <- load vec_1
+        size_2 <- load vec_2
+        size_3 <- size_1 + size_2
+        size_3_e <- call :encode(size_3)
+        new_vec <-call allocate (size_3_e) // allocate output array with the sum of the two sizes
+        new_ptr <- new_vec
+
+        //copy first array
+        :loop1
+        vec_1 <- vec_1 + 8
+        new_ptr <- new_ptr + 8
+        over_1 <- size_1 = 0
+        br over_1 :finish1 :cont1
+
+        :cont1
+        v <- load vec_1
+        store new_ptr <- v
+        size_1 -= 1
+        br :loop1
+
+        :finish1
+        //copy second array
+        :loop2
+        vec_2 <- vec_2 + 8
+        over2 <- size_2 = 0
+        br size_2 :finish2 :cont2
+
+        :cont2
+        v <- load vec_2
+        store new_ptr <- v
+        new_ptr <- new_ptr 8
+        size_2 <- size_2 - 1
+        br :loop2
+        
+        :finish2
+        return new_vec
+    }

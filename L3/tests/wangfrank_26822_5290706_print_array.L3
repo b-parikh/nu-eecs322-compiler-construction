@@ -1,0 +1,128 @@
+    define :main () { 
+        len <- call :encode(30)
+        init_v <- call :encode(0)
+        ptr <- call allocate (len, init_v)
+        vec_ptr <- ptr
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(1)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(2)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(3)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(4)
+        store ptr <- val
+        ptr <- ptr + 8
+        val <- call :encode(5)
+        store ptr <- val
+
+        call print(vec_ptr)
+        call :print_array (vec_ptr)
+        return
+    }
+
+    define :encode (data) {
+        data <- data << 1
+        data <- data + 1
+        return data
+    }
+
+    define :print_array (vec_ptr) {
+        size <- load vec_ptr
+        size_e <- call :encode(size)
+        call print(size_e)
+        ptr <- vec_ptr
+        
+        :loop
+        ptr < ptr + 8
+        over <- size = 0
+        br over :finish :cont
+
+        :cont
+        ele <- load ptr
+        call print (ele)
+        size <- size - 1
+        br :loop
+
+        :finish
+        return
+    }
+

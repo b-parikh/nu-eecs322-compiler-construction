@@ -1,0 +1,12 @@
+(:go
+  (:go
+    0 0
+
+    // This is my comment
+
+  )
+
+  (:testFunction
+    1 2
+  )
+)

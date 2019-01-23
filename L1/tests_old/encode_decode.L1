@@ -1,0 +1,12 @@
+(:encode_decode
+ (:encode_decode
+  0 0
+  rdi <- 7
+  rdi <<= 1
+  rdi += 1
+  r13 <- rdi
+  call print 1 // print 7
+  rdi <- r13
+  rdi >>= 1
+  call print 1 // print 3 
+  return))

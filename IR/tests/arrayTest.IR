@@ -1,0 +1,72 @@
+define void :main() {
+  :entry
+  int64[][][] %ar
+  int64 %r
+
+  %ar <- new Array(5,7,9)
+  %ar[1][2][3] <- 7
+
+  %r <- call :findVal(%ar,7)
+
+  call print(%r)
+  return
+
+}
+
+
+define int64 :findVal(int64[][][] %A, int64 %v) {
+  :entry
+  call print(1)
+
+  int64 length0
+  int64 length1
+  int64 length2
+  int64 %i
+  int64 %j
+  int64 %k
+  int64 %temp
+  int64 %check
+
+  %length0 <- length %A 0
+  %length0 <- %length0 >> 1
+
+  %length1 <- length %A 1
+  %length1 <- %length1 >> 1
+
+  %length2 <- length %A 2
+  %length2 <- %length2 >> 1
+
+  %i <- 0
+  %j <- 0
+  %k <- 0
+
+  br :loop
+
+  :loop
+  %temp <- %A[%i][%j][%k]
+  %check <- %temp = %v
+  br %check :found :loopCheck
+
+  :loopCheck
+  %k <- %k + 1
+  %check <- %length2 = %k
+  br %check :resetK :loop
+
+  :resetK
+  %k <- 0
+  %j <- %j + 1
+  %check <- %length1 = %j
+  br %check :resetJ :loop
+
+  :resetJ
+  %j <- 0
+  %i <- %i + 1
+  %check <- %length0 = %i
+  br %check :ret :loop
+
+  :found
+  return 3
+
+  :ret
+  return 1
+}

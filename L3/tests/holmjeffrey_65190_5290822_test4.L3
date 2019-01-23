@@ -1,0 +1,129 @@
+define :main (){
+  counter <- 1
+  final <- 21
+  :do
+  call :printModifiedCounter (counter)
+  counter <- counter + 2
+  check <- counter >= final
+  br check :do :done
+  :done
+  call :printFinalCounter (counter)
+  counter <- counter >> 2
+  counter <- call :testCallOne (counter)
+  counter <- 3
+  counter <- counter + 2
+  check <- counter > 5
+  br check :sameLabel :sameLabel
+  :sameLabel
+  br check :diffLabel1 :diffLabel2
+  :diffLabel1
+  :diffLabel2
+  counter <- call :testCallTwo (counter)
+  :randomLabelCheck
+  :stringOfAssignsByCall
+  var <- call :testAssignOne ()
+  call print (var)
+  var <- call :testAssignTwo ()
+  call print (var)
+  var <- call :testAssignThree ()
+  call print (var)
+  var <- call :testAssignFour ()
+  call print (var)
+  var <- call :testAssignFive ()
+  call print (var)
+  var <- call testAssignSix ()
+  call print (var)
+  var <- call :testAssignSeven ()
+  call print (var)
+  var <- call :testAssignEight ()
+  call print (var)
+  var <- call :testASsignNine ()
+  call print (var)
+  var <- call :testAssignTen ()
+  call print (var)
+
+  return
+}
+
+define :testAssignOne () {
+  var <- 1
+  return var
+}
+
+define :testAssignTwo () {
+  var <- 2
+  return var
+}
+
+define :testAssignThree () {
+  var <- 3
+  var <- var + 1
+  var <- var < var
+  return var
+}
+
+define :testAssignFour () {
+  var <- 4
+  var <- var * var
+  var <- var = var
+  return var
+}
+
+define :testAssignFive () {
+  var <- 5
+  var <- 20
+  return var
+}
+
+define :testAssignSix () {
+  var <- 6
+  return 6
+}
+
+define :testAssignSeven () {
+  var <- 7
+  return 7  
+}
+
+define :testAssignEight () {
+  var <- 8
+  return 8
+}
+
+define :testAssignNine () {
+  var <- 9
+  return 9
+}
+
+define :testAssignTen () {
+  var <- 10
+  return 10
+}
+
+define :printModifiedCounter(counter) {
+  counter <- counter + 2
+  counter <- counter * 4
+  counter <- counter - 10
+  counter <- counter >> 1
+  call print (counter)
+  return
+}
+
+define :printFinalCounter(counter) {
+  call print (counter)
+  return
+}
+
+define :testCallOne (counter) {
+  call print (counter)
+  counter <- 3
+  counter2 <- 5
+  return counter2
+}
+
+define :testCallTwo (counter) {
+  call print (counter)
+  counter <- 5
+  counter2 <- counter
+  return counter2
+}

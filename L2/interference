@@ -1,0 +1,10 @@
+#!/bin/bash
+
+outputString=`./bin/L2 -g 0 -i -O0 $@` ;
+
+while read -r line ; do
+  var=`echo $line | awk '{print $1}'` ;
+  vars=`echo $line | awk '{$1="" ; print$0}'` ;
+  lineToPrint=`echo "$vars" | xargs -n1 | sort -u | xargs` ;
+  echo "$var $lineToPrint" ;
+done <<< "$outputString" ;

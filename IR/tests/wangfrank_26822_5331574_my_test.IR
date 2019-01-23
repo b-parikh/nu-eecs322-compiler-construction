@@ -1,0 +1,320 @@
+define void :main ( ){
+
+    :entry
+    int64[][][] %m
+    int64[] %r
+    int64 %v
+    int64 %l1
+    int64 %l2
+    int64 %l3
+    int64 %e_l1
+    int64 %e_l2
+    int64 %e_l3
+    %v <- 21
+    %l1 <- 10
+    %l2 <- 9
+    %l3 <- 8
+    %e_l1 <- call :encode(%l1)
+    %e_l2 <- call :encode(%l2)
+    %e_l3 <- call :encode(%l3)
+    %m <- new Array(%e_l1, %e_l2, %e_l3)
+    %r <- call :find(%m, %v)
+    call print(%r)
+    call :print_find_res(%r)
+    
+    
+    int64 %sum
+    %m[0][0][0] <- %v
+    %r <- call :find(%m, %v)
+    %m[0][0][0] <- 11
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+    
+    %m[0][1][1] <- %v
+    %r <- call :find(%m, %v)
+    %m[0][1][1] <- 13
+    %sum <- call :compute_sum(%m)
+    call print(%sum)    
+    call print(%r)
+    call :print_find_res(%r)
+    
+    %m[1][0][2] <- %v
+    %r <- call :find(%m, %v)
+    %m[1][0][2] <- 15
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+    
+    %m[3][0][3] <- %v
+    %r <- call :find(%m, %v)
+    %m[3][0][3] <- 17
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+
+    %m[3][1][4] <- %v
+    %r <- call :find(%m, %v)
+    %m[3][1][4] <- 19
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+
+    %m[3][3][2] <- %v
+    %r <- call :find(%m, %v)
+    %m[3][3][2] <- 21
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+    
+    %m[4][2][4] <- %v
+    %r <- call :find(%m, %v)
+    %m[4][2][4] <- 31
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+
+    %m[4][3][1] <- %v
+    %r <- call :find(%m, %v)
+    %m[4][3][1] <- 31
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+
+    %m[3][3][1] <- %v
+    %r <- call :find(%m, %v)
+    %m[3][3][1] <- 31
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+
+    %m[1][0][4] <- %v
+    %r <- call :find(%m, %v)
+    %m[1][0][4] <- 31
+    %sum <- call :compute_sum(%m)
+    call print(%sum)
+    call print(%r)
+    call :print_find_res(%r)
+
+    return
+
+}
+
+define int64 :compute_sum(int64[][][] %m){
+
+    :entry
+    int64 %l1
+    int64 %l2
+    int64 %l3
+    int64 %l1encoded
+    int64 %l2encoded
+    int64 %l3encoded
+    %l1encoded <- length %m 0
+    %l2encoded <- length %m 1
+    %l3encoded <- length %m 2
+    call print(%l1encoded)
+    call print(%l2encoded)
+    call print(%l3encoded)
+    %l1 <- %l1encoded >> 1
+    %l2 <- %l2encoded >> 1
+    %l3 <- %l3encoded >> 1
+    br :init
+
+    :init
+    int64 %index
+    int64 %sum
+    %sum <- 0
+    %index <- 0
+    br :header
+
+    :header
+    int64 %check
+    %check <- %index < %l1
+    br %check :outerBody :leave
+
+    :outerBody
+    int64 %index2
+    %index2 <- 0
+    br :header2
+
+    :header2
+    int64 %check2
+    %check2 <- %index2 < %l2
+    br %check2 :innerBody :endOuterBody
+
+    :innerBody
+    int64 %index3
+    %index3 <- 0
+    br :header3  
+
+    :header3
+    int64 %check3
+    %check3 <- %index3 < %l3
+    br %check3 :Body3 :endInnerBody
+
+    :Body3
+    int64 %e
+    int64 %d
+    %e <- %m[%index][%index2][%index3]
+    %d <- %e >> 1
+    %sum <- %sum + %d
+    br :endBody3
+
+    :endBody3
+    %index3 <- %index3 + 1
+    br :header3
+
+    :endInnerBody
+    %index2 <- %index2 + 1
+    br :header2
+
+    :endOuterBody
+    %index <- %index + 1
+    br :header
+
+    :leave
+    %sum <- call :encode(%sum)
+    return %sum
+
+}
+
+
+
+define void :print_find_res (int64[] %res) {
+    :entry
+    int64 %l
+    int64 %e_l
+    %e_l <- length %res 0
+    %l <- %e_l >> 1
+    br :init
+
+    :init
+    int64 %index
+    %index <- 0
+    br :Header
+
+    :Header
+    int64 %check
+    %check <- %index < %l
+    br %check :Body :End
+
+    :Body
+    int64 %pos
+    %pos <- %res[%index]
+    call print(%pos)
+    %index <- %index + 1
+    br :Header
+
+    :End
+    return
+}
+
+define int64[] :find (int64[][][] %m, int64 %v){
+
+    :entry
+    int64 %l1
+    int64 %l2
+    int64 %l3
+    int64 %l1encoded
+    int64 %l2encoded
+    int64 %l3encoded
+    %l1encoded <- length %m 0
+    %l2encoded <- length %m 1
+    %l3encoded <- length %m 2
+    call print(%l1encoded)
+    call print(%l2encoded)
+    call print(%l3encoded)
+    %l1 <- %l1encoded >> 1
+    %l2 <- %l2encoded >> 1
+    %l3 <- %l3encoded >> 1
+    br :init
+
+    :init
+    int64 %index
+    int64[] %res
+    %res <- new Array(7)
+    %res[0] <- -1
+    %res[1] <- -1
+    %res[2] <- -1
+    %index <- 0
+    br :header
+
+    :header
+    int64 %check
+    %check <- %index < %l1
+    br %check :outerBody :leave
+
+    :outerBody
+    int64 %index2
+    %index2 <- 0
+    br :header2
+
+    :header2
+    int64 %check2
+    %check2 <- %index2 < %l2
+    br %check2 :innerBody :endOuterBody
+
+    :innerBody
+    int64 %index3
+    %index3 <- 0
+    br :header3  
+
+    :header3
+    int64 %check3
+    %check3 <- %index3 < %l3
+    br %check3 :Body3 :endInnerBody
+
+    :Body3
+    int64 %e
+    int64 %sameE
+    %e <- %m[%index][%index2][%index3]
+    %sameE <- %e = %v
+    br %sameE :setAndLeave :endBody3
+
+    :endBody3
+    %index3 <- %index3 + 1
+    br :header3
+
+    :endInnerBody
+    %index2 <- %index2 + 1
+    br :header2
+
+    :endOuterBody
+    %index <- %index + 1
+    br :header
+
+    :setAndLeave
+    int64 %e_i
+    int64 %e_i2
+    int64 %e_i3
+    %e_i <- %index << 1
+    %e_i <- %e_i + 1
+    %e_i2 <- %index2 << 1
+    %e_i2 <- %e_i2 + 1
+    %e_i3 <- %index3 << 1
+    %e_i3 <- %e_i3 + 1
+    %res[0] <- %e_i
+    %res[1] <- %e_i2
+    %res[2] <- %e_i3
+    br :leave
+
+    :leave
+    return %res
+
+}
+
+define int64 :encode (int64 %unencoded) {
+    :entry
+    int64 %encoded
+    %encoded <- %unencoded << 1
+    %encoded <- %encoded + 1
+    return %encoded
+}

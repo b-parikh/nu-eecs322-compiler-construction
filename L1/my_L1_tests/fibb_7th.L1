@@ -1,0 +1,38 @@
+// Biraj Parikh
+// EECS 322 W19
+// print fibbonacci's 7th number
+
+(:main
+	(:main
+		0 0
+		r11 <- 15  // print 7th number
+		r12 <- 5 // counter
+		rdi <- 1 // initialize 1st number to 0
+		rsi <- 3 // initialize 2nd number to 1
+	
+		:loop
+		// summing the previous two numbers
+		r13 <- rdi
+		r13 += rsi
+		r13--
+		//rdi <- r13
+		// convert encoded value into decoded value
+		r13 >>= 1
+		//rdi <- r13
+		// convert decoded into encoded
+		r13 <<= 1
+		r13 += 1 // sum of two previous values is now in r13 
+
+		rdx <- r13
+		rdi <- rsi
+		rsi <- rdx
+		// increment counter and loop
+		r12 += 2 
+		cjump r12 < r11 :loop :ret
+		
+		:ret
+		rdi <- rdx
+		call print 1
+		return
+	)
+)

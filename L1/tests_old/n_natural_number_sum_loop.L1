@@ -1,0 +1,18 @@
+// sums together 0 + 1 + 2 + ... + 9
+(:go
+  (:go
+	0 0
+	rdi <- 21 // 21, 10
+	rsi <- 3 // 3,1 ; 5,2 ; 7,3 ; 9, 4 ; ...
+	rdx <- 1 // 1,0 ; 3,1 ; 7,3 ; 13, 6 ; ...
+	:loop
+	cjump rsi < rdi :continue :exit
+	:continue
+	rdx += rsi
+	rdx -= 1
+	rsi += 2
+	goto :loop
+	:exit
+	rdi <- rdx
+	call print 1
+	return))

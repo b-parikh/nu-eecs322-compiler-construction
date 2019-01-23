@@ -1,0 +1,19 @@
+void main ( ){
+
+  int64[][][] %a
+  %a <- new Array(2,3,4)
+  call print(%a)
+  call initArray(%a)
+  int64 %e
+  %e <- %a[1][2][3]
+  call print(%e)
+  return 
+
+}
+
+void initArray (int64[][][] %A){
+
+  %A[1][2][3] <- 42
+  return
+
+}

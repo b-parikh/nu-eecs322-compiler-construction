@@ -1,0 +1,213 @@
+(:main
+  (:main
+    0 0
+    rdi <- 5
+    rsi <- 3
+    call allocate 2
+    %array <- rax
+    rdi <- %array
+    call print 1
+    rdi <- %array
+    mem rsp -8 <- :call_label3
+    call :printArrayBackwards 1
+    :call_label3
+    rdi <- %array
+    rsi <- 2
+    mem rsp -8 <- :call_label4
+    call :getArrayElementByIndexPlusOne 2
+    :call_label4
+    %element <- rax
+    rdi <- %element
+    call print 1
+    %length <- mem %array 0 
+    %index <- 1
+    :call_label0
+    %sign <- %index <= %length
+    
+    cjump %sign = 1 :call_label1 :call_label2
+    :call_label1
+    rdi <- %array
+    rsi <- %index
+    mem rsp -8 <- :call_label5
+    call :getArrayElementByIndexPlusOne 2
+    :call_label5
+    %element <- rax
+    rdi <- %element
+    call print 1
+    %index <- %index
+    %index += 1
+    goto :call_label0
+    :call_label2
+    return
+  )
+  (:isAddress
+    1 0
+    %p1 <- rdi
+    %p2 <- %p1
+    %p2 &= 1
+    %p2 <- %p2 = 0
+    
+    cjump %p2 = 1 :call_label_ciao_6 :call_label_ciao_7
+    :call_label_ciao_6
+    rax <- 1
+    return
+    :call_label_ciao_7
+    rax <- 0
+    return
+  )
+  (:encode
+    1 0
+    %var <- rdi
+    :call_label_ciao__ciao_8
+    %var <- %var
+    %var <<= 1
+    %var <- %var
+    %var += 1
+    rax <- %var
+    return
+  )
+  (:increaseOne
+    1 0
+    %p1 <- rdi
+    %p5 <- %p1
+    %p5 += 1
+    rax <- %p5
+    return
+  )
+  (:decreaseOne
+    1 0
+    %p1 <- rdi
+    %p5 <- %p1
+    %p5 -= 1
+    rax <- %p5
+    return
+  )
+  (:getArrayElementByIndexPlusOne
+    2 0
+    %array <- rdi
+    %index <- rsi
+    %addr @ %array %index 8
+    %element <- mem %addr 0 
+    rax <- %element
+    return
+  )
+  (:printArrayElementByIndex
+    2 0
+    %array <- rdi
+    %index <- rsi
+    rdi <- %index
+    mem rsp -8 <- :call_label_ciao__ciao__ciao_9
+    call :increaseOne 1
+    :call_label_ciao__ciao__ciao_9
+    %index <- rax
+    %addr @ %array %index 8
+    %element <- mem %addr 0 
+    rdi <- %element
+    call print 1
+    return
+  )
+  (:printArrayBackwards
+    1 0
+    %array <- rdi
+    rdi <- %A1
+    mem rsp -8 <- :call_label_ciao__ciao__ciao__ciao_15
+    call :isAddress 1
+    :call_label_ciao__ciao__ciao__ciao_15
+    %is_A1_address <- rax
+    cjump %is_A1_address = 1 :call_label_ciao__ciao__ciao__ciao_10 :call_label_ciao__ciao__ciao__ciao_14
+    :call_label_ciao__ciao__ciao__ciao_10
+    %length <- mem %array 0 
+    %index <- %length
+    %index -= 1
+    :call_label_ciao__ciao__ciao__ciao_11
+    %tmp <- 0 <= %index
+    
+    cjump %tmp = 1 :call_label_ciao__ciao__ciao__ciao_12 :call_label_ciao__ciao__ciao__ciao_13
+    :call_label_ciao__ciao__ciao__ciao_12
+    rdi <- %array
+    rsi <- %index
+    mem rsp -8 <- :call_label_ciao__ciao__ciao__ciao_16
+    call :printArrayElementByIndex 2
+    :call_label_ciao__ciao__ciao__ciao_16
+    %index <- %index
+    %index -= 1
+    goto :call_label_ciao__ciao__ciao__ciao_11
+    :call_label_ciao__ciao__ciao__ciao_13
+    :call_label_ciao__ciao__ciao__ciao_14
+    return
+  )
+  (:isEqual
+    2 0
+    %p1 <- rdi
+    %p2 <- rsi
+    %p3 <- %p1 = %P2
+    
+    cjump %p3 = 1 :call_label_ciao__ciao__ciao__ciao__ciao_17 :call_label_ciao__ciao__ciao__ciao__ciao_18
+    :call_label_ciao__ciao__ciao__ciao__ciao_17
+    rax <- 1
+    return
+    :call_label_ciao__ciao__ciao__ciao__ciao_18
+    rax <- 0
+    return
+  )
+  (:getSamller
+    2 0
+    %p1 <- rdi
+    %p2 <- rsi
+    rdi <- %p1
+    rsi <- %p2
+    mem rsp -8 <- :call_label_ciao__ciao__ciao__ciao__ciao__ciao_21
+    call :isSmallerAndEqual 2
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao_21
+    %sign <- rax
+    cjump %sign = 1 :call_label_ciao__ciao__ciao__ciao__ciao__ciao_19 :call_label_ciao__ciao__ciao__ciao__ciao__ciao_20
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao_19
+    rax <- %p1
+    return
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao_20
+    rax <- %p2
+    return
+  )
+  (:isSmaller
+    2 0
+    %p1 <- rdi
+    %p2 <- rsi
+    %p3 <- %p1 < 1
+    
+    cjump %p3 = 1 :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao_22 :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao_23
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao_22
+    rax <- 1
+    return
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao_23
+    rax <- 0
+    return
+  )
+  (:isSmallerAndEqual
+    2 0
+    %p1 <- rdi
+    %p2 <- rsi
+    %p3 <- %p1 <= 1
+    
+    cjump %p3 = 1 :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao_24 :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao_25
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao_24
+    rax <- 1
+    return
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao_25
+    rax <- 0
+    return
+  )
+  (:getArrayElementByIndex
+    2 0
+    %array <- rdi
+    %index <- rsi
+    rdi <- %index
+    mem rsp -8 <- :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao_26
+    call :increaseOne 1
+    :call_label_ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao__ciao_26
+    %index <- rax
+    %addr @ %array %index 8
+    %element <- mem %addr 0 
+    rax <- %element
+    return
+  )
+)
