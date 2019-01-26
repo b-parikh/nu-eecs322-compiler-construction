@@ -151,7 +151,7 @@ namespace L1 {
       seps,
       pegtl::one< ')' >,
       seps
-    > { };
+    > {};
 
   struct grammar : 
     pegtl::must< 
@@ -177,7 +177,14 @@ namespace L1 {
       pegtl::string<'r','9'>,
       pegtl::string<'r','s','p'>
    > {};
-  
+
+  struct assign_operator:
+    pegtl::seq<
+      seps,
+      pegtl::string<'<','-'>,
+      seps
+    > {};
+
   struct mem:
     pegtl::seq<
      seps,
@@ -188,6 +195,24 @@ namespace L1 {
      number
     > {};
 
+  struct assignment:
+    // left side
+    pegtl::seq<
+      seps,
+      pegtl::sor<reg, mem>,
+      seps,
+
+      assign_operator,
+
+      // right side
+      seps,
+      pegtl::sor<
+        reg,
+        mem,
+        number,
+        label>,
+      seps
+    > {};
   /* 
    * Actions attached to grammar rules.
    */
@@ -247,6 +272,10 @@ namespace L1 {
       parsed_registers.push_back(i);
     }
   };
+
+//  template<> struct action < reg > {
+//    template < typename Input >
+//        static void apply (const Input &in, Program &p) {
 
   Program parse_file (char *fileName){
 

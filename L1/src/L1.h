@@ -12,6 +12,7 @@ namespace L1 {
    * Instruction interface.
    */
   struct Instruction{
+    std::vector<Item> items;
   };
 
   /*

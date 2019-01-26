@@ -13,39 +13,41 @@ namespace L1{
     /* 
      * Open the output file.
      */ 
-    //std::ofstream outputFile;
-    //outputFile.open("prog.S");
-    FILE* outputFile;
-    outputFile = fopen("prog.S", "w"); 
+    std::ofstream outputFile;
+    outputFile.open("prog.S");
     /* 
      * Generate target code
      */ 
-
+ 
     //TODO
-    fprintf(outputFile,
-"       .text\n"
-"       \t.globl go\n"
-"         go:\n"
-"         \tpushq %rbx\n"
-"         \tpushq %rbp\n"
-"         \tpushq %r12\n"
-"         \tpushq %r13\n"
-"         \tpushq %r14\n"
-"         \tpushq %r15\n"
-"         \t call %s\n"
-"         \tpopq %r15\n"
-"         \tpopq %r14\n"
-"         \tpopq %r13\n"
-"         \tpopq %r12\n"
-"         \tpopq %rbp\n"
-"	 \tpopq %rbx\n"
-"	 \tretq\n",progNameModifier(p.entryPointLabel).c_str());
+     outputFile <<  
+       ".text\n"
+       "\t.globl go\n"
+        "go:\n"
+         "\tpushq %rbx\n"
+         "\tpushq %rbp\n"
+         "\tpushq %r12\n"
+         "\tpushq %r13\n"
+         "\tpushq %r14\n"
+         "\tpushq %r15\n"
+         "\tcall " <<  progNameModifier(p.entryPointLabel) << "\n"
+         "\tpopq %r15\n"
+         "\tpopq %r14\n"
+         "\tpopq %r13\n"
+         "\tpopq %r12\n"
+         "\tpopq %rbp\n"
+	 "\tpopq %rbx\n"
+	 "\tretq\n\n";
 
+
+    int vector_size = p.functions.size();
+    for(int i = 0; i < vector_size; ++i) {
+	   outputFile << progNameModifier(p.functions[i]->name) << ":\n";
+    } 
     /* 
      * Close the output file.
      */ 
-    //outputFile.close();
-    fclose(outputFile);
+    outputFile.close();
     return ;
   }
 
@@ -53,6 +55,6 @@ namespace L1{
   string progNameModifier(string inputLabel) {
     inputLabel.at(0) = '_';
     return inputLabel;
+    }
   }
 
-}

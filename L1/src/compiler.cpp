@@ -26,7 +26,7 @@ int main(
   int argc, 
   char **argv
   ){
-  auto enable_code_generator = false;
+  auto enable_code_generator = true;
   int32_t optLevel = 0;
   bool verbose;
 
