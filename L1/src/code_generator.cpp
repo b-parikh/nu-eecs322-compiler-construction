@@ -8,6 +8,7 @@
 using namespace std;
 
 namespace L1{
+
   void generate_code(Program p){
 
     /* 
@@ -42,8 +43,16 @@ namespace L1{
 
     int vector_size = p.functions.size();
     for(int i = 0; i < vector_size; ++i) {
-	   outputFile << progNameModifier(p.functions[i]->name) << ":\n";
-    } 
+           auto fp = p.functions[i];
+	   outputFile << progNameModifier(fp->name) << ":\n";
+	   // add func arg # and local #
+	   // function to iterate through instructions vector
+	   for (Instruction* ip : fp->instructions) {
+	       if(ip->identifier == 0)
+		  write_assignment(ip, outputFile);
+	   }
+    }
+
     /* 
      * Close the output file.
      */ 
@@ -57,4 +66,49 @@ namespace L1{
     return inputLabel;
     }
   }
+
+  void write_assignment(Instruction* ip, std::ofstream &outputFile) {
+        int instruction_length = (ip->items).size();
+	outputFile << "moveq ";
+	if (instruction_length == 3) {
+	   Item dest = ip->items[0];
+	   Item src = ip->items[2]; 
+
+	   if (src.labelName[0] == 'r') // reg <- reg
+	      src.labelName = '%' + src.labelName;
+	   else if (src.labelName[0] == ':') // reg <- label
+	      src.labelName = '$' + labelModifier(src.labelName);
+	   else // reg <- const
+	      src.labelName = '$' + src.labelName;
+           outputFile << src.labelName << ", " << dest.labelName << '\n';
+
+	} else { 
+		if (ip->items[0] == "mem") { // store into memory
+		   Item dest = ip->items[1];
+		   Item offset = ip->items[2];
+		   Item src = ip->items[4]; 
+		   if (src.labelName[0] == 'r') { // mem <- reg
+		      src.labelName = '%' + src.labelName;
+		   }
+		   else if (src.labelName[0] == ':') { // mem <- label
+		      src.labelName = '$' + labelModifier(src.labelName);
+		   } else { // mem <- const
+		      src.labelName = '$' + src.labelName;
+		   }
+		}
+	        outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
+	  }
+
+	 else { // reg <- mem
+	    Item src = ip->items[3];
+	    Item dest = ip->items[0];
+	    Item offset = ip->items[4];
+
+ 	    outputFile << offset.labelName << "(%" << src.labelName << "), " << dest.labelName << '\n'; 
+		}
+	}
+  }
+
+
+
 

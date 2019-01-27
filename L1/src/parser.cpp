@@ -104,60 +104,62 @@ namespace L1 {
       str_return
     > { };
 
-  struct Instruction_rule:
-    pegtl::sor<
-      pegtl::seq< pegtl::at<Instruction_return_rule>            , Instruction_return_rule             >
-    > { };
-
-  struct Instructions_rule:
-    pegtl::plus<
-      pegtl::seq<
-        seps,
-        Instruction_rule,
-        seps
-      >
-    > { };
-
-  struct Function_rule:
-    pegtl::seq<
-      pegtl::one< '(' >,
-      seps,
-      function_name,
-      seps,
-      argument_number,
-      seps,
-      local_number,
-      seps,
-      Instructions_rule,
-      seps,
-      pegtl::one< ')' >
-    > {};
-
-  struct Functions_rule:
-    pegtl::plus<
-      seps,
-      Function_rule,
-      seps
-    > {};
-
-  struct entry_point_rule:
-    pegtl::seq<
-      seps,
-      pegtl::one< '(' >,
-      seps,
-      label,
-      seps,
-      Functions_rule,
-      seps,
-      pegtl::one< ')' >,
-      seps
-    > {};
-
-  struct grammar : 
-    pegtl::must< 
-      entry_point_rule
-    > {};
-
+//  struct Instruction_rule:
+//    pegtl::sor<
+//      pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>,
+//      pegtl::seq< pegtl::at<assignment>, assignment>,
+//      // insert all instructions
+//    > { };
+//
+//  struct Instructions_rule:
+//    pegtl::plus<
+//      pegtl::seq<
+//        seps,
+//        Instruction_rule,
+//        seps
+//      >
+//    > { };
+//
+//  struct Function_rule:
+//    pegtl::seq<
+//      pegtl::one< '(' >,
+//      seps,
+//      function_name,
+//      seps,
+//      argument_number,
+//      seps,
+//      local_number,
+//      seps,
+//      Instructions_rule,
+//      seps,
+//      pegtl::one< ')' >
+//    > {};
+//
+//  struct Functions_rule:
+//    pegtl::plus<
+//      seps,
+//      Function_rule,
+//      seps
+//    > {};
+//
+//  struct entry_point_rule:
+//    pegtl::seq<
+//      seps,
+//      pegtl::one< '(' >,
+//      seps,
+//      label,
+//      seps,
+//      Functions_rule,
+//      seps,
+//      pegtl::one< ')' >,
+//      seps
+//    > {};
+//
+//  struct grammar : 
+//    pegtl::must< 
+//      entry_point_rule
+//    > {};
+//
   /*
    *
    * Our wprks
@@ -184,14 +186,8 @@ namespace L1 {
    > {};
 
   struct mem:
-    pegtl::seq<
-     seps,
-     pegtl::string<'m','e','m'>,
-     seps,
-     reg,
-     seps,
-     number
-    > {};
+     pegtl::string<'m', 'e', 'm'>
+  {};
 
   /* 
    * instructions
@@ -247,15 +243,15 @@ namespace L1 {
 	// <<=, >>=
     > {};
 
-  struct jumps:
-    pegtl::seq<
-	  seps,
-	  pegtl::opt<
-		pegtl::string<'g', 'o', 't', 'o'>,
-		seps,
-	  >
-      label
-    > {};
+//  struct jumps:
+//    pegtl::seq<
+//	  seps,
+//	  pegtl::opt<
+//		pegtl::string<'g', 'o', 't', 'o'>,
+//		seps
+//	  >
+//      label
+//    > {};
 
   struct cjump:
     pegtl::seq<
@@ -279,6 +275,61 @@ namespace L1 {
     // w @ w w E
     > {};
 
+  struct Instruction_rule:
+    pegtl::sor<
+      pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>,
+      pegtl::seq< pegtl::at<assignment>, assignment>
+      // insert all instructions
+    > { };
+
+  struct Instructions_rule:
+    pegtl::plus<
+      pegtl::seq<
+        seps,
+        Instruction_rule,
+        seps
+      >
+    > { };
+
+  struct Function_rule:
+    pegtl::seq<
+      pegtl::one< '(' >,
+      seps,
+      function_name,
+      seps,
+      argument_number,
+      seps,
+      local_number,
+      seps,
+      Instructions_rule,
+      seps,
+      pegtl::one< ')' >
+    > {};
+
+  struct Functions_rule:
+    pegtl::plus<
+      seps,
+      Function_rule,
+      seps
+    > {};
+
+  struct entry_point_rule:
+    pegtl::seq<
+      seps,
+      pegtl::one< '(' >,
+      seps,
+      label,
+      seps,
+      Functions_rule,
+      seps,
+      pegtl::one< ')' >,
+      seps
+    > {};
+
+  struct grammar : 
+    pegtl::must< 
+      entry_point_rule
+    > {};
 
   /* 
    * Actions attached to grammar rules.
@@ -344,12 +395,60 @@ namespace L1 {
    * Our works
    */
 
+  template<> struct action < reg > {
+    template < typename Input >
+        static void apply (const Input &in, Program &p) {
+	   Item i;
+           i.labelName = in.string();
+	   parsed_registers.push_back(i);
+         }
+  };
+
+  
+  template<> struct action < assign_operator  > {
+    template < typename Input >
+        static void apply (const Input &in, Program &p) {
+	   Item i;
+           i.labelName = in.string();
+	   parsed_registers.push_back(i);
+         }
+  };
+
+   
+  template<> struct action < mem > {
+    template < typename Input >
+        static void apply (const Input &in, Program &p) {
+	   Item i;
+           i.labelName = in.string();
+	   parsed_registers.push_back(i);
+         }
+  };
 
 
-//  template<> struct action < reg > {
-//    template < typename Input >
-//        static void apply (const Input &in, Program &p) {
+  template<> struct action < number > {
+    template < typename Input >
+        static void apply (const Input &in, Program &p) {
+	   Item i;
+           i.labelName = in.string();
+	   parsed_registers.push_back(i);
+         }
+  };
 
+  template<> struct action < assignment > {
+    template < typename Input >
+        static void apply (const Input &in, Program &p) {
+           auto currFunc = p.functions.back();
+           Instruction* i = new Instruction(); // instruction will be reversed when generating x86
+  	   i->identifier = 0;
+           for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
+ 	 	auto currItemP = it;
+		(i->items).push_back(*currItemP);
+	   }
+
+	   currFunc->instructions.push_back(i);
+  	   parsed_registers.clear(); 
+    }
+  };
   Program parse_file (char *fileName){
 
     /* 
