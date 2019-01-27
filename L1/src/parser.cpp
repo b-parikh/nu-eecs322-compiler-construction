@@ -159,9 +159,10 @@ namespace L1 {
     > {};
 
   /*
+   *
    * Our wprks
+   *
    */
-
   struct reg:
     pegtl::sor<
       pegtl::string<'r','a','x'>,
@@ -195,7 +196,6 @@ namespace L1 {
   /* 
    * instructions
    */
-
   struct assign_operator:
     pegtl::seq<
       seps,
@@ -228,10 +228,19 @@ namespace L1 {
 	// +=, -=, *=, &=
 	> {};
 
-  struct comparisons:
+  struct comparison_operator:
     pegtl::seq<
-	// <, <=, = 
+	  pegtl::sor<
+		pegtl::one<'<'>,
+		pegtl::one<'='>,
+		pegtl::string<'<', '='>
+	  >
     > {};
+
+  struct assign_comparison:
+	pegtl::seq<
+
+	> {};
 
   struct shiftings:
     pegtl::seq<
@@ -240,7 +249,12 @@ namespace L1 {
 
   struct jumps:
     pegtl::seq<
-	// label, goto
+	  seps,
+	  pegtl::opt<
+		pegtl::string<'g', 'o', 't', 'o'>,
+		seps,
+	  >
+      label
     > {};
 
   struct cjump:
@@ -327,7 +341,7 @@ namespace L1 {
   };
 
   /*
-   * Our wprks
+   * Our works
    */
 
 
