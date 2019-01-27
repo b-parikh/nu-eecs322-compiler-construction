@@ -15,7 +15,7 @@ namespace L1{
 
   void write_assignment(Instruction* ip, std::ofstream& outputFile) {
     int instruction_length = (ip->items).size();
-	outputFile << "moveq ";
+	outputFile << "movq ";
 	if (instruction_length == 3) {
 	   Item dest = ip->items[0];
 	   Item src = ip->items[2]; 
@@ -26,7 +26,7 @@ namespace L1{
 	      src.labelName = '$' + labelModifier(src.labelName);
 	   else // reg <- const
 	      src.labelName = '$' + src.labelName;
-       outputFile << src.labelName << ", " << dest.labelName << '\n';
+       outputFile << src.labelName << ", %" << dest.labelName << '\n';
 	} else { 
 		if (ip->items[0].labelName == "mem") { // store into memory
 		   Item dest = ip->items[1];
@@ -51,7 +51,9 @@ namespace L1{
 	}
   }
 
-
+  void write_return(Instruction* ip, std::ofstream& outputFile) {
+	outputFile << "retq\n";
+  }
   void generate_code(Program p){
 
     /* 
@@ -86,14 +88,21 @@ namespace L1{
 
     int vector_size = p.functions.size();
     for(int i = 0; i < vector_size; ++i) {
+       std::cout << "p.functions.size() = " <<  vector_size << '\n'; // 2
        auto fp = p.functions[i];
-	   outputFile << labelModifier(fp->name) << ":\n";
+       std::cout << "fp->instructions.size() = " << fp->instructions.size() << '\n';
+       outputFile << labelModifier(fp->name) << ":\n";
 	   // add func arg # and local #
 	   // function to iterate through instructions vector
 	   for (Instruction* ip : fp->instructions) {
-	       if(ip->identifier == 0)
-			 write_assignment(ip, outputFile);
+	        //std::cout << "2nd for loop" << '\n';
+		//std::cout << ip->items[0].labelName << '\n';	
+	        if(ip->identifier == 0)
+	 	    write_assignment(ip, outputFile);
+		else if(ip->identifier == 1)
+		   write_return(ip, outputFile);
 	   }
+	std::cout << vector_size << '\n'; // doesn't print
     }
 
     /* 

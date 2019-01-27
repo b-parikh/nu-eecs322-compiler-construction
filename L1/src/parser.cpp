@@ -281,22 +281,22 @@ namespace L1 {
 	  seps
     > {};
 
-  struct inst:
-	pegtl::sor<
-       pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>,
-       pegtl::seq< pegtl::at<assignment>, assignment>
-	> {};
+//  struct inst:
+//	pegtl::sor<
+//       pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>,
+//       pegtl::seq< pegtl::at<assignment>, assignment>
+//	> {};
 
 
   struct Instruction_rule:
-    pegtl::seq<
-		seps,
-		pegtl::plus<inst>
       // insert all instructions
+       pegtl::sor<
+       pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>,
+       pegtl::seq< pegtl::at<assignment>, assignment>
     > { };
 
   struct Instructions_rule:
-    pegtl::plus<
+    pegtl::star<
       pegtl::seq<
         seps,
         Instruction_rule,
@@ -390,7 +390,8 @@ namespace L1 {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
       auto currentF = p.functions.back();
-      auto i = new Instruction_ret();
+      auto i = new Instruction();
+      i->identifier = 1;
       currentF->instructions.push_back(i);
     }
   };
@@ -420,9 +421,9 @@ namespace L1 {
   template<> struct action < assign_operator  > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-	   Item i;
+       Item i;
        i.labelName = in.string();
-	   parsed_registers.push_back(i);
+       parsed_registers.push_back(i);
     }
   };
 
@@ -447,16 +448,16 @@ namespace L1 {
   template<> struct action < assignment > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-		auto currFunc = p.functions.back();
+	auto currFunc = p.functions.back();
         Instruction* i = new Instruction(); // instruction will be reversed when generating x86
-		i->identifier = 0;
+	i->identifier = 0;
         for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
- 	 	  auto currItemP = it;
-		  i->items.push_back(*currItemP);
-	    }
+  	  auto currItemP = it;
+	  i->items.push_back(*currItemP);
+        }
 
-	    currFunc->instructions.push_back(i);
-  	    parsed_registers.clear(); 
+        currFunc->instructions.push_back(i);
+ 	parsed_registers.clear(); 
     }
   };
 
