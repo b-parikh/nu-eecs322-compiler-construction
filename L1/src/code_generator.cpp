@@ -1,13 +1,57 @@
-//#include <string>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
-
 #include <code_generator.h>
 
 using namespace std;
 
 namespace L1{
+
+  string labelModifier(string inputLabel) {
+    inputLabel.at(0) = '_';
+    return inputLabel;
+  }
+
+  void write_assignment(Instruction* ip, std::ofstream &outputFile) {
+        int instruction_length = (ip->items).size();
+	outputFile << "moveq ";
+	if (instruction_length == 3) {
+	   Item dest = ip->items[0];
+	   Item src = ip->items[2]; 
+
+	   if (src.labelName[0] == 'r') // reg <- reg
+	      src.labelName = '%' + src.labelName;
+	   else if (src.labelName[0] == ':') // reg <- label
+	      src.labelName = '$' + labelModifier(src.labelName);
+	   else // reg <- const
+	      src.labelName = '$' + src.labelName;
+           outputFile << src.labelName << ", " << dest.labelName << '\n';
+
+	} else { 
+		if (ip->items[0].labelName == "mem") { // store into memory
+		   Item dest = ip->items[1];
+		   Item offset = ip->items[2];
+		   Item src = ip->items[4]; 
+		   if (src.labelName[0] == 'r') { // mem <- reg
+		      src.labelName = '%' + src.labelName;
+		   }
+		   else if (src.labelName[0] == ':') { // mem <- label
+		      src.labelName = '$' + labelModifier(src.labelName);
+		   } else { // mem <- const
+		      src.labelName = '$' + src.labelName;
+		   }
+	       outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
+		} else { // reg <- mem
+		   Item src = ip->items[3];
+	       Item dest = ip->items[0];
+	       Item offset = ip->items[4];
+
+ 	       outputFile << offset.labelName << "(%" << src.labelName << "), " << dest.labelName << '\n'; 
+		}
+	}
+  }
+
 
   void generate_code(Program p){
 
@@ -31,7 +75,7 @@ namespace L1{
          "\tpushq %r13\n"
          "\tpushq %r14\n"
          "\tpushq %r15\n"
-         "\tcall " <<  progNameModifier(p.entryPointLabel) << "\n"
+         "\tcall " <<  labelModifier(p.entryPointLabel) << "\n"
          "\tpopq %r15\n"
          "\tpopq %r14\n"
          "\tpopq %r13\n"
@@ -44,7 +88,7 @@ namespace L1{
     int vector_size = p.functions.size();
     for(int i = 0; i < vector_size; ++i) {
            auto fp = p.functions[i];
-	   outputFile << progNameModifier(fp->name) << ":\n";
+	   outputFile << labelModifier(fp->name) << ":\n";
 	   // add func arg # and local #
 	   // function to iterate through instructions vector
 	   for (Instruction* ip : fp->instructions) {
@@ -59,56 +103,5 @@ namespace L1{
     outputFile.close();
     return ;
   }
-
-
-  string progNameModifier(string inputLabel) {
-    inputLabel.at(0) = '_';
-    return inputLabel;
-    }
-  }
-
-  void write_assignment(Instruction* ip, std::ofstream &outputFile) {
-        int instruction_length = (ip->items).size();
-	outputFile << "moveq ";
-	if (instruction_length == 3) {
-	   Item dest = ip->items[0];
-	   Item src = ip->items[2]; 
-
-	   if (src.labelName[0] == 'r') // reg <- reg
-	      src.labelName = '%' + src.labelName;
-	   else if (src.labelName[0] == ':') // reg <- label
-	      src.labelName = '$' + labelModifier(src.labelName);
-	   else // reg <- const
-	      src.labelName = '$' + src.labelName;
-           outputFile << src.labelName << ", " << dest.labelName << '\n';
-
-	} else { 
-		if (ip->items[0] == "mem") { // store into memory
-		   Item dest = ip->items[1];
-		   Item offset = ip->items[2];
-		   Item src = ip->items[4]; 
-		   if (src.labelName[0] == 'r') { // mem <- reg
-		      src.labelName = '%' + src.labelName;
-		   }
-		   else if (src.labelName[0] == ':') { // mem <- label
-		      src.labelName = '$' + labelModifier(src.labelName);
-		   } else { // mem <- const
-		      src.labelName = '$' + src.labelName;
-		   }
-		}
-	        outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
-	  }
-
-	 else { // reg <- mem
-	    Item src = ip->items[3];
-	    Item dest = ip->items[0];
-	    Item offset = ip->items[4];
-
- 	    outputFile << offset.labelName << "(%" << src.labelName << "), " << dest.labelName << '\n'; 
-		}
-	}
-  }
-
-
-
+}
 

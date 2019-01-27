@@ -397,49 +397,46 @@ namespace L1 {
 
   template<> struct action < reg > {
     template < typename Input >
-        static void apply (const Input &in, Program &p) {
+    static void apply (const Input &in, Program &p) {
 	   Item i;
-           i.labelName = in.string();
+	   i.labelName = in.string();
 	   parsed_registers.push_back(i);
-         }
+    }
   };
 
-  
   template<> struct action < assign_operator  > {
     template < typename Input >
-        static void apply (const Input &in, Program &p) {
+    static void apply (const Input &in, Program &p) {
 	   Item i;
-           i.labelName = in.string();
+       i.labelName = in.string();
 	   parsed_registers.push_back(i);
-         }
+    }
   };
 
-   
   template<> struct action < mem > {
     template < typename Input >
-        static void apply (const Input &in, Program &p) {
+    static void apply (const Input &in, Program &p) {
 	   Item i;
-           i.labelName = in.string();
+       i.labelName = in.string();
 	   parsed_registers.push_back(i);
-         }
+    }
   };
-
 
   template<> struct action < number > {
     template < typename Input >
-        static void apply (const Input &in, Program &p) {
+    static void apply (const Input &in, Program &p) {
 	   Item i;
-           i.labelName = in.string();
+       i.labelName = in.string();
 	   parsed_registers.push_back(i);
-         }
+    }
   };
 
   template<> struct action < assignment > {
     template < typename Input >
-        static void apply (const Input &in, Program &p) {
-           auto currFunc = p.functions.back();
-           Instruction* i = new Instruction(); // instruction will be reversed when generating x86
-  	   i->identifier = 0;
+    static void apply (const Input &in, Program &p) {
+        auto currFunc = p.functions.back();
+           L1::Instruction* i = new L1::Instruction(); // instruction will be reversed when generating x86
+		   i->identifier = 0;
            for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
  	 	auto currItemP = it;
 		(i->items).push_back(*currItemP);
@@ -449,6 +446,7 @@ namespace L1 {
   	   parsed_registers.clear(); 
     }
   };
+
   Program parse_file (char *fileName){
 
     /* 
