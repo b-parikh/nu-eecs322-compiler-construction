@@ -1,15 +1,14 @@
 (:go
   (:go
     0 0
-
-	rdi <- 3
+	//rdi <- 3
     // This is my comment
     return 
   )
 
   (:testFunction
     1 0
-	rax <- 1
+	//rax <- 1
     return 
   )
 )

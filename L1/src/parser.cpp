@@ -221,6 +221,7 @@ namespace L1 {
 
   struct arithmetics:
 	pegtl::seq<
+		seps
 	// +=, -=, *=, &=
 	> {};
 
@@ -235,12 +236,13 @@ namespace L1 {
 
   struct assign_comparison:
 	pegtl::seq<
-
+		seps
 	> {};
 
   struct shiftings:
     pegtl::seq<
 	// <<=, >>=
+		seps
     > {};
 
 //  struct jumps:
@@ -257,22 +259,26 @@ namespace L1 {
     pegtl::seq<
 	// cjump t cmp t label label
 	// cjum t cmp t label
+	  seps
     > {};
 
   struct call_func:
     pegtl::seq<
 	// call func num
+	  seps
     > {};
 
   //not 100% sure we need this
   struct call_runtime:
     pegtl::seq<
     // print, allocate, array-error
+	  seps
     > {};
 
   struct misc:
     pegtl::seq<
     // w @ w w E
+	  seps
     > {};
 
   struct inst:
@@ -441,16 +447,16 @@ namespace L1 {
   template<> struct action < assignment > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-        auto currFunc = p.functions.back();
-           L1::Instruction* i = new L1::Instruction(); // instruction will be reversed when generating x86
-		   i->identifier = 0;
-           for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
- 	 	auto currItemP = it;
-		(i->items).push_back(*currItemP);
-	   }
+		auto currFunc = p.functions.back();
+        Instruction* i = new Instruction(); // instruction will be reversed when generating x86
+		i->identifier = 0;
+        for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
+ 	 	  auto currItemP = it;
+		  i->items.push_back(*currItemP);
+	    }
 
-	   currFunc->instructions.push_back(i);
-  	   parsed_registers.clear(); 
+	    currFunc->instructions.push_back(i);
+  	    parsed_registers.clear(); 
     }
   };
 

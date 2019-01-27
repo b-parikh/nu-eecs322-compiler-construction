@@ -14,7 +14,7 @@ namespace L1{
   }
 
   void write_assignment(Instruction* ip, std::ofstream& outputFile) {
-        int instruction_length = (ip->items).size();
+    int instruction_length = (ip->items).size();
 	outputFile << "moveq ";
 	if (instruction_length == 3) {
 	   Item dest = ip->items[0];
@@ -26,8 +26,7 @@ namespace L1{
 	      src.labelName = '$' + labelModifier(src.labelName);
 	   else // reg <- const
 	      src.labelName = '$' + src.labelName;
-           outputFile << src.labelName << ", " << dest.labelName << '\n';
-
+       outputFile << src.labelName << ", " << dest.labelName << '\n';
 	} else { 
 		if (ip->items[0].labelName == "mem") { // store into memory
 		   Item dest = ip->items[1];
@@ -87,13 +86,13 @@ namespace L1{
 
     int vector_size = p.functions.size();
     for(int i = 0; i < vector_size; ++i) {
-           auto fp = p.functions[i];
+       auto fp = p.functions[i];
 	   outputFile << labelModifier(fp->name) << ":\n";
 	   // add func arg # and local #
 	   // function to iterate through instructions vector
 	   for (Instruction* ip : fp->instructions) {
 	       if(ip->identifier == 0)
-		  write_assignment(ip, outputFile);
+			 write_assignment(ip, outputFile);
 	   }
     }
 
