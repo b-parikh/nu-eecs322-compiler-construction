@@ -13,7 +13,7 @@ namespace L1{
     return inputLabel;
   }
 
-  void write_assignment(Instruction* ip, std::ofstream &outputFile) {
+  void write_assignment(Instruction* ip, std::ofstream& outputFile) {
         int instruction_length = (ip->items).size();
 	outputFile << "moveq ";
 	if (instruction_length == 3) {

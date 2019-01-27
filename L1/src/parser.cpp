@@ -203,7 +203,7 @@ namespace L1 {
     pegtl::seq<
 	  // left side
       seps,
-      pegtl::sor<reg, mem>,
+      pegtl::sor<mem, reg>,
       seps,
 
       assign_operator,
@@ -211,8 +211,8 @@ namespace L1 {
       // right side
       seps,
       pegtl::sor<
+		mem,
         reg,
-        mem,
         number,
         label>,
       seps
@@ -275,10 +275,17 @@ namespace L1 {
     // w @ w w E
     > {};
 
+  struct inst:
+	pegtl::sor<
+       pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>,
+       pegtl::seq< pegtl::at<assignment>, assignment>
+	> {};
+
+
   struct Instruction_rule:
-    pegtl::sor<
-      pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>,
-      pegtl::seq< pegtl::at<assignment>, assignment>
+    pegtl::seq<
+		seps,
+		pegtl::plus<inst>
       // insert all instructions
     > { };
 
