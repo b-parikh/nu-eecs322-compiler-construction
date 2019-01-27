@@ -158,6 +158,10 @@ namespace L1 {
       entry_point_rule
     > {};
 
+  /*
+   * Our wprks
+   */
+
   struct reg:
     pegtl::sor<
       pegtl::string<'r','a','x'>,
@@ -178,13 +182,6 @@ namespace L1 {
       pegtl::string<'r','s','p'>
    > {};
 
-  struct assign_operator:
-    pegtl::seq<
-      seps,
-      pegtl::string<'<','-'>,
-      seps
-    > {};
-
   struct mem:
     pegtl::seq<
      seps,
@@ -195,9 +192,20 @@ namespace L1 {
      number
     > {};
 
-  struct assignment:
-    // left side
+  /* 
+   * instructions
+   */
+
+  struct assign_operator:
     pegtl::seq<
+      seps,
+      pegtl::string<'<','-'>,
+      seps
+    > {};
+
+  struct assignment:
+    pegtl::seq<
+	  // left side
       seps,
       pegtl::sor<reg, mem>,
       seps,
@@ -213,6 +221,51 @@ namespace L1 {
         label>,
       seps
     > {};
+	// increment / decrement?
+
+  struct arithmetics:
+	pegtl::seq<
+	// +=, -=, *=, &=
+	> {};
+
+  struct comparisons:
+    pegtl::seq<
+	// <, <=, = 
+    > {};
+
+  struct shiftings:
+    pegtl::seq<
+	// <<=, >>=
+    > {};
+
+  struct jumps:
+    pegtl::seq<
+	// label, goto
+    > {};
+
+  struct cjump:
+    pegtl::seq<
+	// cjump t cmp t label label
+	// cjum t cmp t label
+    > {};
+
+  struct call_func:
+    pegtl::seq<
+	// call func num
+    > {};
+
+  //not 100% sure we need this
+  struct call_runtime:
+    pegtl::seq<
+    // print, allocate, array-error
+    > {};
+
+  struct misc:
+    pegtl::seq<
+    // w @ w w E
+    > {};
+
+
   /* 
    * Actions attached to grammar rules.
    */
@@ -272,6 +325,12 @@ namespace L1 {
       parsed_registers.push_back(i);
     }
   };
+
+  /*
+   * Our wprks
+   */
+
+
 
 //  template<> struct action < reg > {
 //    template < typename Input >
