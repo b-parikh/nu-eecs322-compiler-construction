@@ -139,30 +139,18 @@ namespace L1 {
    * instructions
    */
   struct assign_operator:
-      pegtl::string<'<','-'>
-     {};
+      pegtl::string<'<','-'> {};
 
   struct assignment:
     pegtl::seq<
-	  // left side
       seps,
-      pegtl::sor<
-	mem_op,
-	reg>,
+      pegtl::sor<mem_op, reg>,
       seps,
-
       assign_operator,
-
-      // right side
       seps,
-      pegtl::sor<
-	mem_op,
-        reg,
-        number,
-        label>,
+      pegtl::sor<mem_op, reg, number, label>,
       seps
     > {};
-	// increment / decrement?
 
   struct arithmetic_operator:
 	pegtl::seq<
@@ -173,7 +161,6 @@ namespace L1 {
 		>,
 		seps,
 		pegtl::one<'='>
-	// +=, -=, *=, &=
 	> {};
   
   struct arithmetic:
@@ -207,7 +194,6 @@ pegtl::seq<
   seps
 > {};
 
-
  struct comparison_operator:
   pegtl::sor<
    pegtl::string<'<', '='>,
@@ -235,7 +221,7 @@ pegtl::seq<
   seps
 > {};
 
- struct shifting_operator:
+ struct shift_operator:
 pegtl::seq<
   pegtl::sor<
    pegtl::string<'<', '<'>,
@@ -244,52 +230,67 @@ pegtl::seq<
   pegtl::one<'='>
 > {};
 
- struct shiftings:
+ struct shift:
    pegtl::seq<
   seps,
      reg,
      seps,
      shifting_operator,
      seps,
-     pegtl::sor<
-       reg,
-       number>,
+     pegtl::sor<reg, number>,
      seps
    > {};
 
  struct jumps:
    pegtl::seq<
-  seps,
-  pegtl::opt<
-   pegtl::string<'g', 'o', 't', 'o'>,
-   seps
-  >,
+     seps,
+     pegtl::opt<
+       pegtl::seq<
+         pegtl::string<'g', 'o', 't', 'o'>,
+         seps
+       >,
+     >,
      label,
-  seps
+     seps
    > {};
 
  struct cjump:
    pegtl::seq<
-  seps,
-  pegtl::string<'c', 'j', 'u', 'm', 'p'>,
-  seps,
-  compare,
-  seps,
-  label,
-  pegtl::opt<
-   seps,
-   label
-  >,
-  seps
+     seps,
+     pegtl::string<'c', 'j', 'u', 'm', 'p'>,
+     seps,
+     compare,
+     seps,
+     label,
+     pegtl::opt<
+       pegtl::seq<
+         seps,
+         label
+       >,
+     >,
+     seps
+   > {};
+
+ struct lea:
+   pegtl::seq<
+     seps,
+     reg,
+     seps,
+     pegtl::one<'@'>,
+     seps,
+     reg,
+     seps,
+     number,
+     seps
    > {};
 
  //not 100% sure we need this
 struct runtime_func:
    pegtl::sor<
      pegtl::string<'p', 'r', 'i', 'n', 't'>,
-       pegtl::string<'a', 'l', 'l', 'o', 'c', 'a', 't', 'e'>,
-         pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o' ,'r'>
-            > {};
+     pegtl::string<'a', 'l', 'l', 'o', 'c', 'a', 't', 'e'>,
+     pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o' ,'r'>
+   > {};
 
  struct call:
    pegtl::seq<
@@ -305,26 +306,17 @@ struct runtime_func:
   number
    > {};
 
- struct misc:
-   pegtl::seq<
-     seps,
-     reg,
-     seps,
-     pegtl::one<'@'>,
-     seps,
-     reg,
-     seps,
-     number,
-     seps
-   > {};
-
   struct Instruction_rule:
-      // insert all instructions
        pegtl::sor<
-       pegtl::seq<pegtl::at<assign_comparison>, assign_comparison>,
+       pegtl::seq< pegtl::at<assign_comparison>, assign_comparison>,
+//       pegtl::seq< pegtl::at<cjump>, cjump>,
+//       pegtl::seq< pegtl::at<call>, call>,
+//       pegtl::seq< pegtl::at<lea>, lea>,
        pegtl::seq< pegtl::at<assignment>, assignment>,
        pegtl::seq< pegtl::at<arithmetic>, arithmetic>,
-       pegtl::seq< pegtl::at<inc_dec >, inc_dec>,
+       pegtl::seq< pegtl::at<inc_dec>, inc_dec>,
+       pegtl::seq< pegtl::at<shift>, shift>,
+       pegtl::seq< pegtl::at<jumps>, jump>,
        pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>
     > { };
 
@@ -551,6 +543,92 @@ struct runtime_func:
 	}
 	parsed_registers.clear();
 	currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < shift_operator > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+    Item i;
+    i.labelName = in.string();
+    parsed_registers.push_back(i);
+    }
+  };
+
+  template<> struct action < shift > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+    Instruction* i = new Instruction();
+    auto currFunc = p.functions.back();
+    i->identifier = 5;
+    for(auto currItemP : parsed_registers) {
+       i->items.push_back(currItemP);
+       std::cout << currItemP.labelName << '\n'; //FOR TEST
+    }
+    parsed_registers.clear();
+    currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < jump > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+    Instruction* i = new Instruction();
+    auto currFunc = p.functions.back();
+    i->identifier = 6;
+    for(auto currItemP : parsed_registers) {
+       i->items.push_back(currItemP);
+       std::cout << currItemP.labelName << '\n'; //FOR TEST
+    }
+    parsed_registers.clear();
+    currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < cjump > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+    Instruction* i = new Instruction();
+    auto currFunc = p.functions.back();
+    i->identifier = 7;
+    for(auto currItemP : parsed_registers) {
+       i->items.push_back(currItemP);
+       std::cout << currItemP.labelName << '\n'; //FOR TEST
+    }
+    parsed_registers.clear();
+    currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < lea > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+    Instruction* i = new Instruction();
+    auto currFunc = p.functions.back();
+    i->identifier = 8;
+    for(auto currItemP : parsed_registers) {
+       i->items.push_back(currItemP);
+       std::cout << currItemP.labelName << '\n'; //FOR TEST
+    }
+    parsed_registers.clear();
+    currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < runtime_func > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+    Item i;
+    i.labelName = in.string();
+    parsed_registers.push_back(i);
+    }
+  };
+
+  template<> struct action < call > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+    Instruction* i = new Instruction();
+    auto currFunc = p.functions.back();
+    i->identifier = 9;
+    for(auto currItemP : parsed_registers) {
+       i->items.push_back(currItemP);
+       std::cout << currItemP.labelName << '\n'; //FOR TEST
+    }
+    parsed_registers.clear();
+    currFunc->instructions.push_back(i);
     }
   };
 
