@@ -9,7 +9,7 @@ using namespace std;
 
 namespace L1{
 
-  string labelModifier(string inputLabel) {
+  std::string labelModifier(std::string inputLabel) {
     inputLabel.at(0) = '_';
     return inputLabel;
   }
@@ -34,7 +34,6 @@ namespace L1{
 		   Item offset = ip->items[2];
 		   Item src = ip->items[4]; 
 		   if (src.labelName[0] == 'r') { // mem <- reg
-		     // std::cout << src.labelName << '\n';
 		      src.labelName = '%' + src.labelName;
 		   }
 		   else if (src.labelName[0] == ':') { // mem <- label
@@ -52,35 +51,59 @@ namespace L1{
 		}
 	}
   }
-  void write_return(Instruction* ip, std::ofstream& outputFile) {
+  void write_return(int move_stack_by, std::ofstream& outputFile) {
+        outputFile << "addq $" << move_stack_by << ", %rsp\n";
 	outputFile << "retq\n";
   }
 
   std::string register_map(std::string reg) {
-     if(reg[1] == '1' || reg.length() == 2)
-        return reg + "b";
-     else if(reg[2] == 'x')
-        return reg[1] + "l";
-     else
-        return reg[1] + reg[2] + "l";
+	if(reg == "r10")
+		return "r10b";
+	else if(reg == "r11")
+		return "r11b";
+	else if(reg == "r12")
+		return "r12b";
+	else if(reg == "r13")
+		return "r13b";
+	else if(reg == "r14")
+		return "r14b";
+	else if(reg == "r15")
+		return "r15b";
+	else if(reg == "r8")
+		return "r8b";
+	else if(reg == "r9")
+		return "r9b";
+	else if(reg == "rax")
+		return "al";
+	else if(reg == "rbx")
+		return "bl";
+	else if(reg == "rcx")
+		return "cl";
+	else if(reg == "rdx")
+		return "dl";
+	else if(reg == "rbp")
+		return "bpl";
+	else if(reg == "rdi")
+		return "dil";
+	else // rsi
+		return "sil";
   }
-  
   std::string comparison_map(std::string comp) {
       if(comp == "<")
-	 return "setl";
+	 return "l";
       else if (comp == "<=") 
-	 return "setle";
+	 return "le";
       else 
- 	 return "sete";
+ 	 return "e";
   }
 
   std::string comparison_map_switched(std::string comp) {
 	if(comp == "<")
-		return "setg";
+		return "g";
 	else if (comp == "<=")
-		return "setge";
+		return "ge";
 	else 
-		return "sete";
+		return "e";
  }
 
   std::string find_arithmetic_op(Item op) {
@@ -96,8 +119,6 @@ namespace L1{
   }
 
   void write_arithmetic(Instruction* ip, std::ofstream& outputFile) {
-	//mem += reg, const
-	//reg += reg, const, mem
 	int instruction_length = (ip->items).size();
 	 
 	if (instruction_length == 3) {
@@ -157,17 +178,18 @@ namespace L1{
      Item comp = ip->items[3];
 
      if(arg1.labelName[0] == 'r') {
-	if(arg2.labelName[0] == 'r')
+	if(arg2.labelName[0] == 'r'){
 	   outputFile << "cmpq %" << arg2.labelName << ", %" << arg1.labelName << '\n';
-	else
+	}
+	else{
 	   outputFile << "cmpq $" << arg2.labelName << ", %" << arg1.labelName << '\n';
-	
-	outputFile << comparison_map(comp.labelName) << " %" << register_map(dest.labelName) << '\n';
+	}
+	outputFile << "set" << comparison_map(comp.labelName) << " %" << register_map(dest.labelName) << '\n';
 	outputFile << "movzbq %" << register_map(dest.labelName) << ", %" << dest.labelName << '\n';
       }
       else if(arg2.labelName[0] == 'r') {
-	   outputFile << "cmpq %" << arg1.labelName << ", $" << arg2.labelName << '\n';
-	   outputFile << comparison_map_switched(comp.labelName) << " %" << register_map(dest.labelName) << '\n';
+	   outputFile << "cmpq $" << arg1.labelName << ", %" << arg2.labelName << '\n';
+	   outputFile << "set" << comparison_map_switched(comp.labelName) << " %" << register_map(dest.labelName) << '\n';
 	   outputFile << "movzbq %" << register_map(dest.labelName) << ", %" << dest.labelName << '\n';
       } else { // both args are numbers
 	  bool out;
@@ -180,7 +202,103 @@ namespace L1{
 
 	  outputFile << "movq $" << (int)out << ", %" << dest.labelName << '\n';
      }
-   }
+  }
+
+  void write_shift(Instruction* ip, std::ofstream& outputFile) {
+     std::string left = ip->items[0].labelName;
+     left = '%' + left;
+     std::string shift = ip->items[1].labelName;
+     std::string right = ip->items[2].labelName;
+
+     if(shift[0] == '<'){
+	if(right[0] == 'r')
+	   outputFile << "salq " << "%" << register_map(right) << ", " << left << '\n';
+	else
+	   outputFile << "salq " << "$" << right << ", " << left << '\n';
+     }
+
+     else {
+	if(right[0] == 'r')
+	   outputFile << "sarq " << "%" << register_map(right) << ", " << left << '\n';
+	else
+	   outputFile << "sarq " << "$" << right << ", " << left << '\n';
+     }
+  }
+
+  void write_jumps(Instruction* ip, std::ofstream& outputFile) {
+	std::cout << "jmp " << labelModifier(ip->items[1].labelName) << '\n';
+	outputFile << "jmp " << labelModifier(ip->items[1].labelName) << '\n';
+  }
+
+  void write_cjump(Instruction* ip, std::ofstream& outputFile) {
+    std::string arg1 = ip->items[1].labelName;
+    std::string arg2 = ip->items[3].labelName;
+    std::string comp = ip->items[2].labelName;
+    if(arg1[0] == 'r') {
+	if(arg2[0] == 'r'){
+	   outputFile << "cmpq %" << arg2 << ", %" << arg1 << '\n';
+	}
+	else{
+	   outputFile << "cmpq $" << arg2 << ", %" << arg1 << '\n';
+	}
+	outputFile << 'j' << comparison_map(comp) << ' ' << labelModifier(ip->items[4].labelName) << '\n';
+	if(ip->items.size() == 6)
+	   outputFile << "jmp " << labelModifier(ip->items[5].labelName) << '\n';
+      }
+      else if(arg2[0] == 'r') {
+	   outputFile << "cmpq $" << arg1 << ", %" << arg2 << '\n';
+	   outputFile << 'j' << comparison_map_switched(comp) << ' ' << labelModifier(ip->items[4].labelName) << '\n';
+	   if(ip->items.size() == 6)
+	      outputFile << "jmp " << labelModifier(ip->items[5].labelName) << '\n';
+      } else { // both args are numbers
+	  bool out;
+	  if (comp == "<")
+	       out = std::stoi(arg1) < std::stoi(arg2);
+	  else if(comp == "<=")
+	       out = std::stoi(arg1) <= std::stoi(arg2);
+	  else
+	       out = std::stoi(arg1) == std::stoi(arg2);
+
+	  if(out)
+	      outputFile << "jmp " << labelModifier(ip->items[4].labelName) << '\n';
+	   else{
+	      if(ip->items.size() == 6)
+	         outputFile << "jmp " << labelModifier(ip->items[5].labelName) << '\n';
+     	  }
+  }
+}
+
+  void write_lea(Instruction* ip, std::ofstream& outputFile) { // @ is not pushed into parsed_registers
+     std::string reg1 = ip->items[0].labelName;
+     std::string reg2 = ip->items[2].labelName;
+     std::string reg3 = ip->items[3].labelName;
+     std::string num = ip->items[4].labelName;
+
+     outputFile << "lea " << "(%" << reg2 << ", %" << reg3 << ", " << num << "), %" << reg1 << '\n';
+  }
+
+  void write_call(Instruction* ip, std::ofstream& outputFile, int num_args) {
+     std::string label = ip->items[1].labelName;
+     if(label == "print" || label == "allocate")
+        outputFile << "call " << label << '\n';
+     else if (label == "array-error")
+        outputFile << "call array_error" << '\n';
+     else {
+        int move_stack_by = 1;
+        if(num_args > 6)
+            move_stack_by += num_args - 6;
+        move_stack_by *= 8;
+        outputFile << "subq $" << move_stack_by << ", %rsp\n";
+        if(label[0] == 'r')
+           outputFile << "jmp *%" << label << '\n';
+        else
+     	   outputFile << "jmp " << labelModifier(label) << '\n'; 
+    }
+}
+
+  void write_label_instruction(Instruction* ip, std::ofstream& outputFile) {
+    outputFile << labelModifier(ip->items[0].labelName) << ":\n";
+  }
 
   void generate_code(Program p){
 
@@ -216,27 +334,43 @@ namespace L1{
 
     int vector_size = p.functions.size();
     for(int i = 0; i < vector_size; ++i) {
-       //std::cout << "p.functions.size() = " <<  vector_size << '\n'; // 2
        auto fp = p.functions[i];
-       //std::cout << "fp->instructions.size() = " << fp->instructions.size() << '\n';
-       outputFile << labelModifier(fp->name) << ":\n";
+       outputFile << labelModifier(fp->name) << ": \n";
+       // function prologue
+       int move_stack_by = 0;
+       if(fp->arguments > 6)
+          move_stack_by += fp->arguments - 6;
+       if(fp->locals > 0)
+          move_stack_by += fp->locals;
+       move_stack_by *= 8;
+       outputFile << "subq $" << move_stack_by << ", %rsp\n";
+
 	   // add func arg # and local #
 	   // function to iterate through instructions vector
 	   for (Instruction* ip : fp->instructions) {
-	        //std::cout << "2nd for loop" << '\n';
-		//std::cout << ip->items[0].labelName << '\n';	
 	        if(ip->identifier == 0)
 	 	    write_assignment(ip, outputFile);
 		else if(ip->identifier == 1)
-		   write_return(ip, outputFile);
+		   write_return(move_stack_by, outputFile);
 		else if(ip->identifier == 2)
 		   write_arithmetic(ip, outputFile);
 		else if(ip->identifier == 3)
 		   write_inc_dec(ip, outputFile);
 		else if(ip->identifier == 4)
 		   write_assign_comparison(ip, outputFile);
+		else if(ip->identifier == 5)
+		   write_shift(ip, outputFile);
+		else if(ip->identifier == 6)
+		   write_jumps(ip, outputFile);
+		else if(ip->identifier == 7)
+		   write_cjump(ip, outputFile);
+		else if(ip->identifier == 8)
+		   write_lea(ip, outputFile);
+		else if(ip->identifier == 9)
+		   write_call(ip, outputFile, fp->arguments);
+		else
+		   write_label_instruction(ip,outputFile);
 	   }
-	//std::cout << vector_size << '\n'; // doesn't print
     }
 
     /* 
