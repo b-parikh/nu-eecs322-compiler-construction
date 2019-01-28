@@ -1,14 +1,26 @@
 (:go
   (:go
     0 0
-	//rdi <- 3
+    mem rax 8 <- 3
+    mem rax 8 <- r12
+    r13 <- mem rax 8
+    r12 <- 11
+    mem r13 8 <- 5
+    rdi += mem r13 8
+
+    //r12 <- r13 <= r11
+    //r12 <- 10 < 13
+   //rcx <- rdx = 22
+    //rcx <- 22 <= rdx
     // This is my comment
     return 
   )
 
   (:testFunction
-    1 0
-	//rax <- 1
+    1 2
+    rdi <- 5
+    rdi++
+    rdi--
     return 
   )
 )
