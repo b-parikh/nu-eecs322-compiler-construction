@@ -1,26 +1,43 @@
 (:go
   (:go
     0 0
-    mem rax 8 <- 3
-    mem rax 8 <- r12
-    r13 <- mem rax 8
+//    mem rax 8 <- 3
+//    mem rax 8 <- r12
+//    r13 <- mem rax 8
     r12 <- 11
-    mem r13 8 <- 5
-    rdi += mem r13 8
+//    mem r13 8 <- 5
+//    rdi += mem r13 8
 
-    //r12 <- r13 <= r11
-    //r12 <- 10 < 13
-   //rcx <- rdx = 22
-    //rcx <- 22 <= rdx
+//    r13 <- 5
+//    r11 <- 9
+//    r12 <- r13 <= r11
+    goto :a_label
+//    r12 <- 9 < 3
+//    r14 <- r11 = 23
+    rdi <- 21 
+    rax @ rdi r12 4
+    call :testFunction 1
     // This is my comment
+    :a_label
     return 
   )
 
   (:testFunction
     1 2
-    rdi <- 5
-    rdi++
-    rdi--
+//    rdi <- 5
+//    rdi++
+//    rdi--
+//    cjump rdi < 11 :a_label 
+      cjump 11 < 33 :b_label
+      :b_label
+      rdi <- 3
+      call print 1
+//      cjump 27 <= rdi :c_label
+//    rdi <<= 5
+//    rdi += 1 
+//    r12 <- 11
+//   r12 >>= 1
+//    rdi <<= 5
     return 
   )
 )
