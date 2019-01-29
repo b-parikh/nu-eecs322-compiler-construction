@@ -27,7 +27,7 @@ namespace L1{
 	      src.labelName = '$' + labelModifier(src.labelName);
 	   else // reg <- const
 	      src.labelName = '$' + src.labelName;
-       outputFile << src.labelName << ", %" << dest.labelName << '\n';
+           outputFile << src.labelName << ", %" << dest.labelName << '\n';
 	} else { 
 		if (ip->items[0].labelName == "mem") { // store into memory
 		   Item dest = ip->items[1];
@@ -41,7 +41,7 @@ namespace L1{
 		   } else { // mem <- const
 		   	src.labelName = '$' + src.labelName;
 		   }
-	       outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
+ 	        outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
 		} else { // reg <- mem
 		   	Item src = ip->items[3];
 	      	Item dest = ip->items[0];
@@ -226,7 +226,7 @@ namespace L1{
   }
 
   void write_goto_jump(Instruction* ip, std::ofstream& outputFile) {
-	std::cout << "jmp " << labelModifier(ip->items[1].labelName) << '\n';
+	//std::cout << "jmp " << labelModifier(ip->items[1].labelName) << '\n';
 	outputFile << "jmp " << labelModifier(ip->items[1].labelName) << '\n';
   }
 
@@ -287,6 +287,7 @@ namespace L1{
       else if(arg2[0] == 'r') {
 	   outputFile << "cmpq $" << arg1 << ", %" << arg2 << '\n';
 	   outputFile << 'j' << comparison_map_switched(comp) << ' ' << labelModifier(label) << '\n';
+           //std::cerr << "WRITING J INST\n";
       } else { // both args are numbers
 	  bool out;
 	  if (comp == "<")

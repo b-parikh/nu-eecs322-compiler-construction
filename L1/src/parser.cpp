@@ -259,8 +259,8 @@ pegtl::seq<
   > {};
 
  struct label_instruction:label {};
-
-struct cjump_onearg:
+/*
+struct cjump_prefix:
    pegtl::seq<
      seps,
      l1_keyword, // cjump
@@ -269,6 +269,34 @@ struct cjump_onearg:
      seps,
      Label_rule,
      seps
+   > {};
+
+struct cjump_suffix:
+  pegtl::sor<
+    pegtl::seq<
+      seps,
+      Label_rule,
+      seps
+    >,
+   pegtl::eol
+  > {};
+
+ struct cjump:
+  pegtl::seq<
+    cjump_prefix,
+    cjump_suffix
+  > {};
+*/
+struct cjump_onearg:
+   pegtl::seq<
+     seps,
+     l1_keyword, // cjump
+     seps,
+     compare,
+     seps,
+     Label_rule,
+     seps,
+     pegtl::eol 
    > {};
 
  struct cjump_twoargs:
@@ -283,7 +311,6 @@ struct cjump_onearg:
     Label_rule,
     seps
   > {};
-
   struct cjump:
     pegtl::sor<
       pegtl::seq<pegtl::at<cjump_twoargs>, cjump_twoargs>,
@@ -330,12 +357,13 @@ struct runtime_func:
   struct Instruction_rule:
     pegtl::sor<
     pegtl::seq< pegtl::at<assign_comparison>, assign_comparison>,
+    pegtl::seq< pegtl::at<label_instruction>, label_instruction>,
     pegtl::seq< pegtl::at<cjump_twoargs>, cjump_twoargs>,
     pegtl::seq< pegtl::at<cjump_onearg>, cjump_onearg>,
-    // pegtl::seq< pegtl::at<call>, call>,
+    pegtl::seq<pegtl::at<cjump>, cjump>,
+    pegtl::seq< pegtl::at<call>, call>,
     pegtl::seq< pegtl::at<lea>, lea>,
     pegtl::seq< pegtl::at<assignment>, assignment>,
-    pegtl::seq< pegtl::at<label_instruction>, label_instruction>,
     pegtl::seq< pegtl::at<arithmetic>, arithmetic>,
     pegtl::seq< pegtl::at<inc_dec>, inc_dec>,
     pegtl::seq< pegtl::at<shift>, shift>,
@@ -414,6 +442,7 @@ struct runtime_func:
 	static void apply( const Input & in, Program & p){
       auto newF = new Function();
       newF->name = in.string();
+      //std::cout << "function_name action called for " << in.string() << '\n';
       p.functions.push_back(newF);
     }
   };
@@ -448,7 +477,7 @@ struct runtime_func:
     template< typename Input >
 	static void apply( const Input & in, Program & p){
       Item i;
-      std::cout << "Label_rule action called.\n"; 
+      //std::cout << "Label_rule action called.\n"; 
       i.labelName = in.string();
       parsed_registers.push_back(i);
     }
@@ -462,7 +491,7 @@ struct runtime_func:
     template < typename Input >
     static void apply (const Input &in, Program &p) {
 	    Item i;
-      std::cout << "reg action called\n";
+      //std::cout << "reg action called\n";
 	    i.labelName = in.string();
 	    parsed_registers.push_back(i);
     }
@@ -472,7 +501,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
        Item i;
        i.labelName = in.string();
-       std::cout << "assign_operator action called\n";
+       //std::cout << "assign_operator action called\n";
        parsed_registers.push_back(i);
     }
   };
@@ -489,7 +518,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    Item i;
       i.labelName = in.string();
-      std::cout << "number action called.\n";
+      //nstd::cout << "number action called.\n";
 	    parsed_registers.push_back(i);
     }
   };
@@ -541,7 +570,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	Instruction* i = new Instruction();
 	auto currFunc = p.functions.back();
-        std::cout << "inc_dec called" << ' ';
+        //std::cout << "inc_dec called" << ' ';
 	i->identifier = 3;
 	for(auto currItemP : parsed_registers) {
 	   i->items.push_back(currItemP);
@@ -555,7 +584,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	  Item i;
 	  i.labelName = in.string();
-    std::cout << "comparison operator called\n";
+    //std::cout << "comparison operator called\n";
 	  parsed_registers.push_back(i);
     }
   };
@@ -565,10 +594,10 @@ struct runtime_func:
 	Instruction* i = new Instruction();
 	auto currFunc = p.functions.back();
 	i->identifier = 4;
-	std::cout << "assign_comparison called" << '\n';
+	//std::cout << "assign_comparison called" << '\n';
 	for(auto currItemP : parsed_registers) {
 	   i->items.push_back(currItemP);
-	   std::cout << currItemP.labelName << ' ';
+	   //std::cout << currItemP.labelName << ' ';
 	}
 	parsed_registers.clear();
 	currFunc->instructions.push_back(i);
@@ -588,10 +617,10 @@ struct runtime_func:
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
     i->identifier = 5;
-    std::cout << "shift called" << '\n';
+    //std::cout << "shift called" << '\n';
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       std::cout << currItemP.labelName << ' '; //FOR TEST
+       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
@@ -602,11 +631,11 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    std::cout << "goto_jump action called\n";
+    //std::cout << "goto_jump action called\n";
     i->identifier = 6;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       std::cout << currItemP.labelName << ' '; //FOR TEST
+       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
@@ -617,12 +646,11 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    std::cout << "cjump_onearg action called\n";
-    std::cout << "parsed_registers size before cjump_onearg action: " << parsed_registers.size() << '\n'; // 5
-    i->identifier = 7;
+    //std::cout << "cjump_onearg action called\n";
+    i->identifier = 11;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       std::cout << currItemP.labelName << ' '; //FOR TEST
+       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
@@ -633,16 +661,34 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    std::cout << "cjump_twoargs action called\n";
+    //std::cout << "cjump_twoarg action called\n";
     i->identifier = 7;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       std::cout << currItemP.labelName << ' '; //FOR TEST
+       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
     }
   };
+
+/*
+  template<> struct action < cjump_suffix> {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+       // previous instruction in program is cjump_prefix
+       auto currFunc = p.functions.back();
+       auto currInstruct = currFunc->instructions.back();
+    std::cout << "parsed_registers size before cjump_suffix action: " << parsed_registers.size() << '\n'; // 5
+
+       for(auto currItem : parsed_registers) {
+	  currInstruct->items.push_back(currItem);
+          std::cout << currItem.labelName << ' '; //FOR TEST
+       }
+
+       parsed_registers.clear();
+    }
+  };
+*/
 
   template<> struct action < lea > {
     template < typename Input > static void apply (const Input &in, Program &p) {
@@ -651,7 +697,7 @@ struct runtime_func:
     i->identifier = 8;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       std::cout << currItemP.labelName << ' '; //FOR TEST
+       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
@@ -673,7 +719,7 @@ struct runtime_func:
     i->identifier = 9;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       std::cout << currItemP.labelName << ' '; //FOR TEST
+       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
@@ -684,7 +730,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
       Item i;
       i.labelName = in.string();
-      std::cout << "l1_keyword action called.\n";
+      //std::cout << "l1_keyword action called.\n";
       parsed_registers.push_back(i);
     }
   };
@@ -695,7 +741,7 @@ struct runtime_func:
     it.labelName = in.string();
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    std::cout << "label_instruction called\n";
+    //std::cout << "label_instruction called\n";
     i->identifier = 10;
     i->items.push_back(it);
     currFunc->instructions.push_back(i);
