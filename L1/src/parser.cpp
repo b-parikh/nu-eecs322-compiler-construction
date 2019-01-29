@@ -323,6 +323,7 @@ struct runtime_func:
        pegtl::sor<
        pegtl::seq< pegtl::at<assign_comparison>, assign_comparison>,
        pegtl::seq< pegtl::at<cjump>, cjump>,
+      pegtl::seq< pegtl::at<label_instruction>, label_instruction>,
 //       pegtl::seq< pegtl::at<call>, call>,
        pegtl::seq< pegtl::at<lea>, lea>,
        pegtl::seq< pegtl::at<assignment>, assignment>,
@@ -330,7 +331,6 @@ struct runtime_func:
        pegtl::seq< pegtl::at<inc_dec>, inc_dec>,
        pegtl::seq< pegtl::at<shift>, shift>,
        pegtl::seq< pegtl::at<jumps>, jumps>,
-       pegtl::seq< pegtl::at<label_instruction>, label_instruction>,
        pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>
     > { };
 
@@ -605,6 +605,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
+    std::cout << "cjump action called\n";
     i->identifier = 7;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
