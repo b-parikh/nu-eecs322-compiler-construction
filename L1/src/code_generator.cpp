@@ -39,13 +39,13 @@ namespace L1{
 		   else if (src.labelName[0] == ':') { // mem <- label
 		      src.labelName = '$' + labelModifier(src.labelName);
 		   } else { // mem <- const
-		      src.labelName = '$' + src.labelName;
+		   	src.labelName = '$' + src.labelName;
 		   }
 	       outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
 		} else { // reg <- mem
-		   Item src = ip->items[3];
-	       Item dest = ip->items[0];
-	       Item offset = ip->items[4];
+		   	Item src = ip->items[3];
+	      	Item dest = ip->items[0];
+	      	Item offset = ip->items[4];
 
  	       outputFile << offset.labelName << "(%" << src.labelName << "), %" << dest.labelName << '\n'; 
 		}
@@ -188,34 +188,34 @@ namespace L1{
 	outputFile << "movzbq %" << register_map(dest.labelName) << ", %" << dest.labelName << '\n';
       }
       else if(arg2.labelName[0] == 'r') {
-	   outputFile << "cmpq $" << arg1.labelName << ", %" << arg2.labelName << '\n';
-	   outputFile << "set" << comparison_map_switched(comp.labelName) << " %" << register_map(dest.labelName) << '\n';
-	   outputFile << "movzbq %" << register_map(dest.labelName) << ", %" << dest.labelName << '\n';
+	   	outputFile << "cmpq $" << arg1.labelName << ", %" << arg2.labelName << '\n';
+	   	outputFile << "set" << comparison_map_switched(comp.labelName) << " %" << register_map(dest.labelName) << '\n';
+	   	outputFile << "movzbq %" << register_map(dest.labelName) << ", %" << dest.labelName << '\n';
       } else { // both args are numbers
 	  bool out;
 	  if (comp.labelName == "<")
-	       out = std::stoi(arg1.labelName) < std::stoi(arg2.labelName);
+	      out = std::stoi(arg1.labelName) < std::stoi(arg2.labelName);
 	  else if(comp.labelName == "<=")
-	       out = std::stoi(arg1.labelName) <= std::stoi(arg2.labelName);
+	      out = std::stoi(arg1.labelName) <= std::stoi(arg2.labelName);
 	  else
-	       out = std::stoi(arg1.labelName) == std::stoi(arg2.labelName);
+	   	out = std::stoi(arg1.labelName) == std::stoi(arg2.labelName);
 
 	  outputFile << "movq $" << (int)out << ", %" << dest.labelName << '\n';
      }
   }
 
-  void write_shift(Instruction* ip, std::ofstream& outputFile) {
-     std::string left = ip->items[0].labelName;
-     left = '%' + left;
-     std::string shift = ip->items[1].labelName;
-     std::string right = ip->items[2].labelName;
+	void write_shift(Instruction* ip, std::ofstream& outputFile) {
+		std::string left = ip->items[0].labelName;
+		left = '%' + left;
+		std::string shift = ip->items[1].labelName;
+		std::string right = ip->items[2].labelName;
 
      if(shift[0] == '<'){
-	if(right[0] == 'r')
-	   outputFile << "salq " << "%" << register_map(right) << ", " << left << '\n';
-	else
-	   outputFile << "salq " << "$" << right << ", " << left << '\n';
-     }
+		if(right[0] == 'r')
+			outputFile << "salq " << "%" << register_map(right) << ", " << left << '\n';
+		else
+			outputFile << "salq " << "$" << right << ", " << left << '\n';
+		}
 
      else {
 	if(right[0] == 'r')
@@ -225,31 +225,68 @@ namespace L1{
      }
   }
 
-  void write_jumps(Instruction* ip, std::ofstream& outputFile) {
+  void write_goto_jump(Instruction* ip, std::ofstream& outputFile) {
 	std::cout << "jmp " << labelModifier(ip->items[1].labelName) << '\n';
 	outputFile << "jmp " << labelModifier(ip->items[1].labelName) << '\n';
   }
 
-  void write_cjump(Instruction* ip, std::ofstream& outputFile) {
+  void write_cjump_twoargs(Instruction* ip, std::ofstream& outputFile) {
     std::string arg1 = ip->items[1].labelName;
     std::string arg2 = ip->items[3].labelName;
     std::string comp = ip->items[2].labelName;
-    if(arg1[0] == 'r') {
+    std::string label1 = ip->items[4].labelName;
+    std::string label2 = ip->items[5].labelName;
+
+	if(arg1[0] == 'r') {
+		if(arg2[0] == 'r')
+			outputFile << "cmpq %" << arg2 << ", %" << arg1 << '\n';
+		else
+			outputFile << "cmpq $" << arg2 << ", %" << arg1 << '\n';
+			outputFile << 'j' << comparison_map(comp) << ' ' << labelModifier(label1) << '\n';
+		if(ip->items.size() == 6)
+			outputFile << "jmp " << labelModifier(label2) << '\n';
+	}
+      else if(arg2[0] == 'r') {
+	   	outputFile << "cmpq $" << arg1 << ", %" << arg2 << '\n';
+	   	outputFile << 'j' << comparison_map_switched(comp) << ' ' << labelModifier(label1) << labelModifier(label2) << '\n';
+	   	// if(ip->items.size() == 6)
+	      // 	outputFile << "jmp " << labelModifier(label2) << '\n';
+      } else { // both args are numbers so calculate during compile time
+	  bool out;
+	  if (comp == "<")
+	       out = std::stoi(arg1) < std::stoi(arg2);
+	  else if(comp == "<=")
+	       out = std::stoi(arg1) <= std::stoi(arg2);
+	  else
+	       out = std::stoi(arg1) == std::stoi(arg2);
+
+	  if(out)
+	      outputFile << "jmp " << labelModifier(label1) << labelModifier(label2) << '\n';
+	   // else{
+	   //    if(ip->items.size() == 6)
+	   //       outputFile << "jmp " << labelModifier(label2) << '\n';
+     	//   }
+    }
+ }
+
+  void write_cjump_onearg(Instruction* ip, std::ofstream& outputFile) {
+     std::string arg1 = ip->items[1].labelName;
+     std::string arg2 = ip->items[3].labelName;
+     std::string comp = ip->items[2].labelName;
+     std::string label = ip->items[4].labelName;
+     
+     if(arg1[0] == 'r') {
 	if(arg2[0] == 'r'){
 	   outputFile << "cmpq %" << arg2 << ", %" << arg1 << '\n';
 	}
 	else{
 	   outputFile << "cmpq $" << arg2 << ", %" << arg1 << '\n';
 	}
-	outputFile << 'j' << comparison_map(comp) << ' ' << labelModifier(ip->items[4].labelName) << '\n';
-	if(ip->items.size() == 6)
-	   outputFile << "jmp " << labelModifier(ip->items[5].labelName) << '\n';
+	outputFile << 'j' << comparison_map(comp) << ' ' << labelModifier(label) << '\n';
       }
       else if(arg2[0] == 'r') {
 	   outputFile << "cmpq $" << arg1 << ", %" << arg2 << '\n';
-	   outputFile << 'j' << comparison_map_switched(comp) << ' ' << labelModifier(ip->items[4].labelName) << '\n';
-	   if(ip->items.size() == 6)
-	      outputFile << "jmp " << labelModifier(ip->items[5].labelName) << '\n';
+	   outputFile << 'j' << comparison_map_switched(comp) << ' ' << labelModifier(label) << '\n';
       } else { // both args are numbers
 	  bool out;
 	  if (comp == "<")
@@ -260,13 +297,10 @@ namespace L1{
 	       out = std::stoi(arg1) == std::stoi(arg2);
 
 	  if(out)
-	      outputFile << "jmp " << labelModifier(ip->items[4].labelName) << '\n';
-	   else{
-	      if(ip->items.size() == 6)
-	         outputFile << "jmp " << labelModifier(ip->items[5].labelName) << '\n';
+	      outputFile << "jmp " << labelModifier(label) << '\n';
      	  }
-  }
-}
+    }
+     
 
   void write_lea(Instruction* ip, std::ofstream& outputFile) { // @ is not pushed into parsed_registers
      std::string reg1 = ip->items[0].labelName;
@@ -361,15 +395,17 @@ namespace L1{
 		else if(ip->identifier == 5)
 		   write_shift(ip, outputFile);
 		else if(ip->identifier == 6)
-		   write_jumps(ip, outputFile);
+		   write_goto_jump(ip, outputFile); // just a label
 		else if(ip->identifier == 7)
-		   write_cjump(ip, outputFile);
+		   write_cjump_twoargs(ip, outputFile);
 		else if(ip->identifier == 8)
 		   write_lea(ip, outputFile);
 		else if(ip->identifier == 9)
 		   write_call(ip, outputFile, fp->arguments);
-		else
+		else if(ip->identifier == 10)
 		   write_label_instruction(ip,outputFile);
+		else
+		   write_cjump_onearg(ip, outputFile);
 	   }
     }
 
