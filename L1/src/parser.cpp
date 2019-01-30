@@ -259,7 +259,11 @@ pegtl::seq<
 	     seps
   > {};
 
- struct label_instruction:label {};
+ struct label_instruction:
+   pegtl::seq<
+	 seps,
+     Label_rule
+   > {};
 /*
 struct cjump_prefix:
    pegtl::seq<
@@ -296,7 +300,7 @@ struct cjump_onearg:
      compare,
      seps,
      Label_rule,
-     seps,
+     //seps,
      pegtl::eol 
    > {};
 
@@ -313,11 +317,11 @@ struct cjump_onearg:
     seps
   > {};
 
-  struct cjump:
-    pegtl::sor<
-      pegtl::seq<pegtl::at<cjump_onearg>, cjump_onearg>,
-      pegtl::seq<pegtl::at<cjump_twoargs>, cjump_twoargs>
-    > {};
+//  struct cjump:
+//    pegtl::sor<
+//      pegtl::seq<pegtl::at<cjump_onearg>, cjump_onearg>,
+//      pegtl::seq<pegtl::at<cjump_twoargs>, cjump_twoargs>
+//    > {};
 
  struct lea:
    pegtl::seq<
@@ -520,7 +524,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    Item i;
       i.labelName = in.string();
-      //nstd::cout << "number action called.\n";
+      //std::cout << "number action called.\n";
 	    parsed_registers.push_back(i);
     }
   };
@@ -530,6 +534,7 @@ struct runtime_func:
 	    auto currFunc = p.functions.back();
       Instruction* i = new Instruction(); // instruction will be reversed when generating x86
       i->identifier = 0;
+      //std::cout << "ASSIGNMENT\n";
       for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
   	    auto currItemP = it;
 	    i->items.push_back(*currItemP);
@@ -655,13 +660,11 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    //std::cout << "cjump_onearg action called\n";
+   // std::cout << "cjump_onearg action called\n";
     i->identifier = 11;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
-    //std::cout << '\n';
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
     }
@@ -675,9 +678,7 @@ struct runtime_func:
     i->identifier = 7;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
-       //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
-    //std::cout << '\n';
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
     }
@@ -756,6 +757,7 @@ struct runtime_func:
     i->identifier = 10;
     i->items.push_back(it);
     currFunc->instructions.push_back(i);
+    parsed_registers.clear();
     }
   };
 
