@@ -311,10 +311,11 @@ struct cjump_onearg:
     Label_rule,
     seps
   > {};
+
   struct cjump:
     pegtl::sor<
-      pegtl::seq<pegtl::at<cjump_twoargs>, cjump_twoargs>,
-      pegtl::seq<pegtl::at<cjump_onearg>, cjump_onearg>
+      pegtl::seq<pegtl::at<cjump_onearg>, cjump_onearg>,
+      pegtl::seq<pegtl::at<cjump_twoargs>, cjump_twoargs>
     > {};
 
  struct lea:
@@ -360,7 +361,7 @@ struct runtime_func:
     pegtl::seq< pegtl::at<label_instruction>, label_instruction>,
     pegtl::seq< pegtl::at<cjump_twoargs>, cjump_twoargs>,
     pegtl::seq< pegtl::at<cjump_onearg>, cjump_onearg>,
-    pegtl::seq<pegtl::at<cjump>, cjump>,
+    //pegtl::seq<pegtl::at<cjump>, cjump>,
     pegtl::seq< pegtl::at<call>, call>,
     pegtl::seq< pegtl::at<lea>, lea>,
     pegtl::seq< pegtl::at<assignment>, assignment>,
@@ -646,7 +647,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    //std::cout << "cjump_onearg action called\n";
+    std::cout << "cjump_onearg action called\n";
     i->identifier = 11;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);

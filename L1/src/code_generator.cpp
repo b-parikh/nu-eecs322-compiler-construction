@@ -248,9 +248,9 @@ namespace L1{
 	}
       else if(arg2[0] == 'r') {
 	   	outputFile << "cmpq $" << arg1 << ", %" << arg2 << '\n';
-	   	outputFile << 'j' << comparison_map_switched(comp) << ' ' << labelModifier(label1) << labelModifier(label2) << '\n';
-	   	// if(ip->items.size() == 6)
-	      // 	outputFile << "jmp " << labelModifier(label2) << '\n';
+	   	outputFile << 'j' << comparison_map_switched(comp) << ' ' << labelModifier(label1) << '\n';
+	   	 if(ip->items.size() == 6)
+	      	outputFile << "jmp " << labelModifier(label2) << '\n';
       } else { // both args are numbers so calculate during compile time
 	  bool out;
 	  if (comp == "<")
@@ -261,11 +261,9 @@ namespace L1{
 	       out = std::stoi(arg1) == std::stoi(arg2);
 
 	  if(out)
-	      outputFile << "jmp " << labelModifier(label1) << labelModifier(label2) << '\n';
-	   // else{
-	   //    if(ip->items.size() == 6)
-	   //       outputFile << "jmp " << labelModifier(label2) << '\n';
-     	//   }
+	      outputFile << "jmp " << labelModifier(label1) << '\n';
+	  else // if(ip->items.size() == 6)
+	       outputFile << "jmp " << labelModifier(label2) << '\n';
     }
  }
 
