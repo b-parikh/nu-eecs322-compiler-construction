@@ -1,0 +1,64 @@
+(:go
+	(:go
+		0 1
+		rdi <- 3
+		call print 1
+
+		rdi += 9
+		rdi >>= 1
+		rdi += 1
+		call print 1  
+
+		rdi <- 5
+		cjump rdi = 7 :true :false
+		:false
+		mem rsp -8 <- :assign_ret
+		call :assign 1
+		:assign_ret
+		rdi <- rax
+		:true
+		call print 1
+
+		r10 <- 11
+		mem rsp 0 <- r10
+		mem rsp -8 <- :assigncallerinf_ret
+		call :assigncallerinf 0
+		:assigncallerinf_ret
+		r10 <- mem rsp 0
+		rdi <- r10
+		call print 1	
+
+		r12 <- 15
+		mem rsp -8 <- :assigncalleeinf_ret
+		call :assigncalleeinf 1
+		:assigncalleeinf_ret
+		rdi <- r12
+		call print 1
+
+		return
+	)
+	
+	(:assign
+		1 0
+		rax <- 7
+		return
+	)
+
+	(:assigncallerinf
+		0 0
+		r10 <- 9
+		rdi <- r10
+		call print 1
+		return
+	)
+
+	(:assigncalleeinf
+		1 1
+		mem rsp 0 <- r12
+		r12 <- 13
+		rdi <- r12
+		call print 1
+		r12 <- mem rsp 0
+		return
+	)
+)
