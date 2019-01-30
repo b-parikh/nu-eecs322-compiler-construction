@@ -126,7 +126,8 @@ namespace L1 {
       pegtl::string<'r','c','x'>,
       pegtl::string<'r','8'>,
       pegtl::string<'r','9'>,
-      pegtl::string<'r','s','p'>
+      pegtl::string<'r','s','p'>, 
+      pegtl::string<'r','b','p'>
     > {};
 
       struct mem:
@@ -531,10 +532,12 @@ struct runtime_func:
       i->identifier = 0;
       for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
   	    auto currItemP = it;
-	      i->items.push_back(*currItemP);
+	    i->items.push_back(*currItemP);
+	    //std::cout << it->labelName << ' ';
       }
       currFunc->instructions.push_back(i);
- 	    parsed_registers.clear(); 
+      parsed_registers.clear(); 
+      //std::cout << '\n';
     }
   };
 
@@ -555,6 +558,7 @@ struct runtime_func:
 	   i->items.push_back(currItemP);
 	}
 	parsed_registers.clear();
+        //std::cout << '\n';
 	currFunc->instructions.push_back(i);
     }
   };
@@ -576,6 +580,7 @@ struct runtime_func:
 	for(auto currItemP : parsed_registers) {
 	   i->items.push_back(currItemP);
 	}
+        //std::cout << '\n';
 	parsed_registers.clear();
 	currFunc->instructions.push_back(i);
     }
@@ -600,6 +605,7 @@ struct runtime_func:
 	   i->items.push_back(currItemP);
 	   //std::cout << currItemP.labelName << ' ';
 	}
+        //std::cout << '\n';
 	parsed_registers.clear();
 	currFunc->instructions.push_back(i);
     }
@@ -623,6 +629,7 @@ struct runtime_func:
        i->items.push_back(currItemP);
        //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
+    //std::cout << '\n';
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
     }
@@ -638,6 +645,7 @@ struct runtime_func:
        i->items.push_back(currItemP);
        //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
+    //std::cout << '\n';
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
     }
@@ -647,12 +655,13 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    std::cout << "cjump_onearg action called\n";
+    //std::cout << "cjump_onearg action called\n";
     i->identifier = 11;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
        //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
+    //std::cout << '\n';
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
     }
@@ -668,6 +677,7 @@ struct runtime_func:
        i->items.push_back(currItemP);
        //std::cout << currItemP.labelName << ' '; //FOR TEST
     }
+    //std::cout << '\n';
     parsed_registers.clear();
     currFunc->instructions.push_back(i);
     }
@@ -679,11 +689,11 @@ struct runtime_func:
        // previous instruction in program is cjump_prefix
        auto currFunc = p.functions.back();
        auto currInstruct = currFunc->instructions.back();
-    std::cout << "parsed_registers size before cjump_suffix action: " << parsed_registers.size() << '\n'; // 5
+    //std::cout << "parsed_registers size before cjump_suffix action: " << parsed_registers.size() << '\n'; // 5
 
        for(auto currItem : parsed_registers) {
 	  currInstruct->items.push_back(currItem);
-          std::cout << currItem.labelName << ' '; //FOR TEST
+          //std::cout << currItem.labelName << ' '; //FOR TEST
        }
 
        parsed_registers.clear();
