@@ -33,6 +33,7 @@ namespace L2 {
         return false;
     }
 
+    // TODO: assginment - we will probably have a case of 4: w <- stack-arg M
     void gk_assignment(Instruction &i) {
 
         set_of_str gen_set = i.gen_set;
@@ -61,37 +62,114 @@ namespace L2 {
 
         i.gen_set = gen_set;
         i.kill_set = kill_set;
-    }	
+    }
+
+    void gk_arithmetics(Instruction &i) { // reg1, var1, mem = reg1, var, mem + rev2, var2, mem, num
+        set_of_str gen_set = i.gen_set;
+        set_of_str kill_set = i.kill_set;
+
+        int instruction_length = (i.items).size();
+
+        if (instruction_length == 3) {
+            if(regOrVar(i.items[2])) { //RHS == reg, var
+                gen_set.emplace(varNameModifier(i.items[2]));
+            }
+            // LHS = reg, var
+            gen_set.emplace(varNameModifier(i.items[0]));
+            kill_set.emplace(varNameModifier(i.items[0]));
+        }
+        else { // length == 5
+            if(i.items[0].type == Type::mem) { // LHS is mem
+                gen_set.emplace(varNameModifier(i.items[1])); // reg or var
+                if(regOrVar(i.items[4]))
+                    gen_set.emplace(varNameModifier(i.items[4]));
+            } else {
+                gen_set.emplace(varNameModifier(i.items[3]));
+                gen_set.emplace(varNameModifier(i.items[0]));
+                kill_set.emplace(varNameModifier(i.items[0]));
+            }
+        }
+
+        i.gen_set = gen_set;
+        i.kill_set = kill_set;
+    }
+
+    void gk_inc_dec(Instruction &i) { // reg, var = reg, var + 1
+        i.gen_set.emplace(varNameModifier(i.items[0]));
+        i.kill_set.emplace(varNameModifier(i.items[0]));
+    }
+
+    void gk_assign_comparison(Instruction &i) { // reg1, var1 <- reg2, var2, num (compare) reg3, var3, num
+        if(regOrVar(i.items[2])) // first t in RHS is not number
+            i.gen_set.emplace(varNameModifier(i.items[2]));
+        if(regOrVar(i.items[2])) // second t in RHS is not number
+            i.gen_set.emplace(varNameModifier(i.items[4]));
+
+        i.kill_set.emplace(varNameModifier(i.items[0]));
+    }
+
+    void gk_shift(Instruction &i) { // reg1, var1 <<= reg2, var2
+        i.gen_set.emplace(varNameModifier(i.items[1]));
+
+        i.gen_set.emplace(varNameModifier(i.items[0]));
+        i.kill_set.emplace(varNameModifier(i.items[0]));
+    }
+
+    void gk_cjump(Instruction &i) { //
+        if(regOrVar(i.items[1])) // first t in RHS is not number
+            i.gen_set.emplace(varNameModifier(i.items[1]));
+        if(regOrVar(i.items[3])) // second t in RHS is not number
+            i.gen_set.emplace(varNameModifier(i.items[3]));
+    }
+
+    void gk_lea(Instruction &i) { // reg1, var1 = reg2, var2 + (reg3, var3 * 4)
+        i.gen_set.emplace(varNameModifier(i.items[2])); // items[1] == @
+        i.gen_set.emplace(varNameModifier(i.items[3]));
+
+        i.kill_set.emplace(varNameModifier(i.items[0]));
+    }
+
+    void gk_call(Instruction &i) { // call (reg, var, label, runtime) num
+        if(regOrVar(i.items[1])) // neither label or runtime functions
+            i.gen_set.emplace(varNameModifier(i.items[1]));
+
+        int num_args = stoi(i.items[2].labelName);
+        int num_args_gen = (num_args > 6) ? 6 : num_args;
+        for (int inum = 0; inum < num_args_gen; inum++)
+            i.gen_set.emplace(func_args[inum]);
+
+        i.kill_set = caller_save_regs;
+    }
 
     void compute_gen_and_kill(Instruction &instruct) {
-
         if(instruct.identifier == 0) { // assignment
             std::cout << instruct.gen_set.size() << '\n';
             gk_assignment(instruct);
         }
-            
-        // else if(ip->identifier == 1)
-        // write_return(move_stack_by, outputFile);
-        // else if(ip->identifier == 2)
-        // write_arithmetic(ip, outputFile);
-        // else if(ip->identifier == 3)
-        // write_inc_dec(ip, outputFile);
-        // else if(ip->identifier == 4)
-        // write_assign_comparison(ip, outputFile);
-        // else if(ip->identifier == 5)
-        // write_shift(ip, outputFile);
-        // else if(ip->identifier == 6)
-        // write_goto_jump(ip, outputFile); // just a label
-        // else if(ip->identifier == 7)
-        // write_cjump_twoargs(ip, outputFile);
-        // else if(ip->identifier == 8)
-        // write_lea(ip, outputFile);
-        // else if(ip->identifier == 9)
-        // write_call(ip, outputFile, fp->arguments);
-        // else if(ip->identifier == 10)
-        // write_label_instruction(ip,outputFile);
-        // else
-        // write_cjump_onearg(ip, outputFile);
+//         else if(ip->identifier == 1)
+//            write_return(move_stack_by, outputFile);
+         else if(instruct.identifier == 2)
+            gk_arithmetics(instruct);
+         else if(instruct.identifier == 3)
+            gk_inc_dec(instruct);
+         else if(instruct.identifier == 4)
+            gk_assign_comparison(instruct);
+         else if(instruct.identifier == 5)
+            gk_shift(instruct);
+//         else if(ip->identifier == 6)
+//            write_goto_jump(ip, outputFile); // just a label
+         else if(instruct.identifier == 7)
+            gk_cjump(instruct);
+         else if(instruct.identifier == 8)
+            gk_lea(instruct);
+         else if(instruct.identifier == 9)
+            gk_call(instruct);
+//         else if(ip->identifier == 10)
+//            write_label_instruction(ip,outputFile);
+         else if(instruct.identifier == 11)
+            gk_cjump(instruct);
+         else
+            ;   // Do nothing for RETURN, GOTO, LABEL_inst
 
     }
 
