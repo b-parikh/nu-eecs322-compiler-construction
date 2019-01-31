@@ -7,19 +7,19 @@
 
 using namespace std;
 
-namespace L1{
+namespace L2{
 
   std::string labelModifier(std::string inputLabel) {
     inputLabel.at(0) = '_';
     return inputLabel;
   }
 
-  void write_assignment(Instruction* ip, std::ofstream& outputFile) {
-    int instruction_length = (ip->items).size();
-	outputFile << "movq ";
-	if (instruction_length == 3) {
-	   Item dest = ip->items[0]; // append '%' here instead of in L29
-	   Item src = ip->items[2]; 
+	void write_assignment(Instruction* ip, std::ofstream& outputFile) {
+		int instruction_length = (ip->items).size();
+		outputFile << "movq ";
+		if (instruction_length == 3) {
+	   	Item dest = ip->items[0]; // append '%' here instead of in L29
+	   	Item src = ip->items[2]; 
 
 	   if (src.labelName[0] == 'r') // reg <- reg
 	      src.labelName = '%' + src.labelName;
@@ -28,28 +28,28 @@ namespace L1{
 	   else // reg <- const
 	      src.labelName = '$' + src.labelName;
            outputFile << src.labelName << ", %" << dest.labelName << '\n';
-	} else { 
-		if (ip->items[0].labelName == "mem") { // store into memory
-		   Item dest = ip->items[1];
-		   Item offset = ip->items[2];
-		   Item src = ip->items[4]; 
-		   if (src.labelName[0] == 'r') { // mem <- reg
-		      src.labelName = '%' + src.labelName;
-		   }
-		   else if (src.labelName[0] == ':') { // mem <- label
-		      src.labelName = '$' + labelModifier(src.labelName);
-		   } else { // mem <- const
-		   	src.labelName = '$' + src.labelName;
-		   }
- 	        outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
-		} else { // reg <- mem
-		   	Item src = ip->items[3];
-	      	Item dest = ip->items[0];
-	      	Item offset = ip->items[4];
+		} else { 
+			if (ip->items[0].labelName == "mem") { // store into memory
+				Item dest = ip->items[1];
+				Item offset = ip->items[2];
+				Item src = ip->items[4]; 
+				if (src.labelName[0] == 'r') { // mem <- reg
+					src.labelName = '%' + src.labelName;
+				}
+				else if (src.labelName[0] == ':') { // mem <- label
+					src.labelName = '$' + labelModifier(src.labelName);
+				} else { // mem <- const
+					src.labelName = '$' + src.labelName;
+				}
+				outputFile << src.labelName << ", " << offset.labelName<< '(' << '%' << dest.labelName << ")\n";
+			} else { // reg <- mem
+					Item src = ip->items[3];
+					Item dest = ip->items[0];
+					Item offset = ip->items[4];
 
- 	       outputFile << offset.labelName << "(%" << src.labelName << "), %" << dest.labelName << '\n'; 
+				outputFile << offset.labelName << "(%" << src.labelName << "), %" << dest.labelName << '\n'; 
+			}
 		}
-	}
   }
   void write_return(int move_stack_by, std::ofstream& outputFile) {
         outputFile << "addq $" << move_stack_by << ", %rsp\n";
@@ -366,6 +366,7 @@ namespace L1{
 
 
     int vector_size = p.functions.size();
+	 
     for(int i = 0; i < vector_size; ++i) {
        auto fp = p.functions[i];
        outputFile << labelModifier(fp->name) << ": \n";
@@ -381,8 +382,8 @@ namespace L1{
 	   // add func arg # and local #
 	   // function to iterate through instructions vector
 	   for (Instruction* ip : fp->instructions) {
-	        if(ip->identifier == 0)
-	 	    write_assignment(ip, outputFile);
+		if(ip->identifier == 0)
+			write_assignment(ip, outputFile);
 		else if(ip->identifier == 1)
 		   write_return(move_stack_by, outputFile);
 		else if(ip->identifier == 2)

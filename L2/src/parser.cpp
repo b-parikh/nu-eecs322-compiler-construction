@@ -14,7 +14,6 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 
-#include <L1.h>
 #include <parser.h>
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
@@ -22,7 +21,7 @@ namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 using namespace pegtl;
 using namespace std;
 
-namespace L1 {
+namespace L2 {
 
   /* 
    * Data required to parse
@@ -109,6 +108,15 @@ namespace L1 {
        * Our works
        *
        */
+
+  struct var:
+    pegtl::seq<
+      seps,
+      pegtl::one<'%'>,
+      name,
+      seps
+    > {}; 
+
   struct reg:
 	  pegtl::sor<
       pegtl::string<'r','a','x'>,
@@ -127,14 +135,17 @@ namespace L1 {
       pegtl::string<'r','8'>,
       pegtl::string<'r','9'>,
       pegtl::string<'r','s','p'>, 
-      pegtl::string<'r','b','p'>
+      pegtl::string<'r','b','p'>,
+      var
     > {};
 
-      struct mem:
-	 pegtl::string<'m', 'e', 'm'> {};
+  // TODO : stack_arg
 
-      struct mem_op:
-	 pegtl::seq<mem, seps, reg, seps, number> {};
+  struct mem:
+	  pegtl::string<'m', 'e', 'm'> {};
+
+  struct mem_op:
+	  pegtl::seq<mem, seps, reg, seps, number> {};
 
       /* 
        * instructions
@@ -425,6 +436,11 @@ struct runtime_func:
     pegtl::must< 
       entry_point_rule
     > {};
+  
+  struct function_grammar:
+    pegtl::must<
+      Functions_rule
+    > {};
 
   /* 
    * Actions attached to grammar rules.
@@ -434,13 +450,13 @@ struct runtime_func:
 
   template<> struct action < label > {
     template< typename Input >
-	static void apply( const Input & in, Program & p){
-      if (p.entryPointLabel.empty()){
-        p.entryPointLabel = in.string();
-      } else {
- 	abort();
+	    static void apply( const Input & in, Program & p){
+        if (p.entryPointLabel.empty()){
+          p.entryPointLabel = in.string();
+        } else {
+ 	        abort();
+        }
       }
-    }
   };
 
   template<> struct action < function_name > {
@@ -485,6 +501,7 @@ struct runtime_func:
       Item i;
       //std::cout << "Label_rule action called.\n"; 
       i.labelName = in.string();
+      i.type = Type::label;
       parsed_registers.push_back(i);
     }
   };
@@ -498,6 +515,10 @@ struct runtime_func:
     static void apply (const Input &in, Program &p) {
 	    Item i;
       //std::cout << "reg action called\n";
+      if(in.string()[0] == 'r')
+        i.type = Type::reg;
+      else
+        i.type = Type::var;
 	    i.labelName = in.string();
 	    parsed_registers.push_back(i);
     }
@@ -514,9 +535,10 @@ struct runtime_func:
 
   template<> struct action < mem > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	   Item i;
-     	   i.labelName = in.string();
-	   parsed_registers.push_back(i);
+	    Item i;
+      i.type = Type::mem;
+      i.labelName = in.string();
+	    parsed_registers.push_back(i);
     }
   };
 
@@ -524,6 +546,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    Item i;
       i.labelName = in.string();
+      i.type = Type::num;
       //std::cout << "number action called.\n";
 	    parsed_registers.push_back(i);
     }
@@ -550,6 +573,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	Item i;
 	i.labelName = in.string();
+  i.type = Type::oper;
 	parsed_registers.push_back(i);
     }
   };
@@ -572,6 +596,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	Item i;
 	i.labelName = in.string();
+  i.type = Type::oper;
 	parsed_registers.push_back(i);
     }
   };
@@ -595,6 +620,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	  Item i;
 	  i.labelName = in.string();
+    i.type = Type::oper;
     //std::cout << "comparison operator called\n";
 	  parsed_registers.push_back(i);
     }
@@ -620,6 +646,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Item i;
     i.labelName = in.string();
+    i.type = Type::oper;
     parsed_registers.push_back(i);
     }
   };
@@ -720,6 +747,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Item i;
     i.labelName = in.string();
+    i.type = Type::runtime;
     parsed_registers.push_back(i);
     }
   };
@@ -767,7 +795,7 @@ struct runtime_func:
      * Check the grammar for some possible issues.
      */
     pegtl::analyze< grammar >();
-
+    pegtl::analyze< function_grammar >();
     /*
      * Parse.
      */   
@@ -778,4 +806,13 @@ struct runtime_func:
     return p;
   }
 
+  Program parse_function (char *fileName) {
+    pegtl::analyze<function_grammar>();
+    
+    file_input< > fileInput(fileName);
+    Program p;
+    parse< function_grammar, action>(fileInput, p);
+
+    return p;
+  }
 }

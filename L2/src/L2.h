@@ -1,11 +1,17 @@
 #pragma once
 
 #include <vector>
+#include <unordered_set>
 
-namespace L1 {
+namespace L2 {
+  
+  typedef std::unordered_set<std::string> set_of_str;
+
+  enum class Type{num, label, reg, mem, var, runtime, oper};
 
   struct Item {
     std::string labelName;
+    L2::Type type;
   };
 
   /*
@@ -14,6 +20,10 @@ namespace L1 {
   struct Instruction{
     int identifier;
     std::vector<Item> items;
+    set_of_str gen_set;
+    set_of_str kill_set;
+    set_of_str in_set;
+    set_of_str out_set;
   };
 
   /*

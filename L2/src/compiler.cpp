@@ -10,15 +10,14 @@
 #include <cstdlib>
 #include <stdint.h>
 #include <unistd.h>
-#include <iostream>
 
 #include <parser.h>
 #include <analysis.h>
-#include <transformer.h>
-#include <code_generator.h>
-#include <spiller.h>
-#include <register_allocation.h>
-#include <utils.h>
+// #include <transformer.h>
+// #include <code_generator.h>
+// #include <spiller.h>
+// #include <register_allocation.h>
+// #include <utils.h>
 
 using namespace std;
 
@@ -31,16 +30,16 @@ int main(
   int argc, 
   char **argv
   ){
-  auto enable_code_generator = true;
+  auto enable_code_generator = false;
   auto spill_only = false;
   auto interference_only = false;
-  int32_t liveness_only = 0;
+  int32_t liveness_only = 1;
   int32_t optLevel = 0;
 
   /* 
    * Check the compiler arguments.
    */
-  Utils::verbose = false;
+  // Utils::verbose = false;
   if( argc < 2 ) {
     print_help(argv[0]);
     return 1;
@@ -70,7 +69,7 @@ int main(
         break ;
 
       case 'v':
-        Utils::verbose = true;
+        // Utils::verbose = true;
         break ;
 
       default:
@@ -79,6 +78,8 @@ int main(
     }
   }
 
+
+  L2::Program p;
   /*
    * Parse the input file.
    */
@@ -95,7 +96,7 @@ int main(
      * Parse an L2 function.
      */
      //TODO
-
+    p = L2::parse_function(argv[optind]);
   } else if (interference_only){
 
     /*
@@ -128,7 +129,7 @@ int main(
    * Liveness test.
    */
   if (liveness_only){
-    //TODO
+    L2::analyze(p);
     return 0;
   }
 
