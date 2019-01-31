@@ -2,6 +2,24 @@
 
 namespace L2 {
 
+   set_of_str subtract_sets(set_of_str &s1, set_of_str &s2) {
+        std::vector<std::string> toDelete;
+
+        for(auto &i : s1) {
+            set_of_str::const_iterator item = s2.find(i);
+            if(item != s2.end()){
+                s2.erase(item);
+                toDelete.push_back(i);
+            }
+    }
+
+    for(auto &i : toDelete){
+        set_of_str::const_iterator item = s1.find(i);
+        s1.erase(item);
+    }
+
+    return s1;
+
     std::string varNameModifier(Item i) { 
         if(i.type == Type::var)
             (i.labelName).erase(0,1);
@@ -77,24 +95,34 @@ namespace L2 {
 
     }
 
-    // void compute_in_and_out(Function &f) {
+    void compute_in_and_out(Function &f) {
+        // computing in and out set going from last to first instruction
+        int num_instructions = f.instructions.size();
+        
+        // compute prev_in and prev_out set for all instructions 
+        set_of_str in_set;
+        // set_of_str out_set; // last instruction doesn't have an out_set
+        
+        in_set = f.instructions[num_instructions - 1].gen_set;
+        f.in_set = in_set; 
+        for(int i = num_instructions - 2; i >= -; --i) {
+            int successor = i + 1;
+            f.instructions[i].out_set = f.instructions[successor].in_set;
+            // calculate gen[i] U (out[i] - in[i])
 
-    //     int num_instructions = f.instructions.size();
+        do{
+            // compuing in and out set of last instruction
+            in_set = f.instructions[num_instructions - 1].gen_set;
+            f.in_set = in_set;
 
-    //     do{
-    //         set_of_str in_set;
-    //         // set_of_str out_set; // no out_set as there is no successor
-    //         in_set = f.instructions[num_instructions - 1].gen_set;
-    //         f.in_set = in_set;
+            for(int i = num_instructions - 2; i >= 0; --i) {
+                int successor = i + 1;
+                f.instructions[i].out_set = f.instructions[successor].in_set;
+                f.instructions[i].in_set = 
+            }
+        }
 
-    //         for(int i = num_instructions - 2; i >= 0; --i) {
-    //             int successor = i + 1;
-    //             f.instructions[i].out_set = f.instructions[successor].in_set;
-    //             f.instructions[i].in_set = 
-    //         }
-    //     }
-
-    // }
+    }
 
     void analyze(Program p) {
         Function f = *p.functions[0];
