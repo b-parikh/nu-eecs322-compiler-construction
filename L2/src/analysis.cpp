@@ -7,20 +7,25 @@ namespace L2 {
    set_of_str CALLER_SAVED_REGISTERS =
      {"r8", "r9", "r10", "r11", "rax", "rcx", "rdi", "rdx", "rsi"};
    set_of_str CALLEE_SAVED_REGISTERS =
-     {"r12", "r13", "r14", "r15", "rbp", "rbx", "rax"};
+     {"r12", "r13", "r14", "r15", "rbp", "rbx"};
    vector_of_str ARGUMENT_REGISTERS =
      {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
   // set_of_str RESULT_REGISTERS =
   //   {"rax"};
 
-   set_of_str subtract_sets(set_of_str &s1, set_of_str &s2) {
+   void print_set(set_of_str &s) {
+       for(std::string const i : s)
+           std::cout << i  << ' ';
+       std::cout << '\n';
+   }
+
+   set_of_str subtract_sets(set_of_str s1, set_of_str s2) { // out - kill
         std::vector<std::string> toDelete;
 
         for(auto &i : s1) {
             set_of_str::const_iterator item = s2.find(i);
-            if(item != s2.end()){
-                s2.erase(item);
+            if(item != s2.end()) { // if item is in s2
                 toDelete.push_back(i);
             }
         }
@@ -104,10 +109,9 @@ namespace L2 {
     }
 
     void gk_return(Instruction &i) {
-        set_of_str gen_set;
-        gen_set.emplace("rax");
-        gen_set = i.gen_set;
-        set_of_str kill_set = i.kill_set; // return has no kill set, but this is for consistency
+        i.gen_set.emplace("rax");
+        i.gen_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
+        // return has no kill set, but this is for consistency
     }
 
     // TODO: assignment - we will probably have a case of 4: w <- stack-arg M
@@ -207,15 +211,18 @@ namespace L2 {
     }
 
     void gk_call(Instruction &i) { // call (reg, var, label, runtime) num
-        if(regOrVar(i.items[1])) // neither label or runtime functions
+        if(regOrVar(i.items[1])) {// neither label nor runtime functions
             i.gen_set.emplace(varNameModifier(i.items[1]));
+            //std::cout << "call instruction calls a register or variable\n";
+        }
 
         int num_args = stoi(i.items[2].labelName);
         int num_args_gen = (num_args > 6) ? 6 : num_args;
         for (int inum = 0; inum < num_args_gen; inum++)
             i.gen_set.emplace(ARGUMENT_REGISTERS[inum]);
 
-        i.kill_set = CALLER_SAVED_REGISTERS; // located in L2.h
+        i.kill_set = CALLER_SAVED_REGISTERS;
+        i.kill_set.emplace("rax");
     }
 
     void compute_gen_and_kill(Instruction &instruct) {
@@ -232,14 +239,14 @@ namespace L2 {
             gk_assign_comparison(instruct);
          else if(instruct.identifier == 5)
             gk_shift(instruct);
-//         else if(ip->identifier == 6)
-//            write_goto_jump(ip, outputFile); // just a label
+//         else if(instruct.identifier == 6)
+//            gk_goto(ip, outputFile); // just a label
          else if(instruct.identifier == 7)
             gk_cjump(instruct);
          else if(instruct.identifier == 8)
             gk_lea(instruct);
-//         else if(instruct.identifier == 9)
-//            gk_call(instruct);
+         else if(instruct.identifier == 9)
+            gk_call(instruct);
 //         else if(ip->identifier == 10)
 //            write_label_instruction(ip,outputFile);
          else if(instruct.identifier == 11)
@@ -252,12 +259,18 @@ namespace L2 {
     void compute_in_and_out(Function &f) {
         // computing in and out set going from last to first instruction
         int num_instructions = f.instructions.size();
-        bool not_converged = false;
+        bool not_converged;
         do{
 			not_converged = false;
             // compute IN set of last instruction; has no successor or OUT set
             Instruction* ip = f.instructions[num_instructions - 1];
             ip->in_set = ip->gen_set;
+
+//            std::cout << "\nIN and OUT sets for instruction\n";
+//            std::cout << "IN set: ";
+//            print_set(ip->in_set);
+//            std::cout << "OUT set: ";
+//            print_set(ip->out_set);
 
             // starting from second to last instruction to first instruction, assign successor(s)
             for(int n = num_instructions - 2; n >= 0; --n) {
@@ -274,60 +287,83 @@ namespace L2 {
                 else
                     ip->successors.push_back(f.instructions[n+1]);
 
-                // foreach successor, insert successor's IN set into currI's OUT set (populate out set)
                 ip->prev_out_set = ip->out_set;
                 ip->prev_in_set = ip->in_set;
-                for( auto sp : ip->successors) {
-                    (ip->out_set).insert(sp->out_set.begin(), sp->out_set.end());
-                }
                 
+                //std::cout << "curr out_set: ";
+                //print_set(ip->out_set);
+                // foreach successor, insert successor's IN set into currI's OUT set (populate out set)
+                for(auto sp : ip->successors) {
+                    ip->out_set.clear();
+                    (ip->out_set).insert(sp->in_set.begin(), sp->in_set.end());
+                    //std::cout << "an in_set placed into curr out_set: ";
+                    //print_set(sp->in_set);
+                }
+                //std::cout << "out_set after insertions: ";
+                //print_set(ip->out_set);
                 // populate in set
-                set_of_str out_sub_kill = subtract_sets(ip->out_set, ip->kill_set);
+//                std::cout << "OUT and KILL sets\n";
+//                std::cout << "OUT set: ";
+//                print_set(ip->out_set);
+//                std::cout << "KILL set: ";
+//                print_set(ip->kill_set);
+                set_of_str out_sub_kill = subtract_sets(ip->out_set, ip->kill_set); // OUT[i] - KILL[i]
+                //std::cout << out_sub_kill.size() << '\n'; //0
+                ip->in_set.clear();
                 ip->in_set.insert(out_sub_kill.begin(), out_sub_kill.end());
+                //std::cout << ip->gen_set.size() << '\n'; //0
                 ip->in_set.insert(ip->gen_set.begin(), ip->gen_set.end());
 
-                if(ip->prev_out_set != ip->out_set || ip->prev_in_set != ip->in_set)
+                if(ip->prev_out_set != ip->out_set || ip->prev_in_set != ip->in_set) {
                     not_converged = true;
+                }
+//            std::cout << "\nIN and OUT sets for instruction\n";
+//            std::cout << "IN set: ";
+//            print_set(ip->in_set);
+//            std::cout << "OUT set: ";
+//            print_set(ip->out_set);
+//            std::cout << '\n';
             }
         } while(not_converged);
 
-		for (Instruction* ip : f.instructions) {
-			ip->in_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
-			ip->out_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
-		}
+//		for (Instruction* ip : f.instructions) {
+//			ip->in_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
+//			ip->out_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
+//		}
     }
 
     void analyze(Program p) {
         Function f = *p.functions[0];
         //std::cout << "Function: " << f.name << '\n';
         for(Instruction* instruct : f.instructions) {
-            // std::cout << instruct-> identifier << '\n';
             compute_gen_and_kill(*instruct);
-            // std::cout << instruct->gen_set.size() << '\n';
-            // std::cout << instruct->kill_set.size() << '\n';
-//            for(auto s : instruct->gen_set) {
-//                std::cout << "gen_set: " << s << '\t';
-//            }
-//            for(auto s : instruct->kill_set)
-//                std::cout << "kill_set: " << s << '\n';
+            // print gen and kill for each instruction
+//            std::cout << "instruction: \ngen_set: ";
+//            print_set(instruct->gen_set);
+//            std::cout << "kill_set: ";
+//            print_set(instruct->kill_set);         
+//            std::cout << '\n';
 	    }
         
         compute_in_and_out(f);
-        std::cout << "((in\n";
+
+        std::cout << "(\n(in\n";
         for(auto i : f.instructions) {
             std::cout << " (";
-            for(auto s : i->in_set)
+            //std::cout << i->in_set.size(); // in_set not populating
+            for(auto s : i->in_set) {
                 std::cout << s << ' ';
+            }
             std::cout << ")\n";
         }
-        std::cout << ")(out\n";
+        std::cout << ")\n\n(out\n";
         for(auto i : f.instructions) {
             std::cout << " (";
             for(auto s : i->out_set)
                 std::cout << s << ' ';
             std::cout << ")\n";
         }
-		std::cout << "))";
+		std::cout << ")\n\n)";
     }
 
 }
