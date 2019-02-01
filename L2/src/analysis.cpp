@@ -126,9 +126,9 @@ namespace L2 {
             if(regOrVar(i.items[2])) { //RHS == reg, var
                 gen_set.emplace(varNameModifier(i.items[2]));
             }
-            std::cout << varNameModifier(i.items[0]) << '\n';
+            //std::cout << varNameModifier(i.items[0]) << '\n';
             kill_set.emplace(varNameModifier(i.items[0]));
-            std::cout << varNameModifier(i.items[0]) << '\n';
+            //std::cout << varNameModifier(i.items[0]) << '\n';
         }
         else { // length == 5
             if(i.items[0].type == Type::mem) { // LHS is mem
@@ -350,7 +350,6 @@ namespace L2 {
         std::cout << "(\n(in\n";
         for(auto i : f.instructions) {
             std::cout << " (";
-            //std::cout << i->in_set.size(); // in_set not populating
             for(auto s : i->in_set) {
                 std::cout << s << ' ';
             }
