@@ -87,6 +87,16 @@ namespace L2 {
   /* 
    * Keywords.
    */
+
+  struct l1_keyword:
+       pegtl::sor<
+          pegtl::string<'c', 'a', 'l', 'l'>,
+          pegtl::string<'c', 'j', 'u', 'm', 'p'>,
+          pegtl::string<'g','o','t','o'>,
+          pegtl::string<'s', 't', 'a', 'c', 'k', '-', 'a', 'r', 'g'>,
+          pegtl::one<'@'>
+       > {};
+
   struct str_return : TAOCPP_PEGTL_STRING( "return" ) {};
 
   struct seps: 
@@ -111,10 +121,8 @@ namespace L2 {
 
   struct var:
     pegtl::seq<
-      seps,
       pegtl::one<'%'>,
-      name,
-      seps
+      name
     > {}; 
 
   struct reg:
@@ -140,7 +148,9 @@ namespace L2 {
     > {};
 
   // TODO : stack_arg
-
+  struct stack_arg:
+      pegtl::seq<l1_keyword, seps, number> {};
+      
   struct mem:
 	  pegtl::string<'m', 'e', 'm'> {};
 
@@ -160,7 +170,7 @@ namespace L2 {
 	  seps,
 	  assign_operator,
 	  seps,
-	  pegtl::sor<mem_op, reg, number, Label_rule>,
+	  pegtl::sor<mem_op, reg, number, Label_rule, stack_arg>,
       seps
     > {};
 
@@ -252,14 +262,6 @@ pegtl::seq<
      pegtl::sor<reg, number>,
      seps
    > {};
-
-  struct l1_keyword:
-       pegtl::sor<
-          pegtl::string<'c', 'a', 'l', 'l'>,
-          pegtl::string<'c', 'j', 'u', 'm', 'p'>,
-          pegtl::string<'g','o','t','o'>,
-          pegtl::one<'@'>
-       > {};
 
  struct goto_jump:
    pegtl::seq<

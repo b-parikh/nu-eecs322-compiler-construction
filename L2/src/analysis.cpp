@@ -11,14 +11,11 @@ namespace L2 {
    vector_of_str ARGUMENT_REGISTERS =
      {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
-  // set_of_str RESULT_REGISTERS =
-  //   {"rax"};
-
-   void print_set(set_of_str &s) {
-       for(std::string const i : s)
-           std::cout << i  << ' ';
-       std::cout << '\n';
-   }
+//   void print_set(set_of_str &s) {
+//       for(std::string const i : s)
+//           std::cout << i  << ' ';
+//       std::cout << '\n';
+//   }
 
    set_of_str subtract_sets(set_of_str s1, set_of_str s2) { // out - kill
         std::vector<std::string> toDelete;
@@ -77,7 +74,7 @@ namespace L2 {
      */
     void cjump_onearg_successor_push_back(Function &f, int currInstructionIndex) {
         Instruction* prevI = f.instructions[currInstructionIndex];
-        std::string labelToMatch = prevI->items[3].labelName;
+        std::string labelToMatch = prevI->items[4].labelName;
         for(int n = 0; n < f.instructions.size(); ++n) {
             Instruction* i = f.instructions[n];
             if(i->identifier != 10) // if not label_instruction
@@ -93,8 +90,8 @@ namespace L2 {
         
     void cjump_twoargs_successor_push_back(Function &f, int currInstructionIndex) {
         Instruction* prevI = f.instructions[currInstructionIndex];
-        std::string label1 = prevI->items[3].labelName;
-        std::string label2 = prevI->items[4].labelName;
+        std::string label1 = prevI->items[4].labelName;
+        std::string label2 = prevI->items[5].labelName;
         for(int n = 0; n < f.instructions.size(); ++n) {
             Instruction* i = f.instructions[n];
             if(i->identifier != 10) // if not label_instruction
@@ -126,10 +123,10 @@ namespace L2 {
             if(regOrVar(i.items[2])) { //RHS == reg, var
                 gen_set.emplace(varNameModifier(i.items[2]));
             }
-            //std::cout << varNameModifier(i.items[0]) << '\n';
             kill_set.emplace(varNameModifier(i.items[0]));
-            //std::cout << varNameModifier(i.items[0]) << '\n';
         }
+        else if(instruction_length == 4)
+            kill_set.emplace(varNameModifier(i.items[0]));        
         else { // length == 5
             if(i.items[0].type == Type::mem) { // LHS is mem
                 if(i.items[1].labelName != "rsp") // hacky way to check if a register is rsp
@@ -145,6 +142,7 @@ namespace L2 {
 
         i.gen_set = gen_set;
         i.kill_set = kill_set;
+      
     }
 
     void gk_arithmetics(Instruction &i) { // reg1, var1, mem = reg1, var, mem + rev2, var2, mem, num
@@ -192,7 +190,8 @@ namespace L2 {
     }
 
     void gk_shift(Instruction &i) { // reg1, var1 <<= reg2, var2
-        i.gen_set.emplace(varNameModifier(i.items[1]));
+        if(regOrVar(i.items[2]))
+            i.gen_set.emplace(varNameModifier(i.items[2]));
 
         i.gen_set.emplace(varNameModifier(i.items[0]));
         i.kill_set.emplace(varNameModifier(i.items[0]));
@@ -215,7 +214,6 @@ namespace L2 {
     void gk_call(Instruction &i) { // call (reg, var, label, runtime) num
         if(regOrVar(i.items[1])) {// neither label nor runtime functions
             i.gen_set.emplace(varNameModifier(i.items[1]));
-            //std::cout << "call instruction calls a register or variable\n";
         }
 
         int num_args = stoi(i.items[2].labelName);
@@ -280,12 +278,12 @@ namespace L2 {
                 if(ip->identifier == 6) { // push_back successor if goto 
                    goto_successor_push_back(f, n); 
                 }
-                else if(ip->identifier == 7) { // push_back successor if cjump
-                    if(ip->items.size() == 4)
+                else if(ip->identifier == 11) { // push_back successor if cjump_onearg
                         cjump_onearg_successor_push_back(f, n);
-                    else // size == 5
-                        cjump_twoargs_successor_push_back(f, n);
                 } 
+                else if(ip->identifier == 7) { // push_back successors if cjump_twoargs
+                    cjump_twoargs_successor_push_back(f, n);
+                }
                 else
                     ip->successors.push_back(f.instructions[n+1]);
 
@@ -295,8 +293,8 @@ namespace L2 {
                 //std::cout << "curr out_set: ";
                 //print_set(ip->out_set);
                 // foreach successor, insert successor's IN set into currI's OUT set (populate out set)
+                ip->out_set.clear();
                 for(auto sp : ip->successors) {
-                    ip->out_set.clear();
                     (ip->out_set).insert(sp->in_set.begin(), sp->in_set.end());
                     //std::cout << "an in_set placed into curr out_set: ";
                     //print_set(sp->in_set);
@@ -310,10 +308,8 @@ namespace L2 {
 //                std::cout << "KILL set: ";
 //                print_set(ip->kill_set);
                 set_of_str out_sub_kill = subtract_sets(ip->out_set, ip->kill_set); // OUT[i] - KILL[i]
-                //std::cout << out_sub_kill.size() << '\n'; //0
                 ip->in_set.clear();
                 ip->in_set.insert(out_sub_kill.begin(), out_sub_kill.end());
-                //std::cout << ip->gen_set.size() << '\n'; //0
                 ip->in_set.insert(ip->gen_set.begin(), ip->gen_set.end());
 
                 if(ip->prev_out_set != ip->out_set || ip->prev_in_set != ip->in_set) {
@@ -328,10 +324,6 @@ namespace L2 {
             }
         } while(not_converged);
 
-//		for (Instruction* ip : f.instructions) {
-//			ip->in_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
-//			ip->out_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
-//		}
     }
 
     void analyze(Program p) {
