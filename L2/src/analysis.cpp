@@ -7,13 +7,12 @@ namespace L2 {
    set_of_str CALLER_SAVED_REGISTERS =
      {"r8", "r9", "r10", "r11", "rax", "rcx", "rdi", "rdx", "rsi"};
    set_of_str CALLEE_SAVED_REGISTERS =
-     {"r12", "r13", "r14", "r15", "rbp", "rbx"};
-
+     {"r12", "r13", "r14", "r15", "rbp", "rbx", "rax"};
    vector_of_str ARGUMENT_REGISTERS =
      {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
-   set_of_str RESULT_REGISTERS =
-     {"rax"};
+  // set_of_str RESULT_REGISTERS =
+  //   {"rax"};
 
    set_of_str subtract_sets(set_of_str &s1, set_of_str &s2) {
         std::vector<std::string> toDelete;
@@ -292,6 +291,10 @@ namespace L2 {
             }
         } while(not_converged);
 
+		for (Instruction* ip : f.instructions) {
+			ip->in_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
+			ip->out_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
+		}
     }
 
     void analyze(Program p) {
@@ -310,20 +313,21 @@ namespace L2 {
 	    }
         
         compute_in_and_out(f);
-        std::cout << "(\n(in\n";
+        std::cout << "((in\n";
         for(auto i : f.instructions) {
-            std::cout << '(';
+            std::cout << " (";
             for(auto s : i->in_set)
                 std::cout << s << ' ';
-            std::cout << ')';
+            std::cout << ")\n";
         }
-        std::cout << ")\n\n(out\n";
+        std::cout << ")(out\n";
         for(auto i : f.instructions) {
-            std::cout << '(';
+            std::cout << " (";
             for(auto s : i->out_set)
                 std::cout << s << ' ';
-            std::cout << ')';
+            std::cout << ")\n";
         }
+		std::cout << "))";
     }
 
 }
