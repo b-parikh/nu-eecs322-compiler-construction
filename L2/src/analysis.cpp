@@ -132,11 +132,13 @@ namespace L2 {
         }
         else { // length == 5
             if(i.items[0].type == Type::mem) { // LHS is mem
-                gen_set.emplace(varNameModifier(i.items[1])); // reg or var
-                if(regOrVar(i.items[4]))
+                if(i.items[1].labelName != "rsp") // hacky way to check if a register is rsp
+                    gen_set.emplace(varNameModifier(i.items[1])); // reg or var
+                if(regOrVar(i.items[4])) 
                     gen_set.emplace(varNameModifier(i.items[4]));
             } else {
-                gen_set.emplace(varNameModifier(i.items[3]));
+                if (i.items[3].labelName != "rsp")
+                    gen_set.emplace(varNameModifier(i.items[3]));
                 kill_set.emplace(varNameModifier(i.items[0]));
             }
         }
