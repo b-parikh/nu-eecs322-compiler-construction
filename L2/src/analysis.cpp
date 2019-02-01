@@ -1,6 +1,19 @@
+#include <iostream>
+#include <string>
 #include <analysis.h>
 
 namespace L2 {
+
+   set_of_str CALLER_SAVED_REGISTERS =
+     {"r8", "r9", "r10", "r11", "rax", "rcx", "rdi", "rdx", "rsi"};
+   set_of_str CALLEE_SAVED_REGISTERS =
+     {"r12", "r13", "r14", "r15", "rbp", "rbx"};
+
+   vector_of_str ARGUMENT_REGISTERS =
+     {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
+   set_of_str RESULT_REGISTERS =
+     {"rax"};
 
    set_of_str subtract_sets(set_of_str &s1, set_of_str &s2) {
         std::vector<std::string> toDelete;
@@ -201,7 +214,7 @@ namespace L2 {
         int num_args = stoi(i.items[2].labelName);
         int num_args_gen = (num_args > 6) ? 6 : num_args;
         for (int inum = 0; inum < num_args_gen; inum++)
-            i.gen_set.emplace(func_args[inum]);
+            i.gen_set.emplace(ARGUMENT_REGISTERS[inum]);
 
         i.kill_set = CALLER_SAVED_REGISTERS; // located in L2.h
     }
@@ -242,6 +255,7 @@ namespace L2 {
         int num_instructions = f.instructions.size();
         bool not_converged = false;
         do{
+			not_converged = false;
             // compute IN set of last instruction; has no successor or OUT set
             Instruction* ip = f.instructions[num_instructions - 1];
             ip->in_set = ip->gen_set;

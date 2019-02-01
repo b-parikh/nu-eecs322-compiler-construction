@@ -275,34 +275,7 @@ pegtl::seq<
 	 seps,
      Label_rule
    > {};
-/*
-struct cjump_prefix:
-   pegtl::seq<
-     seps,
-     l1_keyword, // cjump
-     seps,
-     compare,
-     seps,
-     Label_rule,
-     seps
-   > {};
 
-struct cjump_suffix:
-  pegtl::sor<
-    pegtl::seq<
-      seps,
-      Label_rule,
-      seps
-    >,
-   pegtl::eol
-  > {};
-
- struct cjump:
-  pegtl::seq<
-    cjump_prefix,
-    cjump_suffix
-  > {};
-*/
 struct cjump_onearg:
    pegtl::seq<
      seps,
@@ -710,24 +683,6 @@ struct runtime_func:
     currFunc->instructions.push_back(i);
     }
   };
-
-/*
-  template<> struct action < cjump_suffix> {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-       // previous instruction in program is cjump_prefix
-       auto currFunc = p.functions.back();
-       auto currInstruct = currFunc->instructions.back();
-    //std::cout << "parsed_registers size before cjump_suffix action: " << parsed_registers.size() << '\n'; // 5
-
-       for(auto currItem : parsed_registers) {
-	  currInstruct->items.push_back(currItem);
-          //std::cout << currItem.labelName << ' '; //FOR TEST
-       }
-
-       parsed_registers.clear();
-    }
-  };
-*/
 
   template<> struct action < lea > {
     template < typename Input > static void apply (const Input &in, Program &p) {

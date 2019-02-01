@@ -6,20 +6,9 @@
 namespace L2 {
   
   typedef std::unordered_set<std::string> set_of_str;
+  typedef std::vector<std::string> vector_of_str;
 
   enum class Type{num, label, reg, mem, var, runtime, oper};
-
-  set_of_str CALLER_SAVED_REGISTERS =
-    {"r8", "r9", "r10", "r11", "rax", "rcx", "rdi", "rdx", "rsi"};
- 
-  set_of_str CALLEE_SAVED_REGISTERS =
-    {"r12", "r13", "r14", "r15", "rbp", "rbx"};
-
-  set_of_str ARGUMENT_REGISTERS =
-    {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
-
-  set_of_str RESULT_REGISTERS =
-    {"rax"};
 
   struct Item {
     std::string labelName;
