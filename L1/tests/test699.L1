@@ -130,9 +130,7 @@
 
 (:printArrayBackwards
 	1 2
-	rdi <- rdi
 	mem rsp 8 <- rdi
-	rdi <- rsi
 	mem rsp -8 <- :call_label_ciao__ciao__ciao__ciao_15
 	call :isAddress 1
 	:call_label_ciao__ciao__ciao__ciao_15

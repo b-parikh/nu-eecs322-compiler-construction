@@ -1,4 +1,5 @@
-all: L1_lang L2_lang L3_lang IR_lang LA_lang LB_lang
+#all: L1_lang L2_lang L3_lang IR_lang LA_lang LB_lang
+all: L1_lang L2_lang
 
 L1_lang:
 	cd L1 ; make 

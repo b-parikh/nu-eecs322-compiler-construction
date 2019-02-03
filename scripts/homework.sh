@@ -13,6 +13,8 @@ cd ../$dirName ;
 cp -r "${origDir}"/* ./ ;
 
 # Remove unnecessary files
+rm -rf .[a-z]* ;
+rm -rf .[A-Z]* ;
 rm -f */* &> /dev/null ;
 rm -rf lib Makefile scripts bin ;
 rm -r */tests ;
@@ -40,11 +42,11 @@ find ./ -empty -type d -delete ;
 
 # Change permissions
 chmod 644 */src/*.cpp ;
-chmod 644 */src/*.hpp ;
-chmod 644 */src/*.h ;
+chmod 644 -f */src/*.hpp ;
+chmod 644 -f */src/*.h ;
 
 # Create the package
-echo "SIGNATURE = fdsfjk" > signature.txt ;
+echo "`git rev-parse HEAD`" > signature.txt ;
 tar cfj ../${dirName}.tar.bz2 ./ ;
 cd ../ ;
 mv ${dirName}.tar.bz2 "${origDir}"/ ;

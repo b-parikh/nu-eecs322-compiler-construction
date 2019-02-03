@@ -21,84 +21,84 @@ define :main(){
   call :myF2 (20)
   return
 }
-define :myF2(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF4 (myvar0)
+define :myF2(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF4 (%myvar0)
   return
 }
-define :myF4(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF8 (myvar0)
+define :myF4(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF8 (%myvar0)
   return
 }
-define :myF8(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF16 (myvar0)
+define :myF8(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF16 (%myvar0)
   return
 }
-define :myF16(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF32 (myvar0)
+define :myF16(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF32 (%myvar0)
   return
 }
-define :myF32(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF64 (myvar0)
+define :myF32(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF64 (%myvar0)
   return
 }
-define :myF64(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF128 (myvar0)
+define :myF64(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF128 (%myvar0)
   return
 }
-define :myF128(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF256 (myvar0)
+define :myF128(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF256 (%myvar0)
   return
 }
-define :myF256(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
-  call :myF512 (myvar0)
+define :myF256(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
+  call :myF512 (%myvar0)
   return
 }
-define :myF512(rdi){
-  myvar0 <- rdi
-  myvar0 <- myvar0 << 1
-  myvar0 <- myvar0 + 1
-  rdi <- myvar0
-  call print (rdi)
+define :myF512(%rdi){
+  %myvar0 <- %rdi
+  %myvar0 <- %myvar0 << 1
+  %myvar0 <- %myvar0 + 1
+  %rdi <- %myvar0
+  call print (%rdi)
   return
 }
 

@@ -1,6 +1,6 @@
 define :main () {
  :entry
- callerFP <- :myOtherF
+ %callerFP <- :myOtherF
  return 
 }
 

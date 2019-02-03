@@ -33,7 +33,7 @@ int main(
   auto enable_code_generator = false;
   auto spill_only = false;
   auto interference_only = false;
-  int32_t liveness_only = 1;
+  int32_t liveness_only = 0;
   int32_t optLevel = 0;
 
   /* 

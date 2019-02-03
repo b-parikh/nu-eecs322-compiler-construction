@@ -3,13 +3,14 @@ define :main ( ){
 
   :true
   return
-  v1 <- 1
+  %v1 <- 1
 
   :start
-  v1 <- 1
+  %v1 <- 1
   v2 <- 2
-  v4 <- v1 < v2
-  br v4 :true :false
+  v4 <- %v1 < v2
+  br v4 :true
+  br :false
 
   :false
   return

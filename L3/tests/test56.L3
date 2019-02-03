@@ -1,11 +1,11 @@
 define :main () {
- src1 <- 1
- src2 <- 2
+ %src1 <- 1
+ %src2 <- 2
 
- tmp <- src2 * 4
- finalV <- tmp + src1
+ %tmp <- %src2 * 4
+ %finalV <- %tmp + %src1
 
- call print (finalV)
+ call print (%finalV)
 
  return 
 }
