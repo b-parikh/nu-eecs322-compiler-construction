@@ -147,7 +147,6 @@ namespace L2 {
       var
     > {};
 
-  // TODO : stack_arg
   struct stack_arg:
       pegtl::seq<l1_keyword, seps, number> {};
       
@@ -416,6 +415,21 @@ struct runtime_func:
     pegtl::must<
       Functions_rule
     > {};
+  
+  struct spill_args:
+      pegtl::seq<
+        var,
+        seps,
+        var
+      >{};
+
+  struct spill_grammar:
+    pegtl::must<  
+      pegtl::seq<
+        Functions_rule,
+        spill_args
+      >
+    > {}; 
 
   /* 
    * Actions attached to grammar rules.
@@ -746,6 +760,15 @@ struct runtime_func:
     }
   };
 
+//  template<> struct action < spill_function > {
+//    template < typename Input > static void apply (const Input &in, Program &p) {
+//      
+//      i.labelName = in.string();
+//      //std::cout << "l1_keyword action called.\n";
+//      parsed_registers.push_back(i);
+//    }
+//  };
+  
   Program parse_file (char *fileName){
 
     /* 
@@ -771,5 +794,16 @@ struct runtime_func:
     parse< function_grammar, action>(fileInput, p);
 
     return p;
+  }
+
+  Program spill_function (char *fileName) {
+    pegtl::analyze<spill_grammar>();
+    
+    file_input< > fileInput(fileName);
+    Program p;
+    parse< spill_grammar, action>(fileInput, p);
+
+    return p;
+
   }
 }

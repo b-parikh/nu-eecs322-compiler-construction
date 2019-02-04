@@ -2,11 +2,13 @@
 
 #include <vector>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace L2 {
   
   typedef std::unordered_set<std::string> set_of_str;
   typedef std::vector<std::string> vector_of_str;
+  typedef std::unordered_map<std::string, set_of_str> str_to_set;
 
   enum class Type{num, label, reg, mem, var, runtime, oper};
 
@@ -30,6 +32,9 @@ namespace L2 {
     
     set_of_str out_set;
     set_of_str prev_out_set;
+
+    bool reg_var_assignment = false;
+    std::string shifting_var_or_reg = "";
   };
 
   /*
@@ -46,6 +51,7 @@ namespace L2 {
     int64_t arguments;
     int64_t locals;
     std::vector<Instruction *> instructions;
+    str_to_set IG; 
   };
 
   /*

@@ -108,10 +108,9 @@ namespace L2 {
     void gk_return(Instruction &i) {
         i.gen_set.emplace("rax");
         i.gen_set.insert(CALLEE_SAVED_REGISTERS.begin(), CALLEE_SAVED_REGISTERS.end());
-        // return has no kill set, but this is for consistency
+        // return has no kill set
     }
 
-    // TODO: assignment - we will probably have a case of 4: w <- stack-arg M
     void gk_assignment(Instruction &i) {
 
         set_of_str gen_set = i.gen_set;
@@ -121,6 +120,7 @@ namespace L2 {
 
         if (instruction_length == 3) {
             if(regOrVar(i.items[2])) { //RHS == reg, var
+                i.reg_var_assignment = true;
                 gen_set.emplace(varNameModifier(i.items[2]));
             }
             kill_set.emplace(varNameModifier(i.items[0]));
@@ -190,8 +190,12 @@ namespace L2 {
     }
 
     void gk_shift(Instruction &i) { // reg1, var1 <<= reg2, var2
-        if(regOrVar(i.items[2]))
-            i.gen_set.emplace(varNameModifier(i.items[2]));
+        if(regOrVar(i.items[2])) {
+            std::string modifiedLabel = varNameModifier(i.items[2]);
+            i.gen_set.emplace(modifiedLabel);
+            if(modifiedLabel != "rcx")
+                i.shifting_var_or_reg = modifiedLabel;
+        }
 
         i.gen_set.emplace(varNameModifier(i.items[0]));
         i.kill_set.emplace(varNameModifier(i.items[0]));
@@ -326,7 +330,7 @@ namespace L2 {
 
     }
 
-    void analyze(Program p) {
+    void analyze(Program p, bool liveness_only) {
         Function f = *p.functions[0];
         //std::cout << "Function: " << f.name << '\n';
         for(Instruction* instruct : f.instructions) {
@@ -341,22 +345,24 @@ namespace L2 {
         
         compute_in_and_out(f);
 
-        std::cout << "(\n(in\n";
-        for(auto i : f.instructions) {
-            std::cout << " (";
-            for(auto s : i->in_set) {
-                std::cout << s << ' ';
+        if(liveness_only) {
+            std::cout << "(\n(in\n";
+            for(auto i : f.instructions) {
+                std::cout << " (";
+                for(auto s : i->in_set) {
+                    std::cout << s << ' ';
+                }
+                std::cout << ")\n";
             }
-            std::cout << ")\n";
+            std::cout << ")\n\n(out\n";
+            for(auto i : f.instructions) {
+                std::cout << " (";
+                for(auto s : i->out_set)
+                    std::cout << s << ' ';
+                std::cout << ")\n";
+            }
+    		std::cout << ")\n\n)";
         }
-        std::cout << ")\n\n(out\n";
-        for(auto i : f.instructions) {
-            std::cout << " (";
-            for(auto s : i->out_set)
-                std::cout << s << ' ';
-            std::cout << ")\n";
-        }
-		std::cout << ")\n\n)";
-    }
 
+    }
 }
