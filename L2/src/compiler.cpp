@@ -13,9 +13,10 @@
 
 #include <parser.h>
 #include <analysis.h>
+#include <interference.h>
 // #include <transformer.h>
 // #include <code_generator.h>
-// #include <spiller.h>
+#include <spiller.h>
 // #include <register_allocation.h>
 // #include <utils.h>
 
@@ -89,7 +90,8 @@ int main(
      * Parse an L2 function and the spill arguments.
      */
      //TODO
- 
+    p = L2::spill_function(argv[optind]);
+    
   } else if (liveness_only){
 
     /*
@@ -98,6 +100,7 @@ int main(
      //TODO
     p = L2::parse_function(argv[optind]);
   } else if (interference_only){
+    p = L2::parse_function(argv[optind]);
 
     /*
      * Parse an L2 function.
@@ -121,7 +124,7 @@ int main(
      * Spill.
      */
      //TODO
-
+    L2::spill(p);
     return 0;
   }
 
@@ -129,7 +132,7 @@ int main(
    * Liveness test.
    */
   if (liveness_only){
-    L2::analyze(p);
+    L2::analyze(p, liveness_only);
     return 0;
   }
 
@@ -138,6 +141,8 @@ int main(
    */
   if (interference_only){
     //TODO
+    L2::analyze(p, liveness_only);
+    L2::generate_IG(p);
     return 0;
   }
 
