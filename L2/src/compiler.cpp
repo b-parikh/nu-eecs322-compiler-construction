@@ -119,12 +119,10 @@ int main(
    * Special cases.
    */
   if (spill_only){
-
     /*
      * Spill.
      */
-     //TODO
-    L2::spill(p);
+    L2::spill_wrapper(p);
     return 0;
   }
 
@@ -140,7 +138,6 @@ int main(
    * Interference graph test.
    */
   if (interference_only){
-    //TODO
     L2::analyze(p, liveness_only);
     L2::generate_IG(p);
     return 0;

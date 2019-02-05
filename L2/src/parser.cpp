@@ -416,18 +416,23 @@ struct runtime_func:
       Functions_rule
     > {};
   
+  struct spill_arg:
+	var {};
+
   struct spill_args:
-      pegtl::seq<
-        var,
-        seps,
-        var
-      >{};
+	pegtl::seq<
+	  spill_arg,
+	  seps,
+	  spill_arg
+	> {};
 
   struct spill_grammar:
     pegtl::must<  
       pegtl::seq<
-        Functions_rule,
-        spill_args
+        Function_rule,
+		seps,
+        spill_args,
+		seps
       >
     > {}; 
 
@@ -760,15 +765,29 @@ struct runtime_func:
     }
   };
 
-//  template<> struct action < spill_function > {
-//    template < typename Input > static void apply (const Input &in, Program &p) {
-//      
-//      i.labelName = in.string();
-//      //std::cout << "l1_keyword action called.\n";
-//      parsed_registers.push_back(i);
-//    }
-//  };
-  
+  template<> struct action < spill_arg > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	  Item i;
+      i.type = Type::var;
+      i.labelName = in.string();
+	  parsed_registers.push_back(i);
+    }
+  };
+
+  template<> struct action < spill_args > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+      for(auto currItemP : parsed_registers) {
+		p.extras.push_back(currItemP);
+       //std::cout << currItemP.labelName << ' '; //FOR TEST
+	  }
+      parsed_registers.clear();
+	}
+  }
+
+  /*
+   * parse structures
+   */
+
   Program parse_file (char *fileName){
 
     /* 

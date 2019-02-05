@@ -60,6 +60,7 @@ namespace L2 {
   struct Program{
     std::string entryPointLabel;
     std::vector<Function *> functions;
+	vector_of_str extras;
   };
 
 }
