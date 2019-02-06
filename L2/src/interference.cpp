@@ -122,7 +122,6 @@ namespace L2 {
         f.IG = IG;
     }
 
-
     void generate_IG(Program p) {
         Function f = *p.functions[0];
         init_IG(f);

@@ -35,13 +35,6 @@ namespace L2 {
         return s1;
    }
 
-    std::string varNameModifier(Item i) { 
-        if(i.type == Type::var)
-            (i.labelName).erase(0,1);
-
-        return i.labelName;
-    }
-
     bool regOrVar(Item i) {
         if(i.type == Type::reg || i.type == Type::var)
             return true;

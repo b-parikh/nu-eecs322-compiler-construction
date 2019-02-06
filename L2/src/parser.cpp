@@ -485,6 +485,9 @@ struct runtime_func:
       auto currentF = p.functions.back();
       auto i = new Instruction();
       i->identifier = 1;
+      Item it;
+      it.labelName = "return";
+      i->items.push_back(it);
       currentF->instructions.push_back(i);
     }
   };
@@ -567,7 +570,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	Item i;
 	i.labelName = in.string();
-  i.type = Type::oper;
+    i.type = Type::arith_oper;
 	parsed_registers.push_back(i);
     }
   };
@@ -590,7 +593,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	Item i;
 	i.labelName = in.string();
-  i.type = Type::oper;
+    i.type = Type::inc_dec_oper;
 	parsed_registers.push_back(i);
     }
   };
@@ -614,7 +617,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	  Item i;
 	  i.labelName = in.string();
-    i.type = Type::oper;
+    i.type = Type::compare_oper;
     //std::cout << "comparison operator called\n";
 	  parsed_registers.push_back(i);
     }
@@ -640,7 +643,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Item i;
     i.labelName = in.string();
-    i.type = Type::oper;
+    i.type = Type::shift_oper;
     parsed_registers.push_back(i);
     }
   };
@@ -777,12 +780,12 @@ struct runtime_func:
   template<> struct action < spill_args > {
     template < typename Input > static void apply (const Input &in, Program &p) {
       for(auto currItemP : parsed_registers) {
-		p.extras.push_back(currItemP);
+		p.spill_extras.push_back(currItemP);
        //std::cout << currItemP.labelName << ' '; //FOR TEST
 	  }
       parsed_registers.clear();
 	}
-  }
+  };
 
   /*
    * parse structures

@@ -10,7 +10,7 @@ namespace L2 {
   typedef std::vector<std::string> vector_of_str;
   typedef std::unordered_map<std::string, set_of_str> str_to_set;
 
-  enum class Type{num, label, reg, mem, var, runtime, oper};
+  enum class Type{num, label, reg, mem, var, runtime, arith_oper, inc_dec_oper, compare_oper, shift_oper};
 
   struct Item {
     std::string labelName;
@@ -23,7 +23,8 @@ namespace L2 {
   struct Instruction{
     int identifier;
     std::vector<Item> items;
-    std::vector<Instruction *> successors;
+
+    std::vector<Instruction *> successors; // for liveness analysis
     set_of_str gen_set;
     set_of_str kill_set;
 
@@ -60,7 +61,7 @@ namespace L2 {
   struct Program{
     std::string entryPointLabel;
     std::vector<Function *> functions;
-	vector_of_str extras;
+    std::vector<Item>  spill_extras;
   };
 
 }
