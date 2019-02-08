@@ -11,11 +11,18 @@ namespace L2 {
    vector_of_str ARGUMENT_REGISTERS =
      {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
-//   void print_set(set_of_str &s) {
-//       for(std::string const i : s)
-//           std::cout << i  << ' ';
-//       std::cout << '\n';
-//   }
+   void print_set(set_of_str &s) {
+       for(std::string const i : s)
+           std::cout << i  << ' ';
+       std::cout << '\n';
+   }
+
+   void print_instruction(Instruction &instruction) {
+        for(Item i : instruction.items) {
+            std::cout << i.labelName << ' ';
+        }
+        std::cout << '\n';
+   }
 
    set_of_str subtract_sets(set_of_str s1, set_of_str s2) { // out - kill
         std::vector<std::string> toDelete;
@@ -73,8 +80,11 @@ namespace L2 {
             if(i->identifier != 10) // if not label_instruction
                 continue;
             else {
-                if(i->items[0].labelName == labelToMatch) 
+                if(i->items[0].labelName == labelToMatch) {
                     prevI->successors.push_back(f.instructions[n+1]); // push back the instruction after the label
+                    std::cout << " sucessor found\t";
+                    print_instruction(*f.instructions[n+1]);
+                }
                 else
                     continue;
             }
@@ -194,7 +204,7 @@ namespace L2 {
         i.kill_set.emplace(varNameModifier(i.items[0]));
     }
 
-    void gk_cjump(Instruction &i) { //
+    void gk_cjump(Instruction &i) {
         if(regOrVar(i.items[1])) // first t in RHS is not number
             i.gen_set.emplace(varNameModifier(i.items[1]));
         if(regOrVar(i.items[3])) // second t in RHS is not number
@@ -329,11 +339,11 @@ namespace L2 {
         for(Instruction* instruct : f.instructions) {
             compute_gen_and_kill(*instruct);
             // print gen and kill for each instruction
-//            std::cout << "instruction: \ngen_set: ";
-//            print_set(instruct->gen_set);
-//            std::cout << "kill_set: ";
-//            print_set(instruct->kill_set);         
-//            std::cout << '\n';
+            std::cout << "instruction: \ngen_set: ";
+            print_set(instruct->gen_set);
+            std::cout << "kill_set: ";
+            print_set(instruct->kill_set);         
+            std::cout << '\n';
 	    }
         
         compute_in_and_out(f);
