@@ -1,0 +1,41 @@
+(:go
+    (:go
+    0 0
+    rdi <- 5
+    rsi <- 4
+    rdx <- 1
+    rcx <- 7
+    r8 <- 2
+    mem rsp -8 <- :afteradd
+    call :adder 5
+    :afteradd
+    return)
+    (:adder
+    5 0
+    %adding <- rdi
+    %adding += rsi
+    %adding <<= 1
+    %adding += 1
+    rdi <- %adding
+    call print 1
+    %adding >>= 1
+    %adding += rdx
+    %adding <<= 1
+    %adding += 1
+    rdi <- %adding
+    call print 1
+    %adding >>= 1
+    %adding += rcx
+    %adding <<= 1
+    %adding += 1
+    rdi <- %adding
+    call print 1
+    %adding >>= 1
+    %adding += r8
+    %adding <<= 1
+    %adding += 1
+    rdi <- %adding
+    call print 1
+    %adding >>= 1
+    rax <- %adding
+    return))

@@ -1,0 +1,80 @@
+(:main
+    (:main
+        0 0
+        //size of array 
+        rdi <- 21
+
+        mem rsp -8 <- :write_array_ret
+        call :write_array 1
+        :write_array_ret
+
+        mem rsp -8 <- :get_largest_ret
+        rdi <- rax
+        call :get_largest 1
+        :get_largest_ret
+        
+        rdi <- rax
+        call print 1
+
+        return
+    )
+
+    (:write_array
+        1 2
+        rsi <- 1
+        mem rsp 0 <- rdi
+        call allocate 2
+        rcx <- rax
+        rcx += 8
+        
+        //init array index and store array length
+        rdx <- 0
+        r10 <- mem rsp 0
+
+        :write_loop
+        r11 <- rdx
+        mem rcx 0 <- r11
+        rcx += 8
+        rdx += 1
+        cjump rdx < r10 :write_loop
+
+        return
+    )
+
+    (:get_largest
+        1 0
+
+        rcx <- rdi
+        //set local max
+        r10 <- mem rcx 8
+
+        //set loop index, length of array, curr arr elem pointer
+        rdx <- 1
+        r11 <- mem rcx 0
+        rcx += 16
+
+        goto :loop
+
+        :loop
+        cjump rdx < r11 :compare :done 
+
+        :compare
+        r8 <- mem rcx 0
+        rdx += 1
+        rcx += 8
+        cjump r8 < r10 :lower :higher
+
+        :lower
+        goto :loop
+
+        :higher
+        r10 <- r8
+        goto :loop
+
+        :done 
+        r10 <<= 1
+        r10 += 1
+        rax <- r10
+        return
+    )
+)

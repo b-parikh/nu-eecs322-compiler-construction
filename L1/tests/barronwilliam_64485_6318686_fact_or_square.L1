@@ -1,0 +1,41 @@
+// outputs the factorial of the
+// square of whatever is assigned to rdi
+// in line 11
+
+// can also simply print the square
+// by changing rsi to 0 instead of 1
+
+(:go
+  (:go
+  0 0
+  rdi <- 2
+  rdi *= rdi
+  rsi <- 1
+  cjump rsi = 0 :square :continue
+  :square
+  rdi <<= 1
+  rdi += 1
+  call print 1
+  goto :end
+  :continue
+  mem rsp -8 <- :fact_ret
+  call :fact 1
+  :fact_ret
+  :end
+  return
+  )
+  (:fact
+  1 0
+  rsi <- rdi
+  :loop
+  cjump rsi = 1 :printer
+  rsi--
+  rdi *= rsi
+  goto :loop
+  :printer
+  rdi <<= 1
+  rdi += 1
+  call print 1
+  return
+  )
+)

@@ -1,0 +1,42 @@
+(:main
+	(:main 
+		// Prints a 7-element array and the greatest number in that array.
+		0 0
+		rdi <- 15
+		rsi <- 7
+		call allocate 2
+		mem rax 8 <- 21
+		mem rax 16 <- 7
+		mem rax 24 <- 11
+		mem rax 32 <- 29
+		mem rax 40 <- 25
+		mem rax 48 <- 31
+		mem rax 56 <- 19
+		%Initptr <- rax
+		rdi <- %Initptr
+		call print 1
+		%Currentptr <- %Initptr
+		%Currentptr += 8
+		%max <- mem %Currentptr 0
+		%Count <- 1
+		goto :start
+
+		:start
+		cjump 15 < %Count :print
+		%Curelement <- mem %Currentptr 0
+		cjump  %max < %Curelement :true :false
+		
+		:true
+		%max <- %Curelement
+		goto :false
+		:false
+		%Currentptr +=8
+		%Count +=2
+		goto :start
+
+		:print
+		rdi <-%max
+		call print 1
+		return
+	)
+)

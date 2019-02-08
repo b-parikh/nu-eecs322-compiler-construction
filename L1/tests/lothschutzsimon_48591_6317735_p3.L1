@@ -1,0 +1,50 @@
+(:go
+	(:go
+	0 0
+	rdi <- 7
+	rsi <- 67
+	mem rsp -8 <- :f1_ret
+	call :f1 2
+	:f1_ret
+	rdi <- rax
+	rdi <<= 1
+	rdi += 1
+	call print 1 
+	return
+	)
+
+	(:f1
+	2 0
+	cjump 5 = rdi :c1
+	cjump 5 < rdi :c2
+	cjump 13 = rdi :c3
+	cjump 13 < rdi :c4
+	goto :cend
+	:c1
+	rsi += rdi
+	goto :cend
+	:c2
+	rsi &= rdi
+	goto :cend
+	:c3
+	rdi <<= 4
+	rdi += 1
+	mem rsp -8 <- :f1f2_ret
+	call :f2 2
+	:f1f2_ret
+	goto :cend
+	:c4
+	rdi *= 6
+	rsi += 12
+	:cend
+	return
+	)
+
+	(:f2
+	2 0
+	rax <- rsi
+	rax >>= 4
+	rax += rdi
+	return
+	)
+)

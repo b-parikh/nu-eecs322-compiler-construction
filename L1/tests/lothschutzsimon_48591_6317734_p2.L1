@@ -1,0 +1,53 @@
+(:go
+	(:go
+	0 0
+	rdi <- 31 //15
+	mem rsp -8 <- :fib_ret
+	call :fibonacci 1
+	:fib_ret
+
+	rdi <- 43 //15
+        mem rsp -8 <- :fib_ret2
+        call :fibonacci 1
+        :fib_ret2
+
+	rdi <- 3 //15
+        mem rsp -8 <- :fib_ret3
+        call :fibonacci 1
+        :fib_ret3
+
+	return
+	)
+
+	(:fibonacci
+	1 0
+
+	r12 <- rdi //no need to save the register since it is not used above
+	rsi <- 3 //1
+	call allocate 2
+	cjump r12 <= 2 :end //Is this the right number?
+	rdi <- 3
+	rsi <- rax
+	rsi += 16
+	:loop
+	rsi += 8
+	r8 <- mem rsi -8
+	r8 >>= 1
+	r9 <- mem rsi -16
+	r9 >>= 1
+	r8 += r9
+	r8 <<= 1
+	r8 += 1
+	mem rsi 0 <- r8
+	rdi += 1
+	r10 <- mem rax 0
+	cjump rdi < r12 :loop //temp
+
+	rdi <- rax
+	call print 1
+	
+	:end
+	return
+	)
+
+)

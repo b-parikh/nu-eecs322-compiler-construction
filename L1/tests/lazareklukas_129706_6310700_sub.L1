@@ -1,0 +1,70 @@
+// encoded sub
+// rdi, rsi, rdx, rcx, r8, r9
+(:main
+ (:encode
+  1 0 // rdi = n
+  :encode_begin
+  rax <- rdi
+  rax <<= 1
+  rax += 1
+  return)
+ (:decode
+  1 0 // rdi = n
+  rax <- rdi
+  rax >>= 1
+  return)
+ (:encoded_sub_unopt
+  2 2 // rdi = a, rsi = b :: a - b
+  // using callee-save registers
+  mem rsp 0 <- r12
+  mem rsp -8 <- r13
+
+  // unoptimized version
+  r13 <- rsi
+  mem rsp -8 <- :encoded_sub__ret_addr__decode_a
+  call :decode 1
+  :encoded_sub__ret_addr__decode_a
+  r12 <- rax
+
+  rdi <- r13
+  mem rsp -8 <- :encoded_sub__ret_addr__decode_b
+  call :decode 1
+  :encoded_sub__ret_addr__decode_b
+
+  rdi <- r12
+  rdi -= rax
+  mem rsp -8 <- :encoded_sub__ret_addr__encode
+  call :encode 1
+  :encoded_sub__ret_addr__encode
+
+  // restore callee-save registers
+  r12 <- mem rsp 0
+  r13 <- mem rsp -8
+  return)
+ (:encoded_sub_opt
+  2 0 // rdi = a, rsi = b :: a - b
+  rax <- rdi
+  rax -= rsi
+  rax += 1
+  return)
+ (:main
+  0 0
+  rdi <- 15 // encode(7) = 15
+  rsi <- 5 // encode(2) = 5
+  mem rsp -8 <- :main__ret_addr__encoded_sub_unopt
+  call :encoded_sub_unopt 2
+  :main__ret_addr__encoded_sub_unopt
+
+  rdi <- rax
+  call print 1
+
+  rdi <- 15 // encode(7) = 15
+  rsi <- 5 // encode(2) = 5
+  mem rsp -8 <- :main__ret_addr__encoded_sub_opt
+  call :encoded_sub_opt 2
+  :main__ret_addr__encoded_sub_opt
+
+  rdi <- rax
+  call print 1
+
+  return))

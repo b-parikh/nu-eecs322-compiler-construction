@@ -1,0 +1,53 @@
+(:main
+	
+	(:main
+		0 0
+		//Make an array of length 5 full of 12s
+		rdi <- 11
+		rsi <- 25
+		call allocate 2
+
+		//Print each element of the array conditionally
+		rdi <- rax
+		mem rsp -8 <- :pArr_ret
+		call :printArrayG 1
+		:pArr_ret
+		return
+	)
+
+	(:printArrayG
+		1 0
+		//Save callee registers
+		//mem rsp 0 <- r12
+		//mem rsp -8 <- r13
+		%v1 <- rdi
+
+		%listlen <- mem %v1 0
+		%listptr <- %v1
+
+		//Print loop
+		:loop
+		cjump %listlen = 0 :end
+		%listptr += 8
+		%listlen -= 1
+		%v1 <- mem %listptr 0
+		//If the array element is less than 6 do not print it, 
+		//else do some arbitrary math and print it
+		cjump %v1 < 13 :loop
+		%v1 -= 3
+		%v1 &= 18
+		rcx <- 2
+		rcx *= 3
+		%v1 <<= rcx
+		%v1 <<= 1
+		%v1 += 1
+		rdi <- %v1		
+		call print 1
+		goto :loop
+
+		:end
+		//r12 <- mem rsp 0
+		//r13 <- mem rsp -8
+		return
+	)	
+)

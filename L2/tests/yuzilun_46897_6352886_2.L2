@@ -1,0 +1,54 @@
+// count the number of odd numbers in 1,2,3,4,5,6,7,8
+(:go
+ (:go
+  0 0
+  rdi <- 3
+  rsi <- 5
+  rdx <- 7
+  rcx <- 9
+  r8 <- 11
+  r9 <- 13
+  mem rsp -8 <- :f_ret 
+  mem rsp -16 <- 15
+  mem rsp -24 <- 17
+  call :f 8
+  :f_ret
+  rdi <- rax
+  rdi <<= 1
+  rdi++
+  call print 1
+  return
+ )
+ (:f
+  8 0
+  %ans <- 0
+  rdi >>= 1
+  rdi &= 1
+  %ans += rdi
+  rsi >>= 1
+  rsi &= 1 
+  %ans += rsi
+  rdx >>= 1
+  rdx &= 1
+  %ans += rdx
+  rcx >>= 1
+  rcx &= 1
+  %ans += rcx
+  r8 >>= 1
+  r8 &= 1
+  %ans += r8
+  r9 >>= 1
+  r9 &= 1
+  %ans += r9
+  rdi <- stack-arg 0
+  rdi >>= 1
+  rdi &= 1
+  %ans += rdi
+  rdi <- stack-arg 8
+  rdi >>= 1
+  rdi &= 1
+  %ans += rdi
+  rax <- %ans 
+  return
+ )
+)

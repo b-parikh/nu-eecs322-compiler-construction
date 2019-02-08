@@ -1,0 +1,37 @@
+// summing over 1,2,3,4,5,6,7
+(:go
+ (:go
+  0 0
+  rdi <- 1
+  rsi <- 2
+  rdx <- 3
+  rcx <- 4
+  r8 <- 5
+  r9 <- 6
+  mem rsp -8 <- :f_ret 
+  mem rsp -16 <- 7
+  call :f 7
+  :f_ret
+  rdi <- rax
+  rdi <<= 1
+  rdi++
+  call print 1
+  return
+ )
+ (:f
+  7 0
+  %ans <- 0
+  %ans += rdi
+  %ans += rsi
+  %ans += rdx
+  %ans += rcx
+  %ans += r8
+  %ans += r9
+  %save <- r12     // save r12 since callee save
+  r12 <- stack-arg 0
+  %ans += r12
+  r12 <- %save  
+  rax <- %ans
+  return
+ )
+)

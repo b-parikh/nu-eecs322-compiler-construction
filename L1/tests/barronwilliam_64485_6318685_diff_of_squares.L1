@@ -1,0 +1,40 @@
+// produces the difference of squares
+// between rdi in line 8 and rdi in
+// line 13
+
+(:go
+  (:go
+  0 0
+  rdi <- 14
+  mem rsp -8 <- :first_square_ret
+  call :first_square 1
+  :first_square_ret
+  rsi <- rdi
+  rdi <- 12
+  mem rsp -8 <- :second_square_ret
+  call :second_square 1
+  :second_square_ret
+  rdi -= rsi
+  cjump rdi < 0 :flip
+  goto :printer
+  :flip
+  rsi <- rdi
+  rdi -= rsi
+  rdi -= rsi
+  :printer
+  rdi <<= 1
+  rdi += 1
+  call print 1
+  return
+  )
+  (:first_square
+  1 0
+  rdi *= rdi
+  return
+  )
+  (:second_square
+  1 0
+  rdi *= rdi
+  return
+  )
+)

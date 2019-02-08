@@ -1,0 +1,51 @@
+(:test1
+  (:test1
+    0 0
+    %len <- 21 
+    %var <- 0
+    rdi <- %len
+    rsi <- %var 
+    call allocate 2 	// allocating array of size 10 
+    mem rax 8 <- 1
+    mem rax 16 <- 2
+    mem rax 24 <- 3
+    mem rax 32 <- 4
+    mem rax 40 <- 5
+    mem rax 48 <- 6
+    mem rax 56 <- 7
+    mem rax 64 <- 8
+    mem rax 72 <- 9
+    mem rax 80 <- 10 	// populating, inputs are 1-10
+    rdi <- rax
+    mem rsp -8 <- :sum_ret
+    call :sum 1
+    :sum_ret
+    call print 1
+    return 
+  )
+  (:sum 
+    1 0
+    r10 <- rdi
+    rdi <- mem rdi 0
+    rdi <<= 1 
+    rdi++   		 // rdi = 10
+    rsi <- 1
+    rax <- 0
+    :start
+    rdx @ r10 rsi 8
+    rdx <- mem rdx 0
+    rax += rdx
+    rsi += 1
+    cjump rsi <= rdi :start :end
+    :end
+    rax <<= 1
+    rax ++
+    rdi <- rax
+    return 
+   ) 
+)
+
+
+
+
+

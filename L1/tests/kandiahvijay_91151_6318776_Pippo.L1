@@ -1,0 +1,60 @@
+(:main
+	(:main 
+		// Creates 7-element array with numbers of order 2^n where n:0->6 and then calls a function to find the sum of all numbers in that array.
+		0 1
+
+		rdi <- 15
+		rsi <- 7
+		call allocate 2
+		rsi <- 3
+		rdx <- rax
+		rax +=8
+		rdi <- 1
+		goto :fill_array
+
+		:fill_array
+		cjump 15 < rsi :print_array
+		rdi <<= 1
+		rdi += 1
+		mem rax 0 <- rdi
+		rdi -= 1
+		rax +=8
+		rsi +=2
+		goto :fill_array
+	
+		:print_array
+		rdi <- rdx
+		mem rsp 0 <- rdx 
+		call print 1
+		rdx <- mem rsp 0
+		mem rsp -8 <- :ret
+		call :Sum 3
+
+		:ret
+		rdi <- rax
+		rdi <<= 1
+		rdi += 1
+		call print 1
+		return
+	)
+
+	(:Sum
+		3 0
+		rdx += 8
+		rsi <- 1
+		rax <- 0
+		goto :add
+
+		:add
+		cjump 15 < rsi :stop
+		rcx <- mem rdx 0
+		rcx >>= 1
+		rax += rcx
+		rdx +=8
+		rsi +=2
+		goto :add
+
+		:stop
+		return
+	)
+)

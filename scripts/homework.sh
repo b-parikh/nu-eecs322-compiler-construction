@@ -38,15 +38,15 @@ for i in `ls` ; do
   done
   popd ;
 done
-find ./ -empty -type d -delete ;
+find ./ -empty -type d -delete &> /dev/null ;
 
 # Change permissions
-chmod 644 */src/*.cpp ;
-chmod 644 -f */src/*.hpp ;
-chmod 644 -f */src/*.h ;
+chmod 644 */src/*.cpp &> /dev/null ;
+chmod 644 -f */src/*.hpp &> /dev/null ;
+chmod 644 -f */src/*.h &> /dev/null ;
 
 # Create the package
-echo "`git rev-parse HEAD`" > signature.txt ;
+echo "e149bbb20cd5604b3a7d8c89c2871a802fc2e0d3" > signature.txt ;
 tar cfj ../${dirName}.tar.bz2 ./ ;
 cd ../ ;
 mv ${dirName}.tar.bz2 "${origDir}"/ ;

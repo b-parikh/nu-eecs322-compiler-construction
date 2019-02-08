@@ -1,0 +1,32 @@
+// adds 6 numbers and prints result
+
+(:go
+  (:go
+  0 0
+  rdi <- 5
+  rsi <- 10
+  rdx <- 15
+  rcx <- 20
+  r8 <- 25
+  r9 <- 30
+  mem rsp -8 <- :adder_ret
+  call :adder 6
+  :adder_ret
+  return
+  )
+  // adds 6 arguments together and outputs result
+  (:adder
+  6 0
+  rdi += rsi
+  rdi += rdx
+  rdi += rcx
+  rdi += r8
+  rdi += r9
+  rax <- rdi
+  rax <<= 1
+  rax += 1
+  rdi <- rax
+  call print 1
+  return
+  )
+)

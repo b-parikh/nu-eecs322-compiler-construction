@@ -1,0 +1,42 @@
+(:main
+    (:main
+        0 0
+		%start <- 3
+		:outer
+		rdi <- %start
+		goto :inner
+		:inner_return
+		// Go until 1000
+		cjump %start = 2001 :end :continue
+		:continue
+		%start += 2
+		goto :outer
+		:end
+		return
+
+		:inner
+		%value <- rdi
+		call print 1
+		cjump %value = 3 :ret :con
+		:con
+		rdi <- %value
+		%value &= 2
+		cjump %value = 0 :even :odd
+		:odd
+		rdi >>= 1
+		rdi *= 3
+		rdi += 1
+		rdi <<= 1
+		rdi += 1
+		goto :inner
+		:even
+		rdi >>= 1
+		rdi += 1
+		goto :inner
+		:ret
+		// Print 'nil' to indicate that we're done with this number
+		rdi <- 0
+		call print 1
+		goto :inner_return
+	)
+)

@@ -1,0 +1,39 @@
+(:go
+  (:go
+   		0 0
+			mem rsp -8 <- :ret
+			call :make_matrix 0
+			:ret
+			rdi <- rax
+			call print 1
+			return)
+		(:make_matrix
+			0 0
+			rdi <- 7
+			rsi <- 0
+			rsi <<= 1
+			rsi++
+			call allocate 2
+			%matrix_ptr <- rax
+			rdi <- 7
+			rsi <- 15
+			rsi <<= 1
+			rsi++
+			call allocate 2
+			mem %matrix_ptr 8 <- rax
+			rdi <- 7
+			rsi <- 10
+			rsi <<= 1
+			rsi++
+			call allocate 2
+			mem %matrix_ptr 16 <- rax
+			rdi <- 7
+			rsi <- 8
+			rsi <<= 1
+			rsi++
+			call allocate 2
+			mem %matrix_ptr 24 <- rax
+			rax <- %matrix_ptr
+			return)
+)
+	

@@ -1,0 +1,46 @@
+(:go
+ (:go
+  0 0
+  rdi <- 10
+  rsi <- 9
+  mem rsp -8 <- :max_ret
+  call :max 2
+  :max_ret
+  rax <<= 1
+  rax++
+  rdi <- rax
+  call print 1
+  rdi <- 10
+  rsi <- 3
+  mem rsp -8 <- :div_ret
+  call :divide 2
+  :div_ret
+  rax <<= 1
+  rax++
+  rdi <- rax
+  call print 1
+  return
+  )
+
+ (:max
+  2 0
+  rax <- rsi
+  cjump rsi < rdi :FIRST
+  return
+  :FIRST
+  rax <- rdi
+  return
+ )
+
+ (:divide
+  2 0
+  rax <- 0
+  :START
+  rdi -= rsi
+  cjump rdi <= 0 :DONE
+  rax++
+  goto :START
+  :DONE
+  return
+ )
+)

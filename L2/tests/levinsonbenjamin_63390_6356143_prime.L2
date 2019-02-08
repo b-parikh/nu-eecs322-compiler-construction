@@ -1,0 +1,110 @@
+//isprime algorithm from https://en.wikipedia.org/wiki/Primality_test
+//Prints numbers 1-50 and prints on the next line whether it is prime
+//0 if it is not, 1 if it is.
+(:main
+    (:main
+        0 0
+        %i <- 3
+        %end <- 101
+        :run50
+            cjump %i <= %end :run :fin
+        :run
+            rdi <- %i
+            call print 1
+            mem rsp -8 <- :isprime_ret
+            rdi <- %i
+            call :isprime 1
+            :isprime_ret
+            rdi <- rax
+            call print 1
+            %i += 2
+            goto :run50
+        :fin
+            return
+    )
+
+    (:isprime
+        1 0
+        %value <- rdi
+
+        cjump %value = 3 :false :not1
+        :not1
+        cjump %value = 5 :true :not2
+        :not2
+        cjump %value = 7 :true :not3
+        :not3
+        %modcheck <- %value
+        %modcheck &= 3
+        cjump 3 <= %modcheck :noteven :false
+        :noteven
+        rdi <- %value
+        rsi <- 7
+        mem rsp -8 <- :check_mod_3
+        call :mod 2
+        :check_mod_3
+        cjump rax = 3 :false :notdiv3
+        :notdiv3
+        %modcheck <- 11
+        %i <- 51
+        :check
+            cjump %i <= %value :continue_loop :true
+        :continue_loop
+            rsi <- %modcheck
+            rdi <- %value
+            mem rsp -8 <- :n_mod_i_ret
+            call :mod 2
+
+            :n_mod_i_ret
+            cjump rax = 3 :false :check_n_mod_ip2
+            :check_n_mod_ip2
+            rsi <- %modcheck
+            rsi += 4
+            rdi <- %value
+            mem rsp -8 <- :check_n_mod_ip2_ret
+            call :mod 2
+            :check_n_mod_ip2_ret
+            cjump rax = 3 :false :incr_i
+            :incr_i
+            %modcheck += 12
+            %i >>= 1
+            %i <<= 1
+            %i *= %i
+            %i++
+            goto :check
+        :true
+            rax <- 3
+            goto :ret
+        :false
+            rax <- 1
+            goto :ret
+        :ret
+            return
+    )
+
+    (:mod
+        2 0
+        //rdi is a
+        //rsi is b
+        %a <- rdi
+        %b <- rsi
+        :cond
+            cjump %a = %b :then :else
+        :then
+            rax <- 3
+            return
+        :else
+            cjump %a < %b :done :noteql
+        :noteql
+            %a >>= 1
+            %b >>= 1
+            %a -= %b
+            %a <<= 1
+            %b <<= 1
+            %a++
+            %b++
+            goto :cond
+        :done
+            rax <- 1
+            return
+    )
+)

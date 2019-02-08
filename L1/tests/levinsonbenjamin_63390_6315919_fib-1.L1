@@ -1,0 +1,52 @@
+(:main
+    (:main
+        0 2
+        r10 <- 21
+        rdi <- 1
+        :check
+            cjump rdi <= r10 :loop :end
+        :loop
+            mem rsp 8 <- r10
+            mem rsp 0 <- rdi
+            mem rsp -8 <- :fib_ret
+            call :fib 1
+            :fib_ret
+            rdi <- rax
+            call print 1
+            rdi <- mem rsp 0
+            r10 <- mem rsp 8
+            rdi += 2
+            goto :check
+        :end
+            return
+    )
+
+    (:fib
+        1 2
+        cjump rdi <= 3 :ret1 :recur
+        :ret1
+            rax <- 3
+            return
+        :recur
+            mem rsp 0 <- rdi
+            mem rsp -8 <- :internal_fib_ret1
+            rdi-= 2
+            call :fib 1
+            :internal_fib_ret1
+            mem rsp 8 <- rax
+            rdi <- mem rsp 0
+            rdi -= 4
+            mem rsp -8 <- :internal_fib_ret2
+            call :fib 1
+            :internal_fib_ret2
+            r10 <- mem rsp 8
+            r10 >>= 1
+            rax >>= 1
+            rax += r10
+            rax <<= 1
+            rax++
+            return
+
+
+    )
+)

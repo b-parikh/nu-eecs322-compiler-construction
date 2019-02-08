@@ -1,0 +1,44 @@
+(:go
+  (:go 0 2
+     mem rsp 0 <- r12      // Save registers
+     mem rsp 8 <- r13
+     r12 <- 18             // Number of lines to print
+     r13 <- 1              // Initial length of line to print
+   :test_r12
+     cjump 0 <= r12 :print_line :done
+   :print_line
+     rdi <- r13            // Length of line to print
+     mem rsp -8 <- :println_ret
+     call :println 1
+   :println_ret
+     r12 -= 1              // Decrease line count
+     r13 += 1              // Increase line length
+     goto :test_r12
+   :done
+     r12 <- mem rsp 0      // Restore registers
+     r13 <- mem rsp 8
+     return
+  )
+  (:println 1 0
+     rdx <- 1              // Next number to add
+     rsi <- 0              // Zero out rsi
+   :pad
+     cjump rdi <= 0 :finish
+     rsi *= 10             // Move old value over
+     rsi += rdx            // Add next number
+
+     rdx += 1              // Increment next number counter
+     rdi -= 1
+     cjump 9 < rdx :mod9   // If next number too big, jump
+     goto :pad    
+   :mod9
+     rdx -= 9              // Wrap around from 9 to 1
+     goto :pad
+   :finish
+     rdi <- rsi
+     rdi <<= 1             // Encode number for printing
+     rdi += 1
+     call print 1
+     return
+  )
+)

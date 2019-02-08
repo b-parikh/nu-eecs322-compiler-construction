@@ -1,0 +1,47 @@
+// fibonacci: compute the nth fibonacci number
+// Output: 5 55
+
+(:go
+	(:go
+		0 0
+		rdi <- 5
+		mem rsp -8 <- :fib_ret1
+		call :fib 1
+		:fib_ret1
+		rdi <- rax
+		rdi <<= 1
+		rdi ++
+		call print 1
+
+		rdi <- 10
+		mem rsp -8 <- :fib_ret2
+		call :fib 1
+		:fib_ret2
+		rdi <- rax
+		rdi <<= 1
+		rdi ++
+		call print 1
+		return
+	)
+	(:fib
+		1 0
+		r10 <- 0 // counter
+		r11 <- 1 // next number
+		r8 <- 1 // present number
+		r9 <- 0 // prev number
+		
+		:loop
+		r11 <- r9
+		r11 += r8
+		r9 <- r8
+		r8 <- r11
+		r10 ++
+
+		:conditional
+		cjump r10 < rdi :loop :finish
+
+		:finish
+		rax <- r9 
+		return
+	)
+)

@@ -1,0 +1,40 @@
+(:test3
+  (:test3
+    0 0 
+    rdi <- 5
+    rsi <- 3 
+    call allocate 2 	
+    rdi <- 7
+    rsi <- rax 
+    call allocate 2
+    rdi <- 9 
+    rsi <- rax
+    call allocate 2
+    mem rax 8 <- 5
+    mem rax 24 <- 7
+    rdi <- 11
+    rsi <- rax 
+    call allocate 2 
+    mem rax 8 <- 3
+    mem rax 16 <- 5 
+    mem rax 24 <- 7 
+    mem rax 32 <- 9 
+    mem rax 40 <- 11 
+    rdi <- 13 
+    rsi <- rax 
+    call allocate 2
+    rdi <- 5
+    rsi <- rax
+    call allocate 2
+    rdi <- mem rax 0 
+    rdi <<= 1
+    rdi++
+    call print 1
+    return 
+  )
+)
+
+
+
+
+

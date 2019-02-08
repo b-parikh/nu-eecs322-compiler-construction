@@ -1,0 +1,45 @@
+(:go
+  (:go
+   	0 0
+		rdi <- 16453
+		mem rsp -8 <- :ret
+		call :count_ones 1
+		:ret
+		rdi <- rax
+		rdi <<= 1
+		rdi++
+		call print 1
+		rdi <- 123543
+		mem rsp -8 <- :ret2
+		call :count_ones 1
+		:ret2
+		rdi <- rax
+		rdi <<= 1
+		rdi++
+		call print 1
+		rdi <- 13215483
+		mem rsp -8 <- :ret3
+		call :count_ones 1
+		:ret3
+		rdi <- rax
+		rdi <<= 1
+		rdi++
+		call print 1
+		return)
+  (:count_ones
+		1 0
+		r11 <- rdi
+		r8 <- 0
+		:loop
+		cjump r11 <= 0 :done
+		r9 <- r11
+		r9 &= 1
+		cjump 0 < r9 :true :false
+		:true
+		r8++
+		:false
+		r11 >>= 1
+		goto :loop
+		:done
+		rax <- r8
+		return))

@@ -1,0 +1,46 @@
+(:test1
+  (:test1
+    0 0
+    r12 <- 1
+    :LOOP
+    rdi <- r12
+    call print 1
+    rdi <- r12
+    mem rsp -8 <- :myFun_ret
+    call :myFun 1
+    :myFun_ret
+    rdi <- rax
+    call print 1
+    r12 <<= 1
+    r12 += 1
+    cjump r12 < 1000 :LOOP
+    rdi <- 20
+    mem rsp -8 <- :myFun_ret2
+    call :myFun 1
+    :myFun_ret2
+    rdi <- rax
+    call print 1
+    return
+  )
+  (:myFun
+    1 0
+    r10 <- rdi
+    :JMP1
+    cjump 1000 < r10 :JMP2
+    r10 <<= 1
+    r10 += 1
+    goto :JMP1
+    :JMP2
+    rax <- r10
+    r10 &= 1
+    cjump r10 = 1 :JMP3
+    rdi <- 5
+    call print 1
+    return
+    :JMP3
+    rax += 10
+    rax <<=1
+    rax += 1
+    return
+  )
+)

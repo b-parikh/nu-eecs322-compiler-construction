@@ -1,0 +1,57 @@
+// Find minimum value in array, return value of element. assumes array always has at least one element.
+// Output: 2
+
+(:go
+	(:go
+		0 0
+		rdi <- 13
+		rsi <- 10
+		call allocate 2
+		mem rax 8 <- 29
+		mem rax 16 <- 4
+		mem rax 24 <- 9
+		mem rax 32 <- 3
+		mem rax 40 <- 3
+		mem rax 48 <- 2
+		
+		rdi <- rax
+		mem rsp -8 <- :min_ret
+		call :min 1
+		:min_ret
+		rdi <- rax
+		rdi <<= 1
+		rdi ++
+		call print 1
+		return
+	)
+
+	(:min
+		1 0
+		%length_of_array <- mem rdi 0
+		// r10 <- mem rdi 0 // length of array
+		r11 <- rdi // start of array
+		%min_val <- mem rdi 8 
+		// r8 <- mem rdi 8 // first element of array
+		%counter <- 1
+		// rdx <- 1
+
+		:loop
+		r11 += 8
+		// r11 += 8
+		%curr_elem <- mem r11 0
+		// r9 <- mem r11 0
+		cjump %curr_elem < %min_val :reset_min :increment
+
+		:reset_min
+		%min_val <- mem r11 0
+
+		:increment
+		%counter += 1
+		cjump %counter <= %length_of_array :loop :finish
+
+		:finish
+		rax <- %min_val
+		return
+	)
+
+)

@@ -1,0 +1,67 @@
+(:go
+	(:go
+		0 1
+		rdi <- 4
+		rsi <- 3
+		mem rsp -8 <- :divide_ret
+		call :divide 2
+		:divide_ret
+		rdi <- rax
+		call print 1
+
+		rdi <- 15
+		rsi <- 3
+		call allocate 2
+		mem rsp 0 <- rax
+
+		rdi <- rax
+		rsi <- 100
+		mem rsp -8 <- :setarray_ret
+		call :setarray 2
+		:setarray_ret
+		rdi <- mem rsp 0
+		call print 1
+
+		return
+	)
+
+	(:divide
+		2 1
+		rax <- rdi
+		mem rsp 0 <- r12
+		r12 <- 0
+		:loop
+		cjump rax < rsi :out
+		r12 += 1
+		rax -= rsi
+		goto :loop
+		:out
+		rax <<= 1
+		rax += 1
+		rdi <- rax
+		call print 1
+        r12 <<= 1
+        r12 += 1
+		rax <- r12
+        r12 <- mem rsp 0		
+		return
+	)
+
+	(:setarray
+		2 0
+		// array is contiguously stored
+		rax <- mem rdi 0
+		rdi += 8
+		rsi <<= 1
+		rsi += 1
+		:loop2
+		cjump rax =	0 :out2
+		mem rdi 0 <- rsi
+		rax -= 1
+		rdi += 8
+		goto :loop2
+		:out2
+		return
+	)
+)
+

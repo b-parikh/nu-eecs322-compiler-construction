@@ -1,0 +1,47 @@
+(:main
+    (:main
+        0 0
+        %number_of_elem <- 21
+        %idx <- 1
+        :check
+            cjump %idx <= %number_of_elem :loop :end
+        :loop
+            mem rsp -8 <- :fib_ret
+            mem rsp -16 <- %idx
+            call :fib 7
+            :fib_ret
+            rdi <- rax
+            call print 1
+            %idx += 2
+            goto :check
+        :end
+            return
+    )
+
+    (:fib
+        7 0
+        %fib_val <- stack-arg 0
+        cjump %fib_val <= 3 :ret1 :recur
+        :ret1
+            rax <- 3
+            return
+        :recur
+            mem rsp -8 <- :internal_fib_ret1
+            %idx -= 2
+            mem rsp -16 <- %idx
+            call :fib 7
+            :internal_fib_ret1
+            %fib_call1 <- rax
+            %fib_val -= 4
+            mem rsp -8 <- :internal_fib_ret2
+            mem rsp -16 <- %fib_val
+            call :fib 7
+            :internal_fib_ret2
+            %fib_call1 >>= 1
+            rax >>= 1
+            rax += %fib_call1
+            rax <<= 1
+            rax++
+            return
+    )
+)

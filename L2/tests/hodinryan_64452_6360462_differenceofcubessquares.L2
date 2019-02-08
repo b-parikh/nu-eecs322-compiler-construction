@@ -1,0 +1,71 @@
+(:main
+	(:main
+		0 0
+		%start <- 1
+		%sum <- 1
+		goto :cube
+		:postcube
+		%sum -= 1
+		%sum += %result
+		%start += 2
+		// Print the most recent cube
+		rdi <- %result
+		call print 1
+		// Now print the running sum
+		rdi <- %sum
+		call print 1
+		// And finally print 'nil' to indicate that one block is done
+		rdi <- 0
+		call print 1
+		goto :square
+		:postsquare
+		%sum += 1
+		%sum -= %result
+		%start += 2
+		// Print out the most recent square
+		rdi <- %result
+		call print 1
+		// Now print the running sum
+		rdi <- %sum
+		call print 1
+		// And finally print nil twice to indicate the completion of a pair
+		rdi <- 0
+		call print 1
+		rdi <- 0
+		call print 1
+		// Continue until after 100
+		cjump %start < 203 :cube :end
+		:end
+		return
+
+		:cube
+		// Print the currently cubing number
+		rdi <- %start
+		call print 1
+		%result <- %start
+		// Strip encoding and square result
+		%result -= 1
+		%result >>= 1
+		rbx <- %result
+		%result *= %result
+		%result *= rbx
+		// Then reencode
+		%result <<= 1
+		%result +=1
+		goto :postcube
+
+		:square
+		// Print the currently squaring number
+		rdi <- %start
+		call print 1
+		%result <- %start
+		// Strip encoding and square result
+		%result -= 1
+		%result >>= 1
+		%result *= %result
+		// Then reencode
+		%result <<= 1
+		%result += 1
+		goto :postsquare
+	)
+)
