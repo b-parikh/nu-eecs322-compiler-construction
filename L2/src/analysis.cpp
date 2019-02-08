@@ -77,13 +77,15 @@ namespace L2 {
         std::string labelToMatch = prevI->items[4].labelName;
         for(int n = 0; n < f.instructions.size(); ++n) {
             Instruction* i = f.instructions[n];
-            if(i->identifier != 10) // if not label_instruction
+            if(i->identifier != 10 || i->identifier != 11) // if not label_instruction
                 continue;
             else {
-                if(i->items[0].labelName == labelToMatch) {
+std::cout<< i->identifier << " " << f.instructions[n+1]->identifier<< "\n";
+                if(((i->identifier == 10) && (i->items[0].labelName == labelToMatch)) || (i->identifier == 11)) {
                     prevI->successors.push_back(f.instructions[n+1]); // push back the instruction after the label
-                    std::cout << " sucessor found\t";
-                    print_instruction(*f.instructions[n+1]);
+					std::cout<< i->identifier << " " << f.instructions[n+1]->identifier<< "\n";
+                    //std::cout << n << " sucessor found\t";
+                    //print_instruction(*f.instructions[n+1]);
                 }
                 else
                     continue;
@@ -301,10 +303,12 @@ namespace L2 {
                 //print_set(ip->out_set);
                 // foreach successor, insert successor's IN set into currI's OUT set (populate out set)
                 ip->out_set.clear();
-                for(auto sp : ip->successors) {
-                    (ip->out_set).insert(sp->in_set.begin(), sp->in_set.end());
+                if(ip->identifier != 1) {
+                    for(auto sp : ip->successors) {
+                        (ip->out_set).insert(sp->in_set.begin(), sp->in_set.end());
                     //std::cout << "an in_set placed into curr out_set: ";
                     //print_set(sp->in_set);
+                    }
                 }
                 //std::cout << "out_set after insertions: ";
                 //print_set(ip->out_set);
@@ -339,11 +343,11 @@ namespace L2 {
         for(Instruction* instruct : f.instructions) {
             compute_gen_and_kill(*instruct);
             // print gen and kill for each instruction
-            std::cout << "instruction: \ngen_set: ";
-            print_set(instruct->gen_set);
-            std::cout << "kill_set: ";
-            print_set(instruct->kill_set);         
-            std::cout << '\n';
+//            std::cout << "instruction: \ngen_set: ";
+//            print_set(instruct->gen_set);
+//            std::cout << "kill_set: ";
+//            print_set(instruct->kill_set);         
+//            std::cout << '\n';
 	    }
         
         compute_in_and_out(f);
