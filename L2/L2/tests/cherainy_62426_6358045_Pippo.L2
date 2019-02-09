@@ -1,0 +1,61 @@
+// add two arrays
+// output:
+// {s:5, 7, 2, 2, 2, 8}
+// {s:5, 3, 3, 12, 3, 3}
+// {s:5, 10, 5, 14, 5, 11}
+
+(:main
+	(:main
+		0 0
+		%length <- 11
+    rdi <- %length
+    rsi <- 5
+    call allocate 2
+    %array <- rax
+    mem %array 8 <- 15
+    mem %array 40 <- 17
+    rdi <- %array
+    call print 1
+    rdi <- r12
+
+
+    rdi <- %length
+    rsi <- 7
+    call allocate 2
+    %array2 <- rax
+    mem %array2 24 <- 25
+    rdi <- %array2
+    call print 1
+
+    rdi <- %array
+    rsi <- %array2
+    mem rsp -8 <- :addArrays_ret
+    call :addArrays 1
+    :addArrays_ret
+    rdi <- rax
+    call print 1
+		return
+  )
+
+  (:addArrays
+		2 0
+    %max <- mem rdi 0
+    %ans <- rdi
+    %i <- 0
+
+    :loop
+    rsi += 8
+    rdi += 8
+    r10 <- mem rsi 0
+    r11 <- mem rdi 0
+    r11 += r10
+    r11--
+    mem rdi 0 <- r11
+    %i++
+    cjump %i < %max :loop :end
+
+    :end
+    rax <- %ans
+		return
+  )
+)

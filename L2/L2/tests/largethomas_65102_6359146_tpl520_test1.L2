@@ -1,0 +1,77 @@
+(:go
+  (:go
+    0 0
+
+    rdi <- 21
+
+    mem rsp -8 <- :factorial_ret
+    call :factorial 1
+    :factorial_ret
+
+    rdi <- rax
+    mem rsp -8 <- :print_array_ret
+    call :print_array 1
+    :print_array_ret
+
+    return
+  )
+
+  (:factorial
+    1 0
+
+    // allocate array
+    %n <- rdi
+    rsi <- 1
+    call allocate 2
+    rcx <- rax
+
+    // init
+    r8 >>= 1
+    rdx <- 0
+    r9 <- 0
+    r10 <- 1
+
+    :loop
+    r11 <- r9
+    r9 <- r10
+    r10 += r11
+
+    // encode
+    r9 <<= 1
+    r9 += 1
+
+    r11 @ rcx rdx 8
+    mem r11 8 <- r9
+
+    // decode and increment
+    r9 >>= 1
+    rdx += 1
+
+    cjump rdx < %n :loop
+
+    rax <- rcx
+    return
+  )
+
+  (:print_array
+    1 0
+
+    rcx <- rdi
+    rdx <- 0
+
+    :print_loop
+    rdx += 1
+    rdi @ rcx rdx 8
+    rdi <- mem rdi 0
+
+    %arr <- rcx
+    %count <- rdx
+    call print 1
+
+    r10 <- mem %arr 0
+
+    cjump %count < r10 :print_loop
+
+    return
+  )
+)

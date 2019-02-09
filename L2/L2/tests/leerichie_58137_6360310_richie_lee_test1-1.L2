@@ -1,0 +1,46 @@
+(:go
+ (:go
+   0 0
+   rdi <- 5
+   call print 1
+   r10 <- rdi
+   rdi <- 11
+   rsi <- 0
+   call allocate 2
+   r11 <- rax
+   mem rsp -8 <- :odd_num_1
+   rdi <- 2
+   call :odd_num 1
+   :odd_num_1
+   mem r11 8 <- rax
+   mem r11 16 <- 5
+   mem r11 24 <- 7
+   mem r11 32 <- 9
+   mem r11 40 <- 11
+   rsi <- mem r11 8
+   rdi <- mem r11 16
+   rdi -= rsi
+   rdi++
+   rdi += mem r11 16
+   rcx <- mem r11 24
+   rdi <<= rcx
+   rdi &= mem r11 32
+   rdi -= mem r11 40
+   rdi += 3
+   rdi <<= 1
+   rdi ++
+   call print 1
+   return
+ )
+ (:odd_num
+   1 0
+   %num <- 1
+   :start
+   rdi -= 1
+   cjump rdi <= 0 :done
+   %num += 2
+   goto :start
+   :done
+   rax <- %num
+   return)
+)

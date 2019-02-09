@@ -1,0 +1,54 @@
+(:go
+	(:go
+	0 0
+	rdi <- 31 //15
+	mem rsp -8 <- :fib_ret
+	call :fibonacci 1
+	:fib_ret
+
+	rdi <- 43
+        mem rsp -8 <- :fib_ret2
+        call :fibonacci 1
+        :fib_ret2
+
+	rdi <- 3
+        mem rsp -8 <- :fib_ret3
+        call :fibonacci 1
+        :fib_ret3
+
+	return
+	)
+
+	(:fibonacci
+	1 0
+
+	%listLen <- rdi
+	//arg 1 of :fibonacci and allocate are the same
+	rsi <- 3 //1
+	call allocate 2
+	cjump %listLen <= 2 :end 
+	rdi <- 3
+	rsi <- rax
+	rsi += 16
+	:loop
+	rsi += 8
+	%fib1 <- mem rsi -8
+	%fib1 >>= 1
+	%fib2 <- mem rsi -16
+	%fib2 >>= 1
+	%fib1 += %fib2
+	%fib1 <<= 1
+	%fib1 += 1
+	mem rsi 0 <- %fib1
+	rdi += 1
+	r10 <- mem rax 0
+	cjump rdi < %listLen :loop //temp
+
+	rdi <- rax
+	call print 1
+	
+	:end
+	return
+	)
+
+)

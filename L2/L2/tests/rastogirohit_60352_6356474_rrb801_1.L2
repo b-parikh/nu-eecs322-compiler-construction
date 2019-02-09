@@ -1,0 +1,77 @@
+(:main
+    (:main
+        0 0
+
+        %array_size <- 21
+        rdi <- %array_size
+
+        mem rsp -8 <- :write_array_ret
+        call :write_array 1
+        :write_array_ret
+
+        mem rsp -8 <- :get_largest_ret
+        rdi <- rax
+        call :get_largest 1
+        :get_largest_ret
+        
+        rdi <- rax
+        call print 1
+
+        return
+    )
+
+    (:write_array
+        //writes 0-9 in array of size 10
+        1 0
+        %array_default_value <- 1
+        rsi <- %array_default_value
+        %array_size <- rdi
+        call allocate 2
+        %curr_pointer <- rax
+        %curr_pointer += 8
+        %i <- 0
+
+        :write_loop
+        mem %curr_pointer 0 <- %i
+        %curr_pointer += 8
+        %i += 1
+        cjump %i < %array_size :write_loop :return
+
+        :return
+        return
+    )
+
+    (:get_largest
+        //returns the largest value in the input array
+        1 0
+
+        %curr_pointer <- rdi
+        %max <- mem %curr_pointer 8
+        %i <- 1
+        %array_size <- mem %curr_pointer 0
+        %curr_pointer += 16
+        goto :loop
+
+        :loop
+        cjump %i < %array_size :compare :done 
+
+        :compare
+        %curr_element <- mem %curr_pointer 0
+        %i += 1
+        %curr_pointer += 8
+        cjump %curr_element < %max :lower :higher
+
+        :lower
+        goto :loop
+
+        :higher
+        %max <- %curr_element
+        goto :loop
+
+        :done 
+        %max <<= 1
+        %max += 1
+        rax <- %max
+        return
+    )
+)

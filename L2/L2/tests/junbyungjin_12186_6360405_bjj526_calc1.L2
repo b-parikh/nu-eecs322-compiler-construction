@@ -1,0 +1,69 @@
+(:go
+	(:go
+		0 0
+		rdi <- 4
+		rsi <- 3
+		mem rsp -8 <- :sum_ret
+		call :sum 2
+		:sum_ret
+		rdi <- rax
+		call print 1
+
+		rdi <- 4
+		rsi <- 3	
+		mem rsp -8 <- :subtract_ret
+		call :subtract 2
+		:subtract_ret
+		rdi <- rax
+		call print 1
+
+		rdi <- 4
+		rsi <- 3
+		mem rsp -8 <- :multiply_ret
+		call :multiply 2
+		:multiply_ret
+		rdi <- rax
+		call print 1
+
+		return
+	)
+
+	(:sum
+		2 0
+		%var <- rdi
+		%var += rsi
+		%var <<= 1
+		%var += 1
+		rax <- %var
+		return
+	)
+	
+	(:subtract
+		2 0
+		%var <- rdi
+		%var -= rsi
+		%var <<= 1
+		%var += 1
+		rax <- %var
+		return
+	)
+
+	(:multiply
+		2 0
+		%var1 <- 0
+		%var2 <- rsi
+		%var3 <- rdi
+		:loop
+		cjump %var2 = 0 :out :more
+		:more
+		%var2 -= 1
+		%var1 += %var3
+		goto :loop
+		:out
+		%var1 <<= 1
+		%var1 += 1
+		rax <- %var1
+		return
+	)
+)
+

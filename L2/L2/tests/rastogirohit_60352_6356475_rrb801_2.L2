@@ -1,0 +1,66 @@
+(:main
+    (:main 
+        0 0
+        
+        // initialize two equal arrays
+        %array_size <- 21
+        %array_default_value <- 1
+        rdi <- %array_size
+        rsi <- %array_default_value
+        call allocate 2
+        %array1_pointer <- rax
+        rdi <- %array_size
+        rsi <- %array_default_value
+        call allocate 2
+        %array2_pointer <- rax
+        rdi <- %array1_pointer
+        rsi <- %array2_pointer 
+
+        //compare arrays
+        mem rsp -8 <- :compare_arrays_ret
+        call :compare_arrays 2
+        :compare_arrays_ret
+
+        rdi <- rax
+        call print 1
+        return
+    )
+
+    (:compare_arrays
+        2 0
+        
+        %array1_pointer <- rdi
+        %array2_pointer <- rsi
+
+        //compare_sizes
+        %size1 <- mem %array1_pointer 0
+        %size2 <- mem %array2_pointer 0
+        cjump %size1 = %size2 :compare_elements :unequal
+
+        :compare_elements
+        %i <- 0
+        goto :loop
+        return
+
+        :loop
+        %array1_pointer += 8
+        %array2_pointer += 8
+        %i += 1
+        cjump %i < %size1 :compare_pair :done
+
+        :compare_pair
+        %array1_curr_elem <- mem %array1_pointer 0
+        %array2_curr_elem <- mem %array2_pointer 0
+        cjump %array1_curr_elem = %array2_curr_elem :loop :unequal
+
+        :done
+        %true <- 3
+        rax <- %true
+        return
+
+        :unequal
+        %false <- 1
+        rax <- %false
+        return 
+    )
+)

@@ -1,0 +1,125 @@
+(:main
+
+(:main
+    0 0
+
+    // DOES -2 DIVIDE 3?
+    rdi <- -2
+    rsi <- 3
+
+    mem rsp -8 <- :handle_boilerplate_r_1
+    call :handle_boilerplate 2
+    :handle_boilerplate_r_1
+
+    // DOES -1 DIVIDE 3? (No because this tool doesn't divide by negative integers)
+    rdi <- -1
+    rsi <- 3
+
+    mem rsp -8 <- :handle_boilerplate_r0
+    call :handle_boilerplate 2
+    :handle_boilerplate_r0
+
+    // DOES 1 DIVIDE -3? (No because this tool doesn't divide negative integers)
+    rdi <- -1
+    rsi <- 3
+
+    mem rsp -8 <- :handle_boilerplate_r01
+    call :handle_boilerplate 2
+    :handle_boilerplate_r01
+
+    // DOES 0 DIVIDE 3?
+    rdi <- 0
+    rsi <- 3
+
+    mem rsp -8 <- :handle_boilerplate_r1
+    call :handle_boilerplate 2
+    :handle_boilerplate_r1
+
+    // DOES 1 DIVIDE 3?
+    rdi <- 1
+    rsi <- 3
+
+    mem rsp -8 <- :handle_boilerplate_r2
+    call :handle_boilerplate 2
+    :handle_boilerplate_r2
+
+    // DOES 2 DIVIDE 3?
+    rdi <- 2
+    rsi <- 3
+
+    mem rsp -8 <- :handle_boilerplate_r3
+    call :handle_boilerplate 2
+    :handle_boilerplate_r3
+
+    // DOES 3 DIVIDE 3?
+    rdi <- 3
+    rsi <- 3
+
+    mem rsp -8 <- :handle_boilerplate_r4
+    call :handle_boilerplate 2
+    :handle_boilerplate_r4
+
+    // DOES 4 DIVIDE 5?
+    rdi <- 4
+    rsi <- 5
+
+    mem rsp -8 <- :handle_boilerplate_r5
+    call :handle_boilerplate 2
+    :handle_boilerplate_r5
+
+    // DOES 5 DIVIDE 5?
+    rdi <- 5
+    rsi <- 5
+
+    mem rsp -8 <- :handle_boilerplate_r6
+    call :handle_boilerplate 2
+    :handle_boilerplate_r6
+
+    // DOES 11 DIVIDE 121?
+    rdi <- 11
+    rsi <- 121
+
+    mem rsp -8 <- :handle_boilerplate_r7
+    call :handle_boilerplate 2
+    :handle_boilerplate_r7
+
+    return)
+
+(:handle_boilerplate
+    2 0
+    mem rsp -8 <- :divides_return
+    call :divides 2
+    :divides_return
+    %toEncode <- rax
+
+    %toEncode *= 2
+    %toEncode++
+    rdi <- %toEncode
+    call print 1
+    return)
+
+(:divides
+    2 0
+    %firstArg <- rdi
+    %secondArg <- rsi
+    cjump %secondArg < 0 :return_0 // return 0 if dividing a negative integer
+    cjump %firstArg <= 0 :return_0 // return 0 if dividing by a non-positive integer
+    cjump %secondArg < %firstArg :return_0 // return 0 if divisor is greater than dividend
+    cjump %firstArg = 1 :return_1 :subtract_once // return 1 if dividing by 1
+
+    :subtract_once
+    %secondArg -= %firstArg
+    cjump %secondArg = 0 :return_1 // return 1 if the remainder is 0
+    cjump %firstArg <= %secondArg :subtract_once // subtract again if current remainder >= divisor
+    goto :return_0
+
+    :return_0
+    rax <- 0
+    goto :end_function
+
+    :return_1
+    rax <- 1
+    goto :end_function
+
+    :end_function
+    return))

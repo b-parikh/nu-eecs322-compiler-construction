@@ -1,0 +1,108 @@
+(:main
+
+(:main
+    0 0
+
+    mem rsp -8 <- :allocate1_ret
+    call :allocate1 0
+    :allocate1_ret
+    %numArray <- rax
+
+    mem rsp -8 <- :allocate2_ret
+    call :allocate2 0
+    :allocate2_ret
+    %boolArray <- rax
+
+    rdi <- %numArray
+
+    mem rsp -8 <- :adjust_ret
+    call :adjust 1
+    :adjust_ret
+
+    %curPrime <- 2 // save the smallest prime = 2 (unencoded)
+    :small_loop
+    %tempManipulate <- %curPrime // get the current start of the prime
+    %tempManipulate *= %tempManipulate // get the start of the marking
+
+    rsi <- %tempManipulate
+    :smaller_loop
+    rsi += %curPrime // save the next number we'll be marking
+
+    %tempManipulate -= 1 // get the right offset
+    %tempManipulate <<= 3 // get the right offset in binary
+    r9 <- %boolArray // get the start of the array
+    r9 += %tempManipulate // add the offset to the start
+    mem r9 0 <- 3 // mark the number
+    cjump 25 < rsi :end_smaller
+    %tempManipulate <- rsi // restore the next number to mark
+    goto :smaller_loop
+    :end_smaller
+    %tempManipulate <- %curPrime // temporarily save the prime we're finished with
+    :next_number
+    %tempManipulate++ // get the next number
+    rdx <- %tempManipulate // save the next number
+    cjump 25 < %tempManipulate :end_function
+    %tempManipulate-- // get the right offset
+    %tempManipulate <<= 3 // get the right offset in binary
+    %tempManipulate += %boolArray // get the address of the current marking
+    rsi <- mem %tempManipulate 0 // get the current marking
+
+
+    cjump rsi <= 1 :action_for_start_marking :action_for_next_number
+
+    :action_for_next_number
+    %tempManipulate <- rdx // restore next number
+    goto :next_number
+
+    :action_for_start_marking
+    %curPrime <- rdx
+    goto :small_loop
+
+    :end_function
+    %tempManipulate <- %numArray
+    call print 1
+    %tempManipulate <- %boolArray
+    call print 1
+    return)
+
+(:allocate1
+    0 0
+    rdi <- 49
+    rsi <- 5
+    call allocate 2 // allocate 25 2's
+    return)
+
+(:allocate2
+    0 0
+    rdi <- 49
+    rsi <- 1
+    call allocate 2 // allocate 25 0's
+    return)
+
+(:adjust
+    1 0
+
+    // rdi has the start of the array
+
+    r11 <- mem rdi 0 // save the number of elements (unencoded)
+
+    r8 <- 1 // r8 holds the counter
+
+    :loop
+    r9 <- r8
+    r9 <<= 3 // get the offset of the cell to adjust
+
+    r10 <- r12 // record the start of the array
+    r10 += r9 // add the offset to reach to the cell to adjust
+    mem r10 0 += r8
+    mem r10 0 += r8 // adjust the element (with off-by-one error) (adding as much has the counter)
+    mem r10 0 -= 2 // readjust the element (get rid of off-by-one error) (subtracting 1)
+
+    cjump r8 <= r11 :end // stop if the counter has reached the number of elements
+    r8++
+    goto :loop
+    :end
+
+    return)
+
+)

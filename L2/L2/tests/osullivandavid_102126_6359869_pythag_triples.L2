@@ -1,0 +1,129 @@
+//generates some pythagorean triples with sides less than N (whatever is put into rdi in the main function) using an algorithm I found on the internet
+//sources used: https://en.wikipedia.org/wiki/Formulas_for_generating_Pythagorean_triples, https://www.geeksforgeeks.org/generate-pythagorean-triplets/
+//(note that this is a simpler algorithm that does not generate all pythagorean triples, namely it will not neccesarily generate two similar triangles (e.g. only 3,4,5 would be generated, not 9,12,15)
+
+(:main
+	(:main
+		0 0
+
+		//----SET LIMIT (UNENCODED VALUE)----:
+			%limit <- 100
+		//-----------------------------------
+		
+		%limit <<= 1 //encode 
+		%limit++
+		rdi <- %limit
+		mem rsp -8 <- :exit_program
+		call :pythagorean 1
+		:exit_program
+		return
+	)
+	(:pythagorean //generates some pythagorean triples with sides less than first argument
+		1 0
+		//rdi = encoded limit
+		%limit <- rdi
+		%limit >>= 1 //decode limit
+		%m <- 2
+		%c <- 0
+		mem rsp -8 <- :ret_loop
+		:outer_loop
+			cjump %limit <= %c :exit_pythagorean  //continue looping as long as !(limit <= c), that is c < limit
+			rdi <- %m
+			rsi <- %limit
+			call :loop_m_n 2
+			:ret_loop
+			%c <- rax
+			%m++
+		goto :outer_loop
+
+		:exit_pythagorean
+		return
+	)
+	(:loop_m_n //for a particular value of m, loops from n -> m calling print_triple_m_n for each pair, returns the last calculated hypotenuse value (not encoded)
+		//rdi - m
+		//rsi - limit
+		2 0
+
+		%m <- rdi
+		%limit <- rsi
+		%n <- 1
+
+		mem rsp -8 <- :print_trip_ret
+		
+		:loop
+			//set arguments to call function with:
+			rdi <- %m
+			rsi <- %n
+			rdx <- %limit
+			call :print_triple_m_n 3 
+			:print_trip_ret
+			%n++ 
+		cjump %n < %m :loop  //continue looping if r13 < r12, aka n < m
+		
+	
+		return //returns the last calculated hypotenuse value
+
+	)
+
+	(:print_triple_m_n //prints a triple (if present) for a particular m/n value, return the calculated hypotenuse value (not encoded)
+		//rdi - m (not encoded, e.g. pass in 5 for 5)
+		//rsi - n (not encoded)
+		//rdx - limit (not encoded)
+		3 0
+		%m <- rdi
+		%n <- rsi
+		%limit <- rdx
+
+	
+
+		%msquared <- %m
+		%msquared *= %m
+		%nsquared <- %n
+		%nsquared *= %n
+		%c <- %msquared
+		%c += %nsquared
+		cjump %limit < %c :end :nl1 :nl1 
+		
+		
+
+		
+		%a <- %msquared
+		%a -= %nsquared
+		%b <- 2
+		%b *= %m
+		%b *= %n
+		
+
+	
+		//encode the calculated values:
+		%a <<= 1
+		%a++
+		%b <<=1
+		%b++
+		%c <<=1
+		%c++
+
+	
+		
+		rdi <- 7 //we want an array of 3 elements
+		rsi <- 0 //doesn't really matter what inital value is, we're gonna change it
+		call allocate 2
+		%array <- rax
+		
+		//store them in array
+		mem %array 8 <- %a
+		mem %array 16 <- %b
+		mem %array 24 <- %c
+
+		
+		//print the array
+		rdi <- %array
+		call print 1
+
+		
+		%c >>= 1
+		:end
+		rax <- %c
+		return //return c
+	)
+)

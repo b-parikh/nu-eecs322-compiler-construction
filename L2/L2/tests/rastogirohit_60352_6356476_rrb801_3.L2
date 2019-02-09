@@ -1,0 +1,83 @@
+(:main
+    (:main
+        0 0
+        %array_size <- 21
+        rdi <- %array_size
+
+        mem rsp -8 <- :write_array_ret
+        call :write_array 1
+        :write_array_ret
+
+        mem rsp -8 <- :array_sum_ret
+        rdi <- rax
+        call :array_sum 1
+        :array_sum_ret
+        
+        mem rsp -8 <- :is_odd_ret
+        rdi <- rax
+        call :is_odd 1
+        :is_odd_ret
+        rdi <- rax
+        call print 1
+
+        return
+    )
+
+    (:write_array
+        //writes 0-9 in array of size 10
+        1 0
+        %array_default_value <- 1
+        rsi <- %array_default_value
+        %array_size <- rdi
+        call allocate 2
+        %curr_pointer <- rax
+        %curr_pointer += 8
+        %i <- 0
+
+        :write_loop
+        mem %curr_pointer 0 <- %i
+        %curr_pointer += 8
+        %i += 1
+        cjump %i < %array_size :write_loop :return
+
+        :return
+        return
+    )
+
+    (:array_sum
+        1 0
+
+        %curr_pointer <- rdi
+        %sum <- 0
+        %array_size <- mem %curr_pointer 0
+        %curr_pointer += 8
+        goto :loop
+
+        :loop
+        cjump %i < %array_size :add :done 
+
+        :add
+        %curr_elem <- mem %curr_pointer 0
+        %sum += %curr_elem
+        %i += 1
+        %curr_elem += 8
+        goto :loop
+
+        :done 
+        %sum <<= 1
+        %sum += 1
+        rax <- %sum
+        return
+    )
+
+    (:is_odd
+        1 0
+        %ret <- rdi
+        %ret &= 1
+        %ret <<= 1
+        %ret += 1
+        return 
+    )
+        
+
+)
