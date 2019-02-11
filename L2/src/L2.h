@@ -8,15 +8,17 @@ namespace L2 {
   
   typedef std::unordered_set<std::string> set_of_str;
   typedef std::vector<std::string> vector_of_str;
-  typedef std::unordered_map<std::string, set_of_str> str_to_set;
-  typedef std::pair<std::string, set_of_str> Node;
+  typedef std::unordered_map<std::string, set_of_str> str_to_set; 
+  //typedef std::pair<std::string, set_of_str> Node;
 
-  enum class Type{num, label, reg, mem, var, runtime, arith_oper, inc_dec_oper, compare_oper, shift_oper, assign_oper};
-  enum class Color{red, blue, green, yellow, white, pink, black, orange, purple, gray, brown, cyan, violet, mint, tan};`
+  enum class Type{num, label, reg, mem, var, runtime, arith_oper, inc_dec_oper, compare_oper, shift_oper, assign_oper}; 
+  enum class Color{red, blue, green, yellow, white, pink, black, orange, purple, gray, brown, cyan, violet, mint, tan};
+  enum class REG{r12, r13, r14, r15, rbp, rbx,  r8, r9, r10, r11, rax, rcx, rdi, rdx, rsi}; 
+  
 
   struct Item {
-    std::string labelName;
-    L2::Type type;
+      std::string labelName; 
+      L2::Type type; 
   };
 
   /*
@@ -64,7 +66,10 @@ namespace L2 {
   struct Node{
       std::string name;
       set_of_str neighbors;
-      int color;
+      REG color;
+      bool isReg = false;
+      bool spilled = false;
+      bool colored = false;
       /*
        * red (0), blue (1), green (2), yellow (3), white (4), pink (5), black (6),
        * orange (7), purple (8), gray (9), brown (10), cyan (11), violet (12), mint (13), tan (14)
@@ -79,6 +84,12 @@ namespace L2 {
     int64_t locals;
     std::vector<Instruction *> instructions;
     str_to_set IG; 
+    /*
+     * IG_nodes is for use in spilling 
+     * will take all IG (string -> set) maps and put into this vector as part of each Node
+     */
+    std::vector<Node> IG_nodes;
+    std::vector<Node> nodes_to_spill;
   };
 
   /*
