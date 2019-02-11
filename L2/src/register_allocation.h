@@ -6,5 +6,5 @@
 #include <interference.h>
 
 namespace L2 {
-    Function register_allocation(Function* f);
+    Function* register_allocation(Function* f);
 }

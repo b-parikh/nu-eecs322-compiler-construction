@@ -355,10 +355,10 @@ namespace L2{
     outputFile << '(' << p.entryPointLabel << '\n';
 
     for (auto fp : p.functions) {
-        Function new_F = register_allocation(fp);
-        outputFile << '(' <<  new_F.name << '\n';
-        outputFile << new_F.arguments << ' ' << new_F.locals << '\n';        
-        for(auto instruct_p : new_F.instructions) {
+        Function* new_F = register_allocation(fp);
+        outputFile << '(' <<  new_F->name << '\n';
+        outputFile << new_F->arguments << ' ' << new_F->locals << '\n';        
+        for(auto instruct_p : new_F->instructions) {
             for(auto item : instruct_p->items) {
                 outputFile << item.labelName << ' ';
             }

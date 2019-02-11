@@ -6,7 +6,7 @@
 
 namespace L2 {
 
-    const set_of_str GP_REGISTERS( {"r10", "r11", "r12", "r13", "r14", "r15", "r8", "r9", "rax", "rbp", "rbx", "rcx", "rdi", "rdx", "rsi"} );
+//    const set_of_str GP_REGISTERS( {"r10", "r11", "r12", "r13", "r14", "r15", "r8", "r9", "rax", "rbp", "rbx", "rcx", "rdi", "rdx", "rsi"} );
 
     std::vector<REG> CALLER_SAVE {
             REG::r8,
@@ -17,10 +17,10 @@ namespace L2 {
             REG::rcx,
             REG::rdi,
             REG::rdx,
-            REG::rsi
-    };
+            REG::rsi,
+ //   };
 
-    std::vector<REG> CALLEE_SAVE {
+   // std::vector<REG> CALLEE_SAVE {
             REG::r12,
             REG::r13,
             REG::r14,
@@ -76,11 +76,11 @@ namespace L2 {
             REG::rcx,
             REG::rdi,
             REG::rdx,
-            REG::rsi
-        };
+            REG::rsi,
+     //   };
 
-        CALLEE_SAVE = 
-        {
+       // CALLEE_SAVE = 
+     //   {
             REG::r12,
             REG::r13,
             REG::r14,
@@ -94,8 +94,12 @@ namespace L2 {
         std::vector<Node> stack;
         for(auto &n : IG_nodes) {
             // assign color if register is found
+			std::cout << n.name << '\n';
             if(STR_REG_MAP.find(n.name) != STR_REG_MAP.end()) {
+			std::cout << n.name << '\n';
                  n.color = STR_REG_MAP.find(n.name)->second;
+			std::cout << n.name << '\n';
+
                  n.isReg = true;
             }
             stack.push_back(n);
@@ -104,44 +108,54 @@ namespace L2 {
     }
 
     std::pair<Function*, bool> color_graph(Function *fp) { //, std::pair<std::string, set_of_str> node) {
-        std::vector<Node> stack = fp->IG_nodes; // old IG
+        //std::vector<Node> stack = fp->IG_nodes; // old IG
         std::vector<Node> new_IG; // empty IG, start rebuilding
         Function* new_F = fp;
-        //std::vector<Node> stack = init_stack(&IG);
+        std::vector<Node> stack = init_stack(fp->IG_nodes);
         bool spilled = false;
+		
         do {
             RESET_REG_SETS();
             Node popped = stack.back();
+			std::cout<< "new_f: " << new_F->name <<'\n';
             stack.pop_back();
             
             // assign colors
+			
+			std::cout<< "new_f: " << new_F->name <<'\n';
+			std::cout<< "popped " << popped.name <<'\n';
             if(STR_REG_MAP.find(popped.name) != STR_REG_MAP.end()) { // if reg, assign itself
+			std::cout<< "new_f: " << new_F->name <<'\n';
                 popped.color = STR_REG_MAP.find(popped.name)->second;
                 popped.colored = true;
+			std::cout<< "new_f: " << new_F->name <<'\n';
             }
             else {
                 // check each caller_save register and assign the first one that doesn't conflict
                 for(auto r : CALLER_SAVE) {
                     if(popped.neighbors.find(REG_STR_MAP[r]) != popped.neighbors.end()) {
+						
+			std::cout<< "new_1f: " << new_F->name <<'\n';
                         continue;
                     }
                     else {
+			std::cout<< "new_2f: " << new_F->name <<'\n';
                         popped.color = r;
                         popped.colored = true;
                     }
                 }
             }
-            if(!popped.colored) { // Caller saved register not assigned
-                for(auto r : CALLEE_SAVE) {
-                    if(popped.neighbors.find(REG_STR_MAP[r]) != popped.neighbors.end()) {
-                        continue;
-                    }
-                    else {
-                        popped.color = r;
-                        popped.colored = true;
-                    }
-                }
-            }
+//            if(!popped.colored) { // Caller saved register not assigned
+//                for(auto r : CALLEE_SAVE) {
+//                    if(popped.neighbors.find(REG_STR_MAP[r]) != popped.neighbors.end()) {
+//                        continue;
+//                    }
+//                    else {
+//                        popped.color = r;
+//                        popped.colored = true;
+//                    }
+//                }
+//            }
             if(!popped.colored) {// Callee saved register not assigned, so must spill
                 spilled = true;
                 new_F->nodes_to_spill.push_back(popped);
@@ -151,6 +165,7 @@ namespace L2 {
 
         } while(!stack.empty());
 
+			std::cout<< "new_f: " << new_F->name <<'\n';
         /*
          * Now that the variables have been assigned registers and spilled variables are identified,
          * begin to spill. This will generate a new function that can be analyzed for liveness. This
@@ -173,7 +188,7 @@ namespace L2 {
                 //spill_str.labelName = node.first;
                 spill_str.labelName = node.name;
                 spill_str.type = Type::var;
-                new_F = spill(*new_F, spill_var, spill_str);
+                *new_F = spill(*new_F, spill_var, spill_str);
                 //std::cout << '(' << new_F.name << '\n';
 //                for(auto i : new_F.instructions) {
 //                    for(auto it : i->items) {
@@ -187,23 +202,27 @@ namespace L2 {
         return std::pair<Function*, bool> (new_F, spilled);
     }
 
-    Function register_allocation(Function* fp) {
+    Function* register_allocation(Function* fp) {
         Function* new_F = fp;
         bool spilled = false;
 
         do {
         // change IG from str_to_set to vector<Node>
             for(auto &p : new_F->IG) { // for each pair in the IG
+			//for(auto p=new_F->IG.begin(); p != new_F->IG.end(); ++p) {
                 Node n;
+			std::cout << ".........." << '\n';
                 n.name = p.first;
+			std::cout << p.first << '\n';
                 n.neighbors = p.second;
                 new_F->IG_nodes.push_back(n); // IG_nodes is a vector<Node>
             }
             analyze(new_F);
             generate_IG(new_F);
-            std::pair<Function, bool> spilled_and_colored_IG = color_graph(new_F);
-            new_F = spilled_and_colored_IG->first;
-            spilled = spilled_and_colored_IG->second;
+            std::pair<Function*, bool> spilled_and_colored_IG = color_graph(new_F);
+			//std::cout<< "new_f: " << new_F->name <<'\n';
+            new_F = spilled_and_colored_IG.first;
+            spilled = spilled_and_colored_IG.second;
         } while(spilled);
 
         return new_F;

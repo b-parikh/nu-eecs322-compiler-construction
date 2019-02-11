@@ -1,3 +1,0 @@
-#!/bin/bash
-
-./bin/L2 -g 0 -s -O0 $@

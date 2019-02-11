@@ -1,9 +1,0 @@
-(:myF
-	0 1
-	%S0 <- 0
-	mem rsp 0 <- %S0
-	%S1 <- mem rsp 0
-	%S1 <- %S1
-	mem rsp 0 <- %S1
-	return
-)
