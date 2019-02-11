@@ -15,10 +15,10 @@
 #include <analysis.h>
 #include <interference.h>
 // #include <transformer.h>
-// #include <code_generator.h>
+#include <code_generator.h>
 #include <spiller.h>
-// #include <register_allocation.h>
-// #include <utils.h>
+#include <register_allocation.h>
+#include <utils.h>
 
 using namespace std;
 
@@ -31,7 +31,7 @@ int main(
   int argc, 
   char **argv
   ){
-  auto enable_code_generator = false;
+  auto enable_code_generator = true;
   auto spill_only = false;
   auto interference_only = false;
   int32_t liveness_only = 0;
@@ -124,7 +124,7 @@ int main(
      * Spill.
      */
      //TODO
-    L2::analyze(p, liveness_only);
+    //L2::analyze(p, liveness_only);
     L2::spill_wrapper(p);
     return 0;
   }
@@ -133,7 +133,7 @@ int main(
    * Liveness test.
    */
   if (liveness_only){
-    L2::analyze(p, liveness_only);
+    //L2::analyze(p, liveness_only);
     return 0;
   }
 
@@ -142,8 +142,8 @@ int main(
    */
   if (interference_only){
     //TODO
-    L2::analyze(p, liveness_only);
-    L2::generate_IG(p);
+    //L2::analyze(p, liveness_only);
+    //L2::generate_IG(p);
     return 0;
   }
 
@@ -151,7 +151,7 @@ int main(
    * Generate the target code.
    */
   if (enable_code_generator){
-    //L2::generate_code(p); 
+    L2::generate_code(p); 
   }
 
   return 0;

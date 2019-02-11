@@ -4,6 +4,6 @@
 #include <utils.h> // GP_REGISTERS
 namespace L2 {
 
-    void generate_IG(Program p);
+    void generate_IG(Function* f);
 
 }

@@ -352,9 +352,22 @@ namespace L2{
     //  graph coloring 
     //      call analysis, spill
     //generate L1 code
+    outputFile << '(' << p.entryPointLabel << '\n';
 
-    for (auto f : p.functions)
-        register_allocation(f);
+    for (auto fp : p.functions) {
+        Function new_F = register_allocation(fp);
+        outputFile << '(' <<  new_F.name << '\n';
+        outputFile << new_F.arguments << ' ' << new_F.locals << '\n';        
+        for(auto instruct_p : new_F.instructions) {
+            for(auto item : instruct_p->items) {
+                outputFile << item.labelName << ' ';
+            }
+            outputFile << '\n';
+        }
+        outputFile << ")\n";
+    }
+
+    outputFile << ")\n";
 
     /* 
      * Close the output file.

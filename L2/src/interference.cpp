@@ -14,8 +14,8 @@ namespace L2 {
         return false;
     }
 
-    void init_IG(Function &f) {
-        str_to_set IG = f.IG;
+    void init_IG(Function* f) {
+        str_to_set IG = f->IG;
         for(auto r : GP_REGISTERS) {
             set_of_str gp_reg_temp = GP_REGISTERS;
             gp_reg_temp.erase(r);
@@ -23,7 +23,7 @@ namespace L2 {
             std::pair<std::string, set_of_str> reg_to_add (r, gp_reg_temp);
             IG.emplace(reg_to_add);
         }
-        f.IG = IG;
+        f->IG = IG;
     }
 
     vector_of_str get_vars(set_of_str aSet) {
@@ -37,9 +37,9 @@ namespace L2 {
         return toReturn;
     }
 
-    void add_in_and_out_sets(Function &f) {
-        str_to_set IG = f.IG;
-        for(auto i : f.instructions) {
+    void add_in_and_out_sets(Function* f) {
+        str_to_set IG = f->IG;
+        for(auto i : f->instructions) {
             std::vector<set_of_str> in_and_out;
             in_and_out.push_back(i->in_set);
             in_and_out.push_back(i->out_set);
@@ -80,12 +80,12 @@ namespace L2 {
                 }
             }
         }
-        f.IG = IG;
+        f->IG = IG;
      }  
 
-    void add_kill_out_set(Function &f) {
-        str_to_set IG = f.IG;
-        for(auto i : f.instructions) {
+    void add_kill_out_set(Function* f) {
+        str_to_set IG = f->IG;
+        for(auto i : f->instructions) {
             // Commented if-else is for old case of assignment where either side is a variable or register
             //if(i->reg_var_assignment == false) {
                 for(auto k : i->kill_set) { // no need, kill set will have a max of 1 item
@@ -120,20 +120,18 @@ namespace L2 {
 //                }
 //            }
         }
-        f.IG = IG;
+        f->IG = IG;
     }
 
     void generate_IG(Function* fp) {
-        Function f = *fp;
-        init_IG(f);
-        add_in_and_out_sets(f);
-        add_kill_out_set(f);
-
-        for(auto key_val_pair : f.IG) {
-            std::cout << key_val_pair.first << ' ';
-            for(auto s : key_val_pair.second)
-               std::cout << s << ' '; 
-        std::cout << '\n';
-        }
+        init_IG(fp);
+        add_in_and_out_sets(fp);
+        add_kill_out_set(fp);
+//        for(auto key_val_pair : f.IG) {
+//            std::cout << key_val_pair.first << ' ';
+//            for(auto s : key_val_pair.second)
+//               std::cout << s << ' '; 
+//        std::cout << '\n';
+//        }
     }
 }

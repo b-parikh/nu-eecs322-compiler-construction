@@ -1,5 +1,10 @@
+#pragma once
+
 #include <L2.h>
+#include <spiller.h>
+#include <analysis.h>
+#include <interference.h>
 
 namespace L2 {
-    void register_allocation(Function* f);
+    Function register_allocation(Function* f);
 }
