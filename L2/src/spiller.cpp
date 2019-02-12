@@ -66,16 +66,17 @@ namespace L2 {
         //std::cout << "mem rsp " << num_locals << " <- " << spill_str.labelName << spill_var_counter; 
     }
 
-    //done
+    //spill_var is var to spill; spill_str is name of new vars created by spill
     void print_spilled_instruction(Function &new_F, Instruction instruct, Item spill_var, Item spill_str, int spill_var_counter) {
         //std::string space = instruct.identifier != 3 ? " " : "";
         Instruction* new_I = new Instruction();
         for(int ic = 0; ic < instruct.items.size(); ++ic) { // add every item in instruct to new instruct (new_i)
             auto it = instruct.items[ic];
             if(it.type == Type::var) {
-                if(varNameModifier(it) == spill_var.labelName)
+                if(varNameModifier(it) == spill_var.labelName) {
+                    //std::cout << "varNameModifier(it): " << varNameModifier(it) << '\n';
                     addItemToInstruction(new_I, spill_str.labelName + std::to_string(spill_var_counter), Type::var);
-                    //std::cout << spill_str.labelName << spill_var_counter << space;
+                } //std::cout << spill_str.labelName << spill_var_counter << space;
                 else
                     addItemToInstruction(new_I, it.labelName, Type::var);
                     //std::cout << i.labelName << space;

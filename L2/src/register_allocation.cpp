@@ -93,13 +93,9 @@ namespace L2 {
     std::vector<Node> init_stack(std::vector<Node> IG_nodes) {
         std::vector<Node> stack;
         for(auto &n : IG_nodes) {
-            // assign color if register is found
-			std::cout << n.name << '\n';
+            // check if register
             if(STR_REG_MAP.find(n.name) != STR_REG_MAP.end()) {
-			std::cout << n.name << '\n';
                  n.color = STR_REG_MAP.find(n.name)->second;
-			std::cout << n.name << '\n';
-
                  n.isReg = true;
             }
             stack.push_back(n);
@@ -117,29 +113,29 @@ namespace L2 {
         do {
             RESET_REG_SETS();
             Node popped = stack.back();
-			std::cout<< "new_f: " << new_F->name <<'\n';
             stack.pop_back();
             
             // assign colors
 			
-			std::cout<< "new_f: " << new_F->name <<'\n';
-			std::cout<< "popped " << popped.name <<'\n';
             if(STR_REG_MAP.find(popped.name) != STR_REG_MAP.end()) { // if reg, assign itself
-			std::cout<< "new_f: " << new_F->name <<'\n';
+                //std::cout << "popped register name: " << popped.name << '\n';
                 popped.color = STR_REG_MAP.find(popped.name)->second;
                 popped.colored = true;
-			std::cout<< "new_f: " << new_F->name <<'\n';
             }
-            else {
-                // check each caller_save register and assign the first one that doesn't conflict
+
+            else { // popped is variable; assign a register to it
+                //std::cout << popped.name << '\n';
+//                for(auto n : popped.neighbors) {
+//                    std::cout << n << ' ';
+//                }
+                //std::cout << '\n';
                 for(auto r : CALLER_SAVE) {
                     if(popped.neighbors.find(REG_STR_MAP[r]) != popped.neighbors.end()) {
 						
-			std::cout<< "new_1f: " << new_F->name <<'\n';
                         continue;
                     }
                     else {
-			std::cout<< "new_2f: " << new_F->name <<'\n';
+                        //std::cout << "popped var name (reg match found): " << popped.name << '\n';
                         popped.color = r;
                         popped.colored = true;
                     }
@@ -157,6 +153,8 @@ namespace L2 {
 //                }
 //            }
             if(!popped.colored) {// Callee saved register not assigned, so must spill
+                //std::cout << "popped var name (reg match not found): " << popped.name << '\n';
+                popped.color = REG::no_reg;
                 spilled = true;
                 new_F->nodes_to_spill.push_back(popped);
             }
@@ -165,28 +163,26 @@ namespace L2 {
 
         } while(!stack.empty());
 
-			std::cout<< "new_f: " << new_F->name <<'\n';
         /*
          * Now that the variables have been assigned registers and spilled variables are identified,
          * begin to spill. This will generate a new function that can be analyzed for liveness. This
          * function will have a new IG created for it in the register_allocation do-while loop.
          */
         
-        for(auto const& node : new_F->nodes_to_spill) {
+        //for(auto const& node : new_F->nodes_to_spill) {
 //            if(GP_REGISTERS.find(node.first) != GP_REGISTERS.end()) {// the node is register, so don't spill
 //                //std::cout << "nothing spilled " << node.first << '\n';
 //                continue;
 //            }
-//            else {
-                //spill
+//            else { //spill
                 Item spill_var;
                 //spill_var.labelName = node.first;
-                spill_var.labelName = node.name;
+                spill_var.labelName = new_F->nodes_to_spill[0].name;
                 //std::cout << "var spilled: " << spill_var.labelName << '\n';
                 spill_var.type = Type::var;
                 Item spill_str;
                 //spill_str.labelName = node.first;
-                spill_str.labelName = node.name;
+                spill_str.labelName = '%' + new_F->nodes_to_spill[0].name;
                 spill_str.type = Type::var;
                 *new_F = spill(*new_F, spill_var, spill_str);
                 //std::cout << '(' << new_F.name << '\n';
@@ -198,32 +194,39 @@ namespace L2 {
 //                }
 //                std::cout << ")\n";
             //}
-        }
+        //}
         return std::pair<Function*, bool> (new_F, spilled);
     }
 
     Function* register_allocation(Function* fp) {
         Function* new_F = fp;
         bool spilled = false;
-
         do {
-        // change IG from str_to_set to vector<Node>
+            analyze(new_F);
+            generate_IG(new_F);
+
+            // change IG from str_to_set to vector<Node>
             for(auto &p : new_F->IG) { // for each pair in the IG
-			//for(auto p=new_F->IG.begin(); p != new_F->IG.end(); ++p) {
                 Node n;
-			std::cout << ".........." << '\n';
                 n.name = p.first;
-			std::cout << p.first << '\n';
                 n.neighbors = p.second;
                 new_F->IG_nodes.push_back(n); // IG_nodes is a vector<Node>
             }
-            analyze(new_F);
-            generate_IG(new_F);
+
             std::pair<Function*, bool> spilled_and_colored_IG = color_graph(new_F);
-			//std::cout<< "new_f: " << new_F->name <<'\n';
             new_F = spilled_and_colored_IG.first;
+            std::cout << new_F->name << '\n';
+            for(auto i : new_F->instructions) {
+                for(auto it: i->items)
+                    std::cout << it.labelName << ' ';
+                std::cout << '\n';
+            }
             spilled = spilled_and_colored_IG.second;
+            //std::cout << new_F->name << '\n';
         } while(spilled);
+
+        // register allocation
+        
 
         return new_F;
     }
