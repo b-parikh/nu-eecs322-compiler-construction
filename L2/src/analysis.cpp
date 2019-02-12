@@ -48,6 +48,14 @@ namespace L2 {
         return false;
     }
 
+    void init_all_sets(Function* fp) {
+        for(auto i : fp->instructions) {
+            i->gen_set.clear();
+            i->kill_set.clear();
+            i->in_set.clear();
+            i->out_set.clear();
+        }
+    }
     /*
      * Gets the function and the index of the instruction of which the successor
      * needs to be found.
@@ -338,6 +346,8 @@ namespace L2 {
 
     void analyze(Function* fp) {
         Function f = *fp;
+
+        init_all_sets(fp);
         //std::cout << "Function: " << f.name << '\n';
         for(Instruction* instruct : f.instructions) {
             compute_gen_and_kill(*instruct);

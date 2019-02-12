@@ -89,7 +89,7 @@ namespace L2 {
      * will take all IG (string -> set) maps and put into this vector as part of each Node
      */
     std::vector<Node> IG_nodes;
-    std::vector<Node> nodes_to_spill;
+    //std::vector<Node> nodes_to_spill;
   };
 
   /*

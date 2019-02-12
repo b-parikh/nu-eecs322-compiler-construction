@@ -15,6 +15,7 @@ namespace L2 {
     }
 
     void init_IG(Function* f) {
+        f->IG.clear();
         str_to_set IG = f->IG;
         for(auto r : GP_REGISTERS) {
             set_of_str gp_reg_temp = GP_REGISTERS;

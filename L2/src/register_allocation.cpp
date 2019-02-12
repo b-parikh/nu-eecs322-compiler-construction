@@ -8,7 +8,7 @@ namespace L2 {
 
 //    const set_of_str GP_REGISTERS( {"r10", "r11", "r12", "r13", "r14", "r15", "r8", "r9", "rax", "rbp", "rbx", "rcx", "rdi", "rdx", "rsi"} );
 
-    std::vector<REG> CALLER_SAVE {
+    std::vector<REG> ALL_REG {
             REG::r8,
             REG::r9,
             REG::r10,
@@ -18,9 +18,6 @@ namespace L2 {
             REG::rdi,
             REG::rdx,
             REG::rsi,
- //   };
-
-   // std::vector<REG> CALLEE_SAVE {
             REG::r12,
             REG::r13,
             REG::r14,
@@ -66,7 +63,7 @@ namespace L2 {
     };
 
     void RESET_REG_SETS() {
-        CALLER_SAVE =
+        ALL_REG =
         {
             REG::r8,
             REG::r9,
@@ -77,10 +74,6 @@ namespace L2 {
             REG::rdi,
             REG::rdx,
             REG::rsi,
-     //   };
-
-       // CALLEE_SAVE = 
-     //   {
             REG::r12,
             REG::r13,
             REG::r14,
@@ -103,18 +96,44 @@ namespace L2 {
         return stack;
     }
 
+    Function* vars_to_reg(Function* fp) {
+        for(auto &instruct : fp->instructions) {
+            for(auto &it : instruct->items) {
+                if(it.type != Type::var) {
+                    continue;
+                }
+                else {
+                    for(auto &n : fp->IG_nodes) {
+                        if(n.name == varNameModifier(it)) {
+                            it.labelName = REG_STR_MAP[n.color];
+                            break;
+                        }
+                    }
+                }
+            } 
+            std::cout << '\n';
+        }
+        return fp;
+    } 
+
     std::pair<Function*, bool> color_graph(Function *fp) { //, std::pair<std::string, set_of_str> node) {
         //std::vector<Node> stack = fp->IG_nodes; // old IG
         std::vector<Node> new_IG; // empty IG, start rebuilding
-        Function* new_F = fp;
         std::vector<Node> stack = init_stack(fp->IG_nodes);
+        std::vector<Node> colored_variables; // can't use set because it'd need custom hash
         bool spilled = false;
-		
-        do {
-            RESET_REG_SETS();
+        //std::cout << "stack: ";
+//        for(auto s : stack)
+//            std::cout << s.name << ' ';
+//        std::cout << '\n';
+        Node node_to_spill;
+        while(!stack.empty()) {
+            //std::cout << "right before new pop " << stack.size() << '\n';
             Node popped = stack.back();
+            
             stack.pop_back();
             
+            //std::cout << popped.name << '\n';
             // assign colors
 			
             if(STR_REG_MAP.find(popped.name) != STR_REG_MAP.end()) { // if reg, assign itself
@@ -129,15 +148,29 @@ namespace L2 {
 //                    std::cout << n << ' ';
 //                }
                 //std::cout << '\n';
-                for(auto r : CALLER_SAVE) {
+                for(auto r : ALL_REG) {
                     if(popped.neighbors.find(REG_STR_MAP[r]) != popped.neighbors.end()) {
 						
                         continue;
                     }
                     else {
                         //std::cout << "popped var name (reg match found): " << popped.name << '\n';
+                        bool neighbor_has_same_assignment = false;
+                        for(auto& cv : colored_variables) {
+                            if(cv.color == r) {
+                                neighbor_has_same_assignment = true;
+                                break;
+                            }
+                        }
+
+                        if(neighbor_has_same_assignment)
+                            continue;
+
                         popped.color = r;
+                        //std::cout << "from the map: " << REG_STR_MAP[popped.color] << '\n';
                         popped.colored = true;
+                        colored_variables.push_back(popped);
+                        break; // found a register that doesn't interfere; break
                     }
                 }
             }
@@ -152,17 +185,19 @@ namespace L2 {
 //                    }
 //                }
 //            }
-            if(!popped.colored) {// Callee saved register not assigned, so must spill
+            if(!popped.colored) {// Callee saved register not assigned, so must spill; break because we've found something to spill
                 //std::cout << "popped var name (reg match not found): " << popped.name << '\n';
-                popped.color = REG::no_reg;
+                node_to_spill = popped;
                 spilled = true;
-                new_F->nodes_to_spill.push_back(popped);
+                //std::cout << "going to spill so break\n";
+                break;
             }
 
+            //std::cout << "right before popped push_back" << '\n';
             new_IG.push_back(popped);
-
-        } while(!stack.empty());
-
+            //std::cout << "pushed node to IG\n";
+        } //while(!stack.empty());
+        fp->IG_nodes = new_IG;
         /*
          * Now that the variables have been assigned registers and spilled variables are identified,
          * begin to spill. This will generate a new function that can be analyzed for liveness. This
@@ -175,16 +210,23 @@ namespace L2 {
 //                continue;
 //            }
 //            else { //spill
+            Function* new_F = new Function();
+            new_F->name = fp->name;
+            if(spilled) {
                 Item spill_var;
                 //spill_var.labelName = node.first;
-                spill_var.labelName = new_F->nodes_to_spill[0].name;
+                spill_var.labelName = node_to_spill.name;
                 //std::cout << "var spilled: " << spill_var.labelName << '\n';
                 spill_var.type = Type::var;
                 Item spill_str;
                 //spill_str.labelName = node.first;
-                spill_str.labelName = '%' + new_F->nodes_to_spill[0].name;
+                spill_str.labelName = '%' + node_to_spill.name;
                 spill_str.type = Type::var;
-                *new_F = spill(*new_F, spill_var, spill_str);
+                *new_F = spill(*fp, spill_var, spill_str);
+            }
+            else 
+                new_F = fp;
+
                 //std::cout << '(' << new_F.name << '\n';
 //                for(auto i : new_F.instructions) {
 //                    for(auto it : i->items) {
@@ -202,8 +244,11 @@ namespace L2 {
         Function* new_F = fp;
         bool spilled = false;
         do {
+            std::cout << "before analyze\n";
             analyze(new_F);
+            std::cout << "after analyze\n";
             generate_IG(new_F);
+            std::cout << "after IG\n";
 
             // change IG from str_to_set to vector<Node>
             for(auto &p : new_F->IG) { // for each pair in the IG
@@ -212,23 +257,24 @@ namespace L2 {
                 n.neighbors = p.second;
                 new_F->IG_nodes.push_back(n); // IG_nodes is a vector<Node>
             }
+            std::cout << "changed IG representation\n";
 
             std::pair<Function*, bool> spilled_and_colored_IG = color_graph(new_F);
+            std::cout << "spilled and colored\n";
             new_F = spilled_and_colored_IG.first;
-            std::cout << new_F->name << '\n';
-            for(auto i : new_F->instructions) {
-                for(auto it: i->items)
-                    std::cout << it.labelName << ' ';
-                std::cout << '\n';
-            }
             spilled = spilled_and_colored_IG.second;
-            //std::cout << new_F->name << '\n';
+            std::cout << new_F->name << '\n';
         } while(spilled);
+        new_F = vars_to_reg(new_F);
+//        std::cout << "register allocation\n";
+//        std::cout << new_F->name << '\n';
+//        for(auto i : new_F->instructions) {
+//            for(auto it: i->items)
+//                std::cout << it.labelName << ' ';
+//            std::cout << '\n';
+//        }
 
-        // register allocation
-        
-
-        return new_F;
+        return new_F; // return to code generator
     }
 
 }

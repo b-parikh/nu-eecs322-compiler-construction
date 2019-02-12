@@ -20,9 +20,16 @@ namespace L2 {
         return numLocals;
     }
 
-    //done
+    // Instead of just copying the instruction into new_F, each item is placed manually.
+    // This is to ensure that the gen, kill, in, and out sets aren't also copied over.
     void print_instruction_as_is(Function &new_F, Instruction* instruct) {
-        new_F.instructions.push_back(instruct);
+        Instruction* i = new Instruction();
+        for(auto it : instruct->items) {
+            i->items.push_back(it);
+        }
+
+        i->identifier = instruct->identifier;
+        new_F.instructions.push_back(i);
     }
 
     //done
