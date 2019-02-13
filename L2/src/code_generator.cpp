@@ -355,7 +355,9 @@ namespace L2{
     outputFile << '(' << p.entryPointLabel << '\n';
 
     for (auto fp : p.functions) {
+        //std::cerr << "Begin register alloc\n";
         Function* new_F = register_allocation(fp);
+        //std::cerr << "End register alloc.\n";
         //std::cout << '(' << new_F->name << '\n';
         outputFile << "\t(" <<  new_F->name << '\n';
         //std::cout << new_F->arguments << ' ' << new_F->locals << '\n';

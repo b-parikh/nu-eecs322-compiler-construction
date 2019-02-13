@@ -233,5 +233,10 @@ namespace L2 {
 		Item spill_var = p.spill_extras.back();
 
 		spill(f, spill_var, spill_str);
+//        for(auto &instruct : f.instructions) {
+//            for(auto &it : instruct->items) {
+//                std::cout << it.labelName << ' ';
+//            }
+//        }
     }
 }
