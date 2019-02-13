@@ -357,10 +357,11 @@ namespace L2{
     for (auto fp : p.functions) {
         Function* new_F = register_allocation(fp);
         //std::cout << '(' << new_F->name << '\n';
-        outputFile << '(' <<  new_F->name << '\n';
+        outputFile << "\t(" <<  new_F->name << '\n';
         //std::cout << new_F->arguments << ' ' << new_F->locals << '\n';
-        outputFile << new_F->arguments << ' ' << new_F->locals << '\n';        
+        outputFile << "\t\t" << new_F->arguments << ' ' << new_F->locals << '\n';        
         for(auto instruct_p : new_F->instructions) {
+			outputFile << "\t\t";
             for(auto item : instruct_p->items) {
                 //std::cout << item.labelName << ' ';
                 outputFile << item.labelName << ' ';
@@ -369,7 +370,7 @@ namespace L2{
             outputFile << '\n';
         }
         //std::cout << '\n';
-        outputFile << ")\n";
+        outputFile << "\t)\n";
     }
     //std::cout << '\n';
     outputFile << ")\n";

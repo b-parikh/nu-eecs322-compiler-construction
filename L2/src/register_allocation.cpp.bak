@@ -3,7 +3,6 @@
 #include <unordered_set>
 #include <set> //unordered_set isn't used because it can't hold enums without custom hash
 #include <map> //unordered_map isn't used because it isn't possible to use an enum as the key or value without custom hash
-#include <algorithm>
 
 namespace L2 {
 
@@ -131,7 +130,6 @@ namespace L2 {
         Node node_to_spill;
         while(!stack.empty()) {
             //std::cout << "right before new pop " << stack.size() << '\n';
-			RESET_REG_SETS();
             Node popped = stack.back();
             
             stack.pop_back();
@@ -174,7 +172,6 @@ namespace L2 {
                             if(n == cv.name) { // if the neighbor VAR is in colored_variables
 								for(auto r: ALL_REG) {
 									if (cv.color == r) {
-										//std::cout << "NO USE: " << popped.name << ' ' << n << ' ' << REG_STR_MAP[r] << '\n';
 										color_no_use.push_back(r);
 										break;
 									}
@@ -185,25 +182,42 @@ namespace L2 {
 					}
 				}
 
-                if(color_no_use.empty()) {
-                    //std::cout << popped.name << '\n';
-                    popped.color = ALL_REG[0];
-                    popped.colored = true;
-                    colored_variables.push_back(popped);
-				}
-				else {
-			       // bool color_found = false;
-					for(auto no_r : color_no_use)
-						ALL_REG.erase(std::remove(ALL_REG.begin(), ALL_REG.end(),no_r), ALL_REG.end());
-					if(!ALL_REG.empty()) {
-						popped.color = ALL_REG[0];
-						popped.colored = true;
-						//std::cout << "from the map: " << REG_STR_MAP[popped.color] << '\n';
-						colored_variables.push_back(popped);
+                bool color_found = false;
+				for(auto r : ALL_REG) {
+					if(color_no_use.empty()) {
+		                color_found = true;
+                        popped.color = r;
+                        popped.colored = true;
+                        colored_variables.push_back(popped);
+                        break; // found a register that doesn't interfere; break
 					}
+					else {
+						for(auto no_r : color_no_use) {
+							if(r != no_r) {
+								color_found = true;
+								popped.color = r;
+								popped.colored = true;
+								//std::cout << "from the map: " << REG_STR_MAP[popped.color] << '\n';
+								colored_variables.push_back(popped);
+								break; // found a register that doesn't interfere; break
+							}
+						}
+                    }
+					if(color_found)
+						break;
                 }
             }
-
+//            if(!popped.colored) { // Caller saved register not assigned
+//                for(auto r : CALLEE_SAVE) {
+//                    if(popped.neighbors.find(REG_STR_MAP[r]) != popped.neighbors.end()) {
+//                        continue;
+//                    }
+//                    else {
+//                        popped.color = r;
+//                        popped.colored = true;
+//                    }
+//                }
+//            }
             if(!popped.colored) {// Callee saved register not assigned, so must spill; break because we've found something to spill
                 //std::cout << "popped var name (reg match not found): " << popped.name << '\n';
                 node_to_spill = popped;
@@ -270,14 +284,13 @@ namespace L2 {
             //std::cout << "after IG\n";
 
             // change IG from str_to_set to vector<Node>
-			//std::cout << new_F->name << '\n';
             for(auto &p : new_F->IG) { // for each pair in the IG
                 Node n;
                 n.name = p.first;
-//				std::cout << p.first << "\nneighbors: ";
-//				for (auto pk : p.second) 
-//					std::cout << pk << ' ';
-//				std::cout << '\n';
+				//std::cout << p.first << "\nneighbors: ";
+				//for (auto pk : p.second) 
+				//	std::cout << pk << ' ';
+				//std::cout << '\n';
                 n.neighbors = p.second;
                 new_F->IG_nodes.push_back(n); // IG_nodes is a vector<Node>
             }
