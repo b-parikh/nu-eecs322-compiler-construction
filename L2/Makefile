@@ -51,6 +51,9 @@ test_spill: L2
 test_interference: L2
 	./scripts/testInterference.sh
 
+test_programs: dirs $(PL_CLASS)
+	../scripts/test_programs.sh $(EXT_CLASS) $(CC_CLASS)
+
 performance: dirs $(PL_CLASS)
 	if ! test -f ./a.out ; then ./$(CC_CLASS) $(OPT_LEVEL) tests/competition2018.$(EXT_CLASS) ; fi ; /usr/bin/time -f'%E' ./a.out
 

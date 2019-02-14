@@ -108,7 +108,7 @@ define :storeValueToArray (%A1, %a, %index) {
     :loop_next
     %offest_index <- call :increaseOne (%index)
     %offest <- 8 * %offest_index
-    %addr <- %array_address + %offest
+    %addr <- %A1 + %offest
     %a <- %a + %index
     %encoded_a <- call :encode(%a)
     store %addr <- %encoded_a
@@ -124,8 +124,10 @@ define :isArraySame (%A1, %A2) {
     br :end_label
     br %is_A2_address :go_ahead_label
     br :end_label 
+
     :end_label
     return 0
+
     :go_ahead_label
     %length_A1 <- load %A1
     %length_A2 <- load %A2
@@ -135,18 +137,22 @@ define :isArraySame (%A1, %A2) {
     :chek_elements_label
     %index <- 0
     :loop_start
-    %tmp <- %index < %length
+    %tmp <- %index < %length_A1
     br %tmp :loop_next
     br :loop_end
+
     :loop_next  
     %element1 <- call :getArrayElementByIndex(%A1, %index)
     %element2 <- call :getArrayElementByIndex(%A2, %index)
+
     %sign <- call :isEqual(%element1, %element2)
-    br %sign2 :continue_checking_label
+    br %sign :continue_checking_label
     br :end_label
+
     :continue_checking_label
     %index <- %index + 1
     br :loop_start
+
     :loop_end
     return 1
 }

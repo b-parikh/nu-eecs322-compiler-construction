@@ -10,15 +10,13 @@ define :main (){
     %v8 <- call :rightShiftStuff (%v7)
     %isEncoded <- %v8 & 1
     %isEncoded <- %isEncoded = 1
-    br %isEncoded :skip :encode
-    :encode
+    br %isEncoded :skip
     %v8 <- %v8 + 1
     :skip
     call print (%v8)
     %count <- %count + 1
-    %cmp <- %count >= 10
-    br %cmp :stop :continue
-    :stop
+    %cmp <- %count < 10
+    br %cmp :continue
     return
 }
 
@@ -31,7 +29,7 @@ define :addStuff (%v1){
     %v5 <- %v4 + %v3
     %v6 <- %v1 + %v5
     %v7 <- %v6 + %v3
-    %v8 <- 1 + %v8
+    %v8 <- 1 + %v7
     %v8 <- 12 + %v8
     %v8 <- 13 + %v8
     %v8 <- 14 + %v8
@@ -49,7 +47,7 @@ define :addStuff (%v1){
     %v8 <- 12 + %v8
     %v8 <- 1 + %v8
     %v8 <- 12 + %v8
-    %v9 <- 13 + %v9
+    %v9 <- 13 + %v8
     %v9 <- 14 + %v9
     %v9 <- 1 + %v9
     %v9 <- 11 + %v9
@@ -88,7 +86,7 @@ define :andStuff (%v1){
     %v6 <- %v5 & %v1
     %v7 <- %v6 & %v2
     %v8 <- %v7 & 120398
-    return %v7
+    return %v8
 }
 
 define :leftShiftStuff (%v1){

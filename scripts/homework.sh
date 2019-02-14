@@ -21,6 +21,7 @@ rm -r */tests ;
 rm -fr */obj ;
 rm -fr */bin ;
 rm -r */scripts ;
+rm -f */src/*.zip ;
 rm -rf `find ./ -name .DS_Store`
 rm -f `find ./ -iname *.swp`
 for i in `ls` ; do
