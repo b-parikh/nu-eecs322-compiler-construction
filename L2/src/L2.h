@@ -12,7 +12,7 @@ namespace L2 {
 
   enum class Type{num, label, reg, mem, var, runtime, arith_oper, inc_dec_oper, compare_oper, shift_oper, assign_oper}; 
   enum class Color{red, blue, green, yellow, white, pink, black, orange, purple, gray, brown, cyan, violet, mint, tan, not_assigned};
-  enum class REG{r12, r13, r14, r15, rbp, rbx,  r8, r9, r10, r11, rax, rcx, rdi, rdx, rsi, no_reg}; 
+  enum class REG{r12, r13, r14, r15, rbp, rbx,  r8, r9, r10, r11, rax, rcx, rdi, rdx, rsi}; 
   
 
   struct Item {

@@ -5,6 +5,6 @@
 #include <string>
 
 namespace L2 {
-    Function spill(Function f, Item spill_var, Item spill_str);
+    Function* spill(Function* f, Item spill_var, Item spill_str);
     void spill_wrapper(Program p);
 }

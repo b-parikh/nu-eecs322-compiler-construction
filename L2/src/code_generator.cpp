@@ -333,13 +333,6 @@ namespace L2{
     outputFile << labelModifier(ip->items[0].labelName) << ":\n";
   }
 
-  Function* stack_arg_translator(Function* fp) {
-	// process stack-arg
-	// local size * 8 + i[2]
-	return fp
-  }
-
-
   void generate_code(Program p){
     /* 
      * Open the output file.
@@ -353,10 +346,8 @@ namespace L2{
  
     outputFile << '(' << p.entryPointLabel << '\n';
 
-    for (auto fp : p.functions) {
-        //std::cerr << "Begin register alloc\n";
+    for (auto& fp : p.functions) {
         Function* new_F = register_allocation(fp);
-        //std::cerr << "End register alloc.\n";
         //std::cout << '(' << new_F->name << '\n';
         outputFile << "(" <<  new_F->name << '\n';
         //std::cout << new_F->arguments << ' ' << new_F->locals << '\n';
@@ -375,6 +366,7 @@ namespace L2{
     }
     //std::cout << '\n';
     outputFile << ")\n";
+    outputFile << '\n';
 
     /* 
      * Close the output file.

@@ -13,6 +13,7 @@ namespace L2 {
     //done
     int print_function_meta(Function &new_F, bool spill_var_found, Function &f) {
         int numLocals = f.locals + (spill_var_found ? 1 : 0);
+        new_F.arguments = f.arguments;
         //std::cout << "print_function_meta called: ";
         //std::cout << "f.locals: " << f.locals << " numLocals: " << numLocals << '\n';
         //std::cout << f.arguments << ' ' << numLocals << ' ';
@@ -28,6 +29,7 @@ namespace L2 {
             i->items.push_back(it);
         }
 
+        i->shifting_var_or_reg = instruct->shifting_var_or_reg;
         i->identifier = instruct->identifier;
         new_F.instructions.push_back(i);
     }
@@ -36,7 +38,7 @@ namespace L2 {
     // found in gen_set
     void print_read(Function &new_F, Item spill_str, int spill_var_counter, int num_locals) {
         num_locals = (num_locals - 1) * 8;
-        //std::cout << spill_str.labelName << spill_var_counter << " <- mem rsp " << num_locals;
+        //std::cout << spill_str.labelName << spill_var_counter << " <- mem rsp " << num_locals << '\n';
         Instruction* i = new Instruction();
         // add var to instruction
         addItemToInstruction(i, spill_str.labelName + std::to_string(spill_var_counter), Type::var);
@@ -106,27 +108,29 @@ namespace L2 {
 //            std::cout << i.labelName;
     }
 
-	Function spill(Function f, Item spill_var, Item spill_str) {
+	Function* spill(Function* f, Item spill_var, Item spill_str) {
         // spill str is target string that each var will be changed to
-        Function new_F;
+        Function* new_F = new Function();
         int spill_init_row = 0; // spill_var not found yet
         bool spill_var_found = false;
         std::string spill_var_labelName = spill_var.labelName; // modify variable name to allow for comparison with gen and kill set contents
+       
 
         //std::cout << "spill_var_mod: " << spill_var_mod << '\n';
-        //std::cout << f.instructions.size() << '\n';
         //std::cout << "length of spill_var_mod: " << spill_var_mod.length() << ' ' << spill_var_mod << '\n';
-        for(Instruction* instruct : f.instructions) {
+        for(Instruction* instruct : f->instructions) {
             // all write to spill_var -> store to the new stack loc
             // all read from spill_var -> read from the new stack loc
             //TODO: consider to use gen/kill set here
             //for(auto k : instruct->kill_set)
                 //std::cout << k << ' ';
-            if(instruct->identifier == 0) { // assignment instruction found
+            // assignment or assign comparison or stack-arg
+            if(instruct->identifier == 0 || instruct->identifier == 4 || instruct->identifier == 12) { 
                 if(instruct->kill_set.find(spill_var_labelName) != instruct->kill_set.end()) { // var is not in gen_set so not init yet
                     spill_var_found = true;
                     break;
                 }
+
 //                else {
 //                    //std::cout <<  "spill_var_labelName: " << spill_var_labelName << '\n';
 //                    for(auto i : instruct->items){
@@ -147,23 +151,22 @@ namespace L2 {
         // go through rest of instructions
         //write_function_name(f); // function name
         //std::cout << '(' << f.name << '\n'; 
-        new_F.name = f.name;
-        
+        new_F->name = f->name;
         if(spill_var_found) {
             //std::cout << '\t';
-            int num_locals = print_function_meta(new_F, spill_var_found, f);  // +1 to # of locals
+            int num_locals = print_function_meta(*new_F, spill_var_found, *f);  // +1 to # of locals
             //std::cout << "spill_var_found num_locals: " << num_locals << '\n';
             //std::cout << '\n';
             for(int i = 0; i < spill_init_row; ++i) {
-                Instruction* instruct = f.instructions[i];
+                Instruction* instruct = f->instructions[i];
                 //std::cout << '\t';
-                print_instruction_as_is(new_F, instruct);
+                print_instruction_as_is(*new_F, instruct);
                 //std::cout << '\n';
             }
 
             int spill_var_counter = 0;
-            for(int i = spill_init_row; i < f.instructions.size(); ++i) {
-                Instruction* instruct = f.instructions[i];
+            for(int i = spill_init_row; i < f->instructions.size(); ++i) {
+                Instruction* instruct = f->instructions[i];
                 bool in_kill = instruct->kill_set.find(spill_var_labelName) != instruct->kill_set.end();
                 bool in_gen = instruct->gen_set.find(spill_var_labelName) != instruct->gen_set.end();
                 
@@ -177,18 +180,18 @@ namespace L2 {
                     if(in_gen){ // if in gen_set
                         //std::cout << '\t';
                         //std::cout << "print_read\n"; 
-                        print_read(new_F, spill_str, spill_var_counter, num_locals);
+                        print_read(*new_F, spill_str, spill_var_counter, num_locals);
                         //std::cout << '\n';
     	            }
     
                     //std::cout << '\t';
-                    print_spilled_instruction(new_F, *instruct, spill_var, spill_str, spill_var_counter);
+                    print_spilled_instruction(*new_F, *instruct, spill_var, spill_str, spill_var_counter);
                     //std::cout << '\n';
                     
                     if(in_kill) {
                         //std::cout << '\t';
                         //std::cout << "print_write\n";
-                        print_write(new_F, spill_str, spill_var_counter, num_locals);
+                        print_write(*new_F, spill_str, spill_var_counter, num_locals);
                         //std::cout << '\n';
                     }
                     spill_var_counter++;
@@ -204,19 +207,19 @@ namespace L2 {
                 else{
                     //std::cout << '\t';
                     //std::cout << "print_i_as_is\n";
-                    print_instruction_as_is(new_F, instruct);
+                    print_instruction_as_is(*new_F, instruct);
                     //std::cout << '\n';
                 }
             }
         }
         else { // spilled var not found; copy everything over
             //std::cout << '\t';
-            int num_locals = print_function_meta(new_F, spill_var_found, f); // no increment
+            int num_locals = print_function_meta(*new_F, spill_var_found, *f); // no increment
             //std::cout << "spill_var not found: " << num_locals << '\n';
             //std::cout << '\n';
-            for(Instruction* instruct : f.instructions) {
+            for(Instruction* instruct : f->instructions) {
                 //std::cout << '\t';
-                print_instruction_as_is(new_F, instruct);
+                print_instruction_as_is(*new_F, instruct);
                 //std::cout << '\n';
             }
         }
@@ -226,7 +229,7 @@ namespace L2 {
 
     //required for spill_only option
     void spill_wrapper(Program p) {
-		Function f = *p.functions[0];
+		Function* f = p.functions[0];
 	    //std::cout << f.instructions.size() << '\n';	
 	    Item spill_str = p.spill_extras.back();
 		p.spill_extras.pop_back();

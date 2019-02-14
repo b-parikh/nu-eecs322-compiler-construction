@@ -4,6 +4,7 @@
 #include <set> //unordered_set isn't used because it can't hold enums without custom hash
 #include <map> //unordered_map isn't used because it isn't possible to use an enum as the key or value without custom hash
 #include <algorithm>
+#include <string>
 
 namespace L2 {
 
@@ -109,6 +110,32 @@ namespace L2 {
 
     Function* vars_to_reg(Function* fp) {
         for(auto &instruct : fp->instructions) {
+            if(instruct->identifier == 12) { // stack-arg found
+                Item destination = instruct->items[0]; 
+                Item assign_oper = instruct->items[1];
+
+                Item mem_addr = instruct->items[3];
+                int stack_arg_M = stoi(mem_addr.labelName) + fp->locals * 8;
+                mem_addr.labelName = std::to_string(stack_arg_M);
+
+                Item mem_keyword;
+                mem_keyword.labelName = "mem";
+                mem_keyword.type = Type::mem;
+                
+                Item rsp_reg;
+                rsp_reg.labelName = "rsp";
+                rsp_reg.type = Type::reg;
+
+                instruct->items.clear();
+                instruct->items.push_back(destination);
+                instruct->items.push_back(assign_oper);
+                instruct->items.push_back(mem_keyword);
+                instruct->items.push_back(rsp_reg);
+                instruct->items.push_back(mem_addr);
+               
+                //(fp->locals)++; 
+            }
+
             for(auto &it : instruct->items) {
                 if(it.type != Type::var) {
                     continue;
@@ -125,7 +152,7 @@ namespace L2 {
         }
         return fp;
     } 
-
+        
     std::pair<std::vector<Node>, Function*> color_graph(Function *fp) { 
         std::vector<Node> new_IG; // empty IG, start rebuilding
         std::vector<Node> stack = init_stack(fp->IG_nodes);
@@ -255,9 +282,9 @@ namespace L2 {
         Function* curr_F;
         while(spilled) {
             // check if variables need to be spilled
-           
             analyze(fp);
             generate_IG(fp);
+
             for(auto &p : fp->IG) { // for each pair (node : neighbors) in the IG
                 Node n;
                 n.name = p.first;
@@ -277,17 +304,19 @@ namespace L2 {
             
             if(spilled) {
                 // spill all variables deemed to be spilled 
-                for(auto &node_to_spill : vars_to_spill) {
+                for(auto& node_to_spill : vars_to_spill) {
                     curr_F = fp; // spilled function becomes current function
-                    reset_Function(fp); // make way for new spilled function
-                    
+                    //reset_Function(fp); // make way for new spilled function
+                    //std::cerr << fp->name << ' '  << node_to_spill.name << '\n';
                     Item spill_var;
                     spill_var.labelName = node_to_spill.name;
                     spill_var.type = Type::var;
                     Item spill_str;
-                    spill_str.labelName = '%' + node_to_spill.name;
+                    spill_str.labelName = '%' + node_to_spill.name + "_spilled_";
                     spill_str.type = Type::var;
-                    *fp = spill(*curr_F, spill_var, spill_str);
+                    
+                    fp = spill(curr_F, spill_var, spill_str);
+                    //reset_Function(curr_F);
 
                     /* Create gen/kill, in/out, and IG for newly spilled function.
                      * Feed this function into spill in the next iter of for loop.
@@ -296,6 +325,18 @@ namespace L2 {
                     //generate_IG(fp);
                 }
             }
+//            std::cout << "NODE TO SPILL: " << vars_to_spill.size() << '\n';
+//            if(vars_to_spill.size() != 0) 
+//                std::cerr << "THAT IS... " << vars_to_spill[0].name << '\n';
+//            std::cerr << fp->name << '\n';
+//            std::cerr << fp->arguments << ' ' << fp->locals << '\n';
+//            for(auto& instruct : fp->instructions) {
+//                for(auto& i : instruct->items) {
+//                    std::cerr << i.labelName << ' ';
+//                }
+//                std::cerr << '\n';
+//            }
+//            std::cerr << '\n';
         }
         vars_to_reg(fp);
         return fp;

@@ -137,9 +137,7 @@ namespace L2 {
             }
             kill_set.emplace(varNameModifier(i.items[0]));
         }
-        else if(instruction_length == 4)
-            kill_set.emplace(varNameModifier(i.items[0]));        
-        else { // length == 5
+        else { // length == 5 (stack arg is elsewhere)
             if(i.items[0].type == Type::mem) { // LHS is mem
                 if(i.items[1].labelName != "rsp") // hacky way to check if a register is rsp
                     gen_set.emplace(varNameModifier(i.items[1])); // reg or var
@@ -195,7 +193,7 @@ namespace L2 {
     void gk_assign_comparison(Instruction &i) { // reg1, var1 <- reg2, var2, num (compare) reg3, var3, num
         if(regOrVar(i.items[2])) // first t in RHS is not number
             i.gen_set.emplace(varNameModifier(i.items[2]));
-        if(regOrVar(i.items[2])) // second t in RHS is not number
+        if(regOrVar(i.items[4])) // second t in RHS is not number
             i.gen_set.emplace(varNameModifier(i.items[4]));
 
         i.kill_set.emplace(varNameModifier(i.items[0]));
@@ -241,6 +239,10 @@ namespace L2 {
         i.kill_set.emplace("rax");
     }
 
+    void gk_stack_arg(Instruction& i) {
+        i.kill_set.emplace(varNameModifier(i.items[0]));
+    }
+
     void compute_gen_and_kill(Instruction &instruct) {
         if(instruct.identifier == 0) { // assignment
             gk_assignment(instruct);
@@ -267,6 +269,8 @@ namespace L2 {
 //            write_label_instruction(ip,outputFile);
          else if(instruct.identifier == 11)
             gk_cjump(instruct);
+        else if(instruct.identifier == 12)
+            gk_stack_arg(instruct);
          else
             ;   // Do nothing for GOTO and LABEL_INSTRUCTION
 
