@@ -407,7 +407,7 @@ namespace L1{
 		   write_cjump_onearg(ip, outputFile);
 	   }
     }
-
+	outputFile << '\n';
     /* 
      * Close the output file.
      */ 

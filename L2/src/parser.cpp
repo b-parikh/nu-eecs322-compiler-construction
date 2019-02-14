@@ -175,7 +175,7 @@ namespace L2 {
 			   pegtl::one<'*'>,
 			   pegtl::one<'&'>
 		>,
-		seps,
+	//	seps,
 		pegtl::one<'='>
 	> {};
   
@@ -196,7 +196,7 @@ namespace L2 {
   	> {};
 
   struct stack_arg_keyword:
-        pegtl::string<'s', 't', 'a', 'c', 'k', '-', 'a', 'r', 'g'> {};
+    pegtl::string<'s', 't', 'a', 'c', 'k', '-', 'a', 'r', 'g'> {};
 
   struct stack_arg_instruction:
       pegtl::seq<
@@ -284,9 +284,17 @@ pegtl::seq<
 
  struct label_instruction:
    pegtl::seq<
-	 seps,
+	 //seps,
      Label_rule
    > {};
+
+  struct seps_no_linebreak:
+    pegtl::star<
+      pegtl::sor<
+        pegtl::one<' ', '\t'>,
+        comment
+      >
+    > {};
 
 struct cjump_onearg:
    pegtl::seq<
@@ -296,7 +304,8 @@ struct cjump_onearg:
      compare,
      seps,
      Label_rule,
-     pegtl::eol
+     seps
+     //pegtl::eol
    > {};
 
  struct cjump_twoargs:
@@ -307,9 +316,9 @@ struct cjump_onearg:
     compare,
     seps,
     Label_rule,
-    seps,
+    seps_no_linebreak,
     Label_rule,
-    pegtl::eol
+	seps
   > {};
 
 //  struct cjump:
@@ -333,7 +342,6 @@ struct cjump_onearg:
      seps
    > {};
 
- //not 100% sure we need this
 struct runtime_func:
    pegtl::sor<
      pegtl::string<'p', 'r', 'i', 'n', 't'>,
@@ -352,17 +360,18 @@ struct runtime_func:
    reg
   >,
   seps,
-  number
+  number,
+	seps
    > {};
 
   struct Instruction_rule:
     pegtl::sor<
-    pegtl::seq< pegtl::at<Instruction_return_rule>, Instruction_return_rule>, 
+    pegtl::seq<Instruction_return_rule>, 
     pegtl::seq< pegtl::at<assign_comparison>, assign_comparison>,
-    pegtl::seq< pegtl::at<label_instruction>, label_instruction>,
-    pegtl::seq< pegtl::at<cjump_onearg>, cjump_onearg>,
+    pegtl::seq<label_instruction>,
     pegtl::seq< pegtl::at<cjump_twoargs>, cjump_twoargs>,
-    pegtl::seq<pegtl::at<stack_arg_instruction>, stack_arg_instruction>,
+    pegtl::seq< pegtl::at<cjump_onearg>, cjump_onearg>,
+    pegtl::seq< pegtl::at<stack_arg_instruction>, stack_arg_instruction>,
     pegtl::seq< pegtl::at<call>, call>,
     pegtl::seq< pegtl::at<lea>, lea>,
     pegtl::seq< pegtl::at<assignment>, assignment>,
@@ -498,7 +507,7 @@ struct runtime_func:
       Item it;
       it.labelName = "return";
       i->items.push_back(it);
-      std::cout << "Return called\n";
+     // std::cout << "Return called\n";
       currentF->instructions.push_back(i);
     }
   };
@@ -507,7 +516,7 @@ struct runtime_func:
     template< typename Input >
 	static void apply( const Input & in, Program & p){
       Item i;
-      std::cout << "Label_rule action called.\n"; 
+      //std::cout << "Label_rule action called.\n"; 
       i.labelName = in.string();
       i.type = Type::label;
       parsed_registers.push_back(i);
@@ -565,15 +574,15 @@ struct runtime_func:
 	    auto currFunc = p.functions.back();
       Instruction* i = new Instruction(); // instruction will be reversed when generating x86
       i->identifier = 0;
-      std::cout << "ASSIGNMENT\n";
+      //std::cout << "ASSIGNMENT\n";
       for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
   	    auto currItemP = it;
 	    i->items.push_back(*currItemP);
-	    std::cout << it->labelName << ' ';
+	    //std::cout << it->labelName << ' ';
       }
       currFunc->instructions.push_back(i);
       parsed_registers.clear(); 
-      std::cout << '\n';
+      //std::cout << '\n';
     }
   };
 
@@ -613,13 +622,13 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
 	Instruction* i = new Instruction();
 	auto currFunc = p.functions.back();
-    std::cout << "inc_dec called" << ' ';
+    //std::cout << "inc_dec called" << ' ';
 	i->identifier = 3;
 	for(auto currItemP : parsed_registers) {
-       std::cout << currItemP.labelName << ' ';
+       //std::cout << currItemP.labelName << ' ';
 	   i->items.push_back(currItemP);
 	}
-    std::cout << '\n';
+    //std::cout << '\n';
 	parsed_registers.clear();
 	currFunc->instructions.push_back(i);
     }
@@ -630,7 +639,7 @@ struct runtime_func:
 	  Item i;
 	  i.labelName = in.string();
       i.type = Type::compare_oper;
-      std::cout << "comparison operator called\n";
+      //std::cout << "comparison operator called\n";
 	  parsed_registers.push_back(i);
     }
   };
@@ -643,9 +652,9 @@ struct runtime_func:
 	//std::cout << "assign_comparison called" << '\n';
 	for(auto currItemP : parsed_registers) {
 	   i->items.push_back(currItemP);
-	   std::cout << currItemP.labelName << ' ';
+	   //std::cout << currItemP.labelName << ' ';
 	}
-    std::cout << '\n';
+    //std::cout << '\n';
 	parsed_registers.clear();
 	currFunc->instructions.push_back(i);
     }
@@ -696,7 +705,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    std::cout << "cjump_onearg action called\n";
+    //std::cout << "cjump_onearg action called\n";
     i->identifier = 11;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
@@ -710,7 +719,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    std::cout << "cjump_twoarg action called\n";
+    //std::cout << "cjump_twoarg action called\n";
     i->identifier = 7;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);

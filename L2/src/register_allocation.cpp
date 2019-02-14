@@ -85,15 +85,6 @@ namespace L2 {
         };
     }
 
-    void reset_Function(Function* fp) {
-        fp->name = "";
-        fp->arguments = 0;
-        fp->locals = 0;
-        fp->instructions.clear();
-        fp->IG.clear();
-        fp->IG_nodes.clear();
-    }
-
     std::vector<Node> init_stack(std::vector<Node>& IG_nodes) {
         std::vector<Node> stack;
         for(auto& n : IG_nodes) {
@@ -227,16 +218,6 @@ namespace L2 {
                         nodes_to_spill.push_back(popped);
                 }
             }
-
-            /* Register not assigned to popped, so must spill.
-             * Break out of while loop because we have found something to spill.
-             * (DOES THIS MEAN THAT THE NON-EMPTY STACK IS ABANDONED?)
-             */ 
-            //if(!popped.colored) {
-                //nodes_to_spill.push_back(popped);
-                //spilled = true;
-                //break;
-            //}
         }
 
         if(!nodes_to_spill.empty()) {
@@ -250,24 +231,6 @@ namespace L2 {
              * begin to spill. This will generate a new function that can be analyzed for liveness. This
              * function will have a new IG created for it in the register_allocation do-while loop.
              */
-//            Function* new_F = new Function();
-//            new_F->name = fp->name;
-//            if(spilled) {
-//                Item spill_var;
-//                spill_var.labelName = node_to_spill.name;
-//                spill_var.type = Type::var;
-//                Item spill_str;
-//                spill_str.labelName = '%' + node_to_spill.name;
-//                spill_str.type = Type::var;
-//                *new_F = spill(*fp, spill_var, spill_str);
-//            }
-
-            /* If nothing is spilled, then just return the input function which had the variables swapped
-             * for registers in the color member.
-             * NOTE: THE INSTRUCTIONS DON'T HAVE VARIABLES CHANGED TO REGISTERS. This is done in vars_to_reg.
-             */ 
-//            else 
-//                new_F = fp;
         
         //std::cout << (spilled ? "true\n" : "false\n");
         return std::pair<std::vector<Node>, Function*> (nodes_to_spill, fp);
@@ -306,7 +269,6 @@ namespace L2 {
                 // spill all variables deemed to be spilled 
                 for(auto& node_to_spill : vars_to_spill) {
                     curr_F = fp; // spilled function becomes current function
-                    //reset_Function(fp); // make way for new spilled function
                     //std::cerr << fp->name << ' '  << node_to_spill.name << '\n';
                     Item spill_var;
                     spill_var.labelName = node_to_spill.name;
@@ -316,13 +278,10 @@ namespace L2 {
                     spill_str.type = Type::var;
                     
                     fp = spill(curr_F, spill_var, spill_str);
-                    //reset_Function(curr_F);
 
                     /* Create gen/kill, in/out, and IG for newly spilled function.
                      * Feed this function into spill in the next iter of for loop.
                      */
-                    //analyze(fp);
-                    //generate_IG(fp);
                 }
             }
 //            std::cout << "NODE TO SPILL: " << vars_to_spill.size() << '\n';
@@ -341,33 +300,4 @@ namespace L2 {
         vars_to_reg(fp);
         return fp;
     }
-//    Function* register_allocation(Function* fp) {
-//        Function* new_F = fp;
-//        bool spilled = false;
-//        do {
-//            analyze(new_F); // generate gen, kill, in, and out sets for each instruction
-//            generate_IG(new_F); // create an IG for the function
-//
-//            new_F->IG_nodes.clear(); 
-//            // change IG from str_to_set to vector<Node> for better representation
-//            for(auto &p : new_F->IG) { // for each pair (node : neighbors) in the IG
-//                Node n;
-//                n.name = p.first;
-//                n.neighbors = p.second;
-//                new_F->IG_nodes.push_back(n); // IG_nodes is a vector<Node>
-//            }
-//
-//            /* new_F now has both the old and new IG representations
-//             * We will not use the old representation in coloring because
-//             * it sucks.
-//             */
-//
-//            std::pair<Function*, bool> spilled_and_colored_IG = color_graph(new_F);
-//            new_F = spilled_and_colored_IG.first;
-//            spilled = spilled_and_colored_IG.second; // if color_graph spilled, is true; else false
-//        } while(spilled);
-//        new_F = vars_to_reg(new_F);
-//
-//        return new_F; // return to code generator
-//    }
 }

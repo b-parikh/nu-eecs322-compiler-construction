@@ -264,8 +264,16 @@ pegtl::seq<
 	 seps,
      Label_rule
    > {};
-/*
-struct cjump_prefix:
+
+  struct seps_no_linebreak:
+    pegtl::star<
+      pegtl::sor<
+        pegtl::one<' ', '\t'>,
+        comment
+      >
+    > {};
+
+struct cjump_onearg:
    pegtl::seq<
      seps,
      l1_keyword, // cjump
@@ -276,34 +284,6 @@ struct cjump_prefix:
      seps
    > {};
 
-struct cjump_suffix:
-  pegtl::sor<
-    pegtl::seq<
-      seps,
-      Label_rule,
-      seps
-    >,
-   pegtl::eol
-  > {};
-
- struct cjump:
-  pegtl::seq<
-    cjump_prefix,
-    cjump_suffix
-  > {};
-*/
-struct cjump_onearg:
-   pegtl::seq<
-     seps,
-     l1_keyword, // cjump
-     seps,
-     compare,
-     seps,
-     Label_rule,
-     //seps,
-     pegtl::eol 
-   > {};
-
  struct cjump_twoargs:
   pegtl::seq<
     seps,
@@ -312,10 +292,11 @@ struct cjump_onearg:
     compare,
     seps,
     Label_rule,
-    seps,
+    seps_no_linebreak,
     Label_rule,
     seps
   > {};
+
 
 //  struct cjump:
 //    pegtl::sor<
@@ -660,7 +641,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-   // std::cout << "cjump_onearg action called\n";
+    //std::cout << "cjump_onearg action called\n";
     i->identifier = 11;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
@@ -674,7 +655,7 @@ struct runtime_func:
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    //std::cout << "cjump_twoarg action called\n";
+	//std::cout << "cjump_twoarg action called\n";
     i->identifier = 7;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
