@@ -102,7 +102,7 @@ namespace L2 {
                  n.isReg = true;
                  n.colored = true;
             }
-                stack.push_back(n);
+            stack.push_back(n);
         }
         return stack;
     }
@@ -149,7 +149,6 @@ namespace L2 {
                 continue;
                 //popped.color = STR_REG_MAP.find(popped.name)->second;
             }
-
             else { // popped is variable; try to assign a register to it
 				color_no_use.clear();
                 // Go through popped's neighbors
@@ -159,18 +158,7 @@ namespace L2 {
                         color_no_use.push_back(STR_REG_MAP[n]);
                         continue; // in this case, register can still interfere with variable
                     }
-//					for(auto regi : GP_REGISTERS) {
-//						if(n == regi) { // skip if the neighbor is a REG
-//							is_register = true;
-//							break;
-//						}
-//					}
-//					if (is_register)
-//						continue;
-
-                    // if the current neighbor is a variable
-                    else { 
-
+                    else {  // if the current neighbor is a variable
                         /* Find neighbor in colored_variables.
                          * Then, find the color of that colored_variable.
                          * Push this color into color_no_use.
@@ -181,11 +169,10 @@ namespace L2 {
                                 // if neighbor is colored, don't use that color for popped
 								for(auto r: ALL_REG) {
 									if (cv.color == r) {
-										color_no_use.push_back(r); // TODO: If in color_no_use, just remove r from ALL_REG
+										color_no_use.push_back(r); 
 										break;
 									}
 								}
-                                // TODO Should condition of inner if hold in order to break?
 								break; // no need to check other values in colored_variables
                             }
                         }
@@ -213,7 +200,6 @@ namespace L2 {
                         nodes_to_spill.push_back(popped);
                 }
             }
-            // TODO: color no use can be non empty and a register can still be assigned
 
             /* Register not assigned to popped, so must spill.
              * Break out of while loop because we have found something to spill.
@@ -224,9 +210,6 @@ namespace L2 {
                 //spilled = true;
                 //break;
             //}
-            // reconstruct the IG
-            //new_IG.push_back(popped);
-         // while stack isn't empty
         }
 
         if(!nodes_to_spill.empty()) {
@@ -292,13 +275,6 @@ namespace L2 {
             fp = color_graph_results.second;
             spilled = (vars_to_spill.empty() ? false : true);
             
-//            if (spilled == true){
-//              std::cerr << "spilled = true\n";
-//            }
-//            else {
-//              std::cerr << "spilled = false\n";
-//            }
-
             if(spilled) {
                 // spill all variables deemed to be spilled 
                 for(auto &node_to_spill : vars_to_spill) {
@@ -353,5 +329,4 @@ namespace L2 {
 //
 //        return new_F; // return to code generator
 //    }
-
 }

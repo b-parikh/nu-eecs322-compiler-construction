@@ -1,0 +1,73 @@
+(:testing
+(:testing
+	0 0
+	rdi <- 5 
+	rsi <- 85 
+	mem rsp -8 <- :myfunc_ret 
+	call allocate 2 
+	:myfunc_ret 
+	mem rax 16 <- 5 
+	rdi <- rax 
+	mem rsp -8 <- :rett 
+	call :printArray 1 
+	:rett 
+	return 
+)
+(:printArray
+	1 0
+	r8 <- rdi 
+	r8 &= 1 
+	cjump r8 = 0 :isarray :notarray 
+	:notarray 
+	rax <- 0 
+	return 
+	:isarray 
+	r8 <- 0 
+	r9 <- rdi 
+	r10 <- mem rdi 0 
+	:forloop 
+	cjump r8 < r10 :continue :done 
+	:continue 
+	rdi <- r9 
+	rsi <- r8 
+	mem rsp -8 <- :ret 
+	call :printArrayElement 2 
+	:ret 
+	r8 ++ 
+	goto :forloop 
+	:done 
+	rax <- 1 
+	return 
+)
+(:printArrayElement
+	2 0
+	r9 <- rdi 
+	r8 <- rsi 
+	rdi <- r8 
+	rdi <<= 1 
+	rdi += 1 
+	call print 1 
+	rdi <- r8 
+	rdi *= 8 
+	rdi += 8 
+	rdi <<= 1 
+	rdi += 1 
+	r8 <- rdi 
+	call print 1 
+	r8 >>= 1 
+	r9 += r8 
+	r9 <- mem r9 0 
+	r8 <- r9 
+	r8 &= 1 
+	rdi <- r9 
+	cjump r8 = 0 :isarr :notarr 
+	:notarr 
+	call print 1 
+	goto :fnc_ret 
+	:isarr 
+	mem rsp -8 <- :fnc_ret 
+	call :printArray 1 
+	:fnc_ret 
+	return 
+)
+)

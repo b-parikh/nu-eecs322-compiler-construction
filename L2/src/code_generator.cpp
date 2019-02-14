@@ -333,8 +333,14 @@ namespace L2{
     outputFile << labelModifier(ip->items[0].labelName) << ":\n";
   }
 
-  void generate_code(Program p){
+  Function* stack_arg_translator(Function* fp) {
+	// process stack-arg
+	// local size * 8 + i[2]
+	return fp
+  }
 
+
+  void generate_code(Program p){
     /* 
      * Open the output file.
     */
@@ -345,13 +351,6 @@ namespace L2{
      * Generate L1 code
      */ 
  
-    //parse
-    //foreach function
-    //  analyze
-    //  interference graph 
-    //  graph coloring 
-    //      call analysis, spill
-    //generate L1 code
     outputFile << '(' << p.entryPointLabel << '\n';
 
     for (auto fp : p.functions) {
@@ -359,11 +358,11 @@ namespace L2{
         Function* new_F = register_allocation(fp);
         //std::cerr << "End register alloc.\n";
         //std::cout << '(' << new_F->name << '\n';
-        outputFile << "\t(" <<  new_F->name << '\n';
+        outputFile << "(" <<  new_F->name << '\n';
         //std::cout << new_F->arguments << ' ' << new_F->locals << '\n';
-        outputFile << "\t\t" << new_F->arguments << ' ' << new_F->locals << '\n';        
+        outputFile << "\t" << new_F->arguments << ' ' << new_F->locals << '\n';        
         for(auto instruct_p : new_F->instructions) {
-			outputFile << "\t\t";
+			outputFile << "\t";
             for(auto item : instruct_p->items) {
                 //std::cout << item.labelName << ' ';
                 outputFile << item.labelName << ' ';
@@ -372,7 +371,7 @@ namespace L2{
             outputFile << '\n';
         }
         //std::cout << '\n';
-        outputFile << "\t)\n";
+        outputFile << ")\n";
     }
     //std::cout << '\n';
     outputFile << ")\n";
