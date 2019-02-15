@@ -96,10 +96,21 @@ namespace L2 {
             }
             stack.push_back(n);
         }
+        std::sort(stack.begin(),stack.end(), 
+                [] (const Node& n1, const Node& n2) 
+                {
+                    return n1.neighbors.size() > n2.neighbors.size();
+                });
         return stack;
     }
 
-    Function* vars_to_reg(Function* fp) {
+    /*
+     * Identifies the stack-arg instruction and converts it to an
+     * rsp access (mem rsp N).
+     * Goes through the final spilled function and converts all colors
+     * to registers.
+     */
+    Function* final_function_modifications(Function* fp) {
         for(auto &instruct : fp->instructions) {
             if(instruct->identifier == 12) { // stack-arg found
                 Item destination = instruct->items[0]; 
@@ -123,8 +134,6 @@ namespace L2 {
                 instruct->items.push_back(mem_keyword);
                 instruct->items.push_back(rsp_reg);
                 instruct->items.push_back(mem_addr);
-               
-                //(fp->locals)++; 
             }
 
             for(auto &it : instruct->items) {
@@ -144,7 +153,7 @@ namespace L2 {
         return fp;
     } 
         
-    std::pair<std::vector<Node>, Function*> color_graph(Function *fp) { 
+    std::pair<std::vector<Node>, Function*> attempt_coloring(Function *fp) { 
         std::vector<Node> new_IG; // empty IG, start rebuilding
         std::vector<Node> stack = init_stack(fp->IG_nodes);
         std::vector<Node> colored_variables; // use vector; can't use set because it'd need custom hash
@@ -165,16 +174,14 @@ namespace L2 {
             if(popped.colored) { // if the init_stack function has already assigned a reg to popped, then don't do anything
                 new_IG.push_back(popped); // add registers to new_IG
                 continue;
-                //popped.color = STR_REG_MAP.find(popped.name)->second;
             }
             else { // popped is variable; try to assign a register to it
 				color_no_use.clear();
                 // Go through popped's neighbors
 				for(auto n : popped.neighbors) { // n is a string :(
-					//bool is_register = false;
                     if(STR_REG_MAP.find(n) != STR_REG_MAP.end()){ // skip if the neighbor is a REG
                         color_no_use.push_back(STR_REG_MAP[n]);
-                        continue; // in this case, register can still interfere with variable
+                        continue;
                     }
                     else {  // if the current neighbor is a variable
                         /* Find neighbor in colored_variables.
@@ -201,7 +208,6 @@ namespace L2 {
                     popped.color = ALL_REG[0];
                     popped.colored = true;
                     new_IG.push_back(popped);
-                    //std::cerr << "assigned register (1): " << REG_STR_MAP[ALL_REG[0]] << '\n';
                     colored_variables.push_back(popped);
                 }
                 else {
@@ -210,7 +216,6 @@ namespace L2 {
                     if(!ALL_REG.empty()) {
                         popped.color = ALL_REG[0];
                         popped.colored = true;
-                        //std::cerr << "assigned register: " << REG_STR_MAP[ALL_REG[0]] << '\n';
                         new_IG.push_back(popped);
                         colored_variables.push_back(popped);
                     }
@@ -232,7 +237,6 @@ namespace L2 {
              * function will have a new IG created for it in the register_allocation do-while loop.
              */
         
-        //std::cout << (spilled ? "true\n" : "false\n");
         return std::pair<std::vector<Node>, Function*> (nodes_to_spill, fp);
     }
 
@@ -244,7 +248,6 @@ namespace L2 {
         bool spilled = true;
         Function* curr_F;
         while(spilled) {
-            // check if variables need to be spilled
             analyze(fp);
             generate_IG(fp);
 
@@ -260,30 +263,29 @@ namespace L2 {
              * it sucks.
              */
 
-            std::pair<std::vector<Node>, Function*> color_graph_results = color_graph(fp);
-            std::vector<Node> vars_to_spill = color_graph_results.first;
-            fp = color_graph_results.second;
+            std::pair<std::vector<Node>, Function*> coloring = attempt_coloring(fp);
+            std::vector<Node> vars_to_spill = coloring.first;
+            fp = coloring.second;
             spilled = (vars_to_spill.empty() ? false : true);
             
             if(spilled) {
                 // spill all variables deemed to be spilled 
                 for(auto& node_to_spill : vars_to_spill) {
                     curr_F = fp; // spilled function becomes current function
-                    //std::cerr << fp->name << ' '  << node_to_spill.name << '\n';
                     Item spill_var;
                     spill_var.labelName = node_to_spill.name;
                     spill_var.type = Type::var;
                     Item spill_str;
-                    spill_str.labelName = '%' + node_to_spill.name + "_spilled_";
+                    // Modify spilled variable name to ensure little chance of 
+                    // collisions with any previously defined variable labels
+                    spill_str.labelName = '%' + node_to_spill.name + "_spilled_"; 
                     spill_str.type = Type::var;
-                    
-                    fp = spill(curr_F, spill_var, spill_str);
 
-                    /* Create gen/kill, in/out, and IG for newly spilled function.
-                     * Feed this function into spill in the next iter of for loop.
-                     */
+                    fp = spill(curr_F, spill_var, spill_str);
                 }
             }
+ 
+//            DEBUGGING
 //            std::cout << "NODE TO SPILL: " << vars_to_spill.size() << '\n';
 //            if(vars_to_spill.size() != 0) 
 //                std::cerr << "THAT IS... " << vars_to_spill[0].name << '\n';
@@ -297,7 +299,7 @@ namespace L2 {
 //            }
 //            std::cerr << '\n';
         }
-        vars_to_reg(fp);
+        final_function_modifications(fp);
         return fp;
     }
 }
