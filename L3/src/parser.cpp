@@ -12,6 +12,12 @@
 #include <parser.h>
 
 namespace L3 {
+  
+  /* 
+   * Data required to parse
+   */ 
+  std::vector<Item> parsed_items;
+  std::vector<std::string> parsed_strings;
   /* 
    * Actions attached to grammar rules.
    */
@@ -46,7 +52,7 @@ namespace L3 {
           static void apply(const Input& in, Program& p) {
               Item it = new Item();
               it->labelName = in.string();
-              it->type = Type::var;
+              it->Type = Atomic_Type::var;
               auto curr_F = p.functions.back();
               curr_F->arguments.push_back(it);
           }
@@ -55,8 +61,8 @@ namespace L3 {
   template<> struct action < return_empty > {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
+      Instruction_return_empty* i = new Instruction_return_empty();
       auto currentF = p.functions.back();
-      auto i = new Instruction(); // return instruction struct
       currentF->instructions.push_back(i);
     }
   };
@@ -65,8 +71,8 @@ namespace L3 {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
       auto currentF = p.functions.back();
-      auto i = new Instruction(); // return instruction struct
-      auto it = parsed_items.back();
+      auto i = new Instruction_return_value(); // return instruction struct
+      auto it = parsed_items.back(); // return __(it)__ 
       i->Items.push_back(it);
       parsed_item.clear();
       currentF->instructions.push_back(i);
@@ -78,30 +84,18 @@ namespace L3 {
 	static void apply( const Input & in, Program & p){
       Item* i = new Item();
       i->labelName = in.string();
-      i->type = Type::label;
+      i->Type = Atomic_Type::label;
       parsed_items.push_back(i);
     }
   };
-
-  /*
-   * Our work
-   */
 
   template<> struct action < var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
         Item* i = new Item();
-        i->type = Type::var;
+        i->Type = Atomic_Type::var;
 	    i->labelName = in.string();
 	    parsed_items.push_back(i);
-    }
-  };
-
-  template<> struct action < assign_operator > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-       Item* i -> new Item();
-       i->labelName = in.string();
-       parsed_registers.push_back(i);
     }
   };
 
@@ -109,93 +103,213 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
       Item* i = new item();
       i->number.value = std::stoi(in.string());
-      i->type = Type::num;
+      i->Type = Atomic_Type::num;
       i->number.toString = in.string();
       parsed_items.push_back(i);
     }
   };
 
-  template<> struct action < assignment > {
+  template<> struct action < assign > { // simple assign
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
-      Instruction* i = new Instruction(); // instruction will be reversed when generating x86
-      i->identifier = 0;
-      for(std::vector<Item>::iterator it = parsed_registers.begin(); it != parsed_registers.end(); ++it) {
-  	    auto currItemP = it;
+        auto i = new Instruction_assign();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
 	    i->items.push_back(*currItemP);
-      }
-      currFunc->instructions.push_back(i);
-      parsed_registers.clear(); 
+        currFunc->instructions.push_back(i);
     }
   };
 
   template<> struct action < arithmetic_operator > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	Item* it = new Item();
-	i->labelName = in.string();
-    i->type = Type::arith_oper;
-	parsed_registers.push_back(i);
-    }
-  };
-
-  template<> struct action < arithmetic > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-	Instruction* i = new Instruction();
-	auto currFunc = p.functions.back();
-	i->identifier = 2;
-	for(auto currItemP : parsed_registers) {
-	   i->items.push_back(currItemP);
-	}
-	parsed_registers.clear();
-	currFunc->instructions.push_back(i);
+	    parsed_strings.push_back(in.string());
     }
   };
 
   template<> struct action < comparison_operator > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	  Item* i = new Item();
-	  i->labelName = in.string();
-      i->type = Type::compare_oper;
-	  parsed_registers.push_back(i);
+	    parsed_strings.push_back(in.string());
+    }
+  };
+
+  template<> struct action < assign_arithmetic > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_assign_arithmetic();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        
+        std::string oper = parsed_strings.back();
+        if(oper == ">>")
+            i->Oper = Arith_Operator::shift_right; 
+        else if(oper == "<<")
+            i->Oper = Arith_Operator::shift_left; 
+        else if(oper == "+")
+            i->Oper = Arith_Operator::plus; 
+        else if(oper == "-")
+            i->Oper = Arith_Operator::minus; 
+        else if(oper == "*")
+            i->Oper = Arith_Operator::multiply; 
+        else
+            i->Oper = Arith_Operator::bw_and; 
+
+        parsed_items.clear();
+        parsed_strings.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < assign_comparison > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_assign_comparison();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        
+        std::string oper = parsed_strings.back();
+        if(oper == ">")
+            i->Oper = Compare_Operator::gr; 
+        else if(oper == ">=")
+            i->Oper = Compare_Operator::geq; 
+        else if(oper == "<")
+            i->Oper = Compare_Operator::le; 
+        else if(oper == "<=")
+            i->Oper = Compare_Operator::leq; 
+        else
+            i->Oper = Compare_Operator::eq; 
+
+        parsed_items.clear();
+        parsed_strings.clear();
+	    i->items.push_back(currItemP);
+        currFunc->instructions.push_back(i);
     }
   };
   
-  template<> struct action < assign_comparison > {
+  template<> struct action < assign_load > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	Instruction* i = new Instruction();
-	auto currFunc = p.functions.back();
-	i->identifier = 4;
-	for(auto currItemP : parsed_registers) {
-	   i->items.push_back(currItemP);
-	}
-	parsed_registers.clear();
-	currFunc->instructions.push_back(i);
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_assign_load();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
     }
   };
 
-  template<> struct action < goto_jump > {
+  template<> struct action < assign_store > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-    Instruction* i = new Instruction();
-    auto currFunc = p.functions.back();
-    i->identifier = 6;
-    for(auto currItemP : parsed_registers) {
-       i->items.push_back(currItemP);
-    }
-    parsed_registers.clear();
-    currFunc->instructions.push_back(i);
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_assign_store();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
     }
   };
 
-  template<> struct action < cjump_onearg > {
+  template<> struct action < br_unconditional > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-    Instruction* i = new Instruction();
-    auto currFunc = p.functions.back();
-    i->identifier = 11;
-    for(auto currItemP : parsed_registers) {
-       i->items.push_back(currItemP);
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_br_unconditional();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
     }
-    parsed_registers.clear();
-    currFunc->instructions.push_back(i);
+  };
+  
+  template<> struct action < br_conditional > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_br_conditional();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < call > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_call();
+
+        // handle runtime function calls
+        if(!parsed_strings.empty()) {
+            std::string runtime = parsed_strings.back();
+
+            if(runtime == "print")
+                i->Type = Instruction_call::CalleeType::print;
+            else if(runtime == "allocate")
+                i->Type = Instruction_call::CalleeType::allocate;
+            else // array-error
+                i->Type = Instruction_call:CalleeType::array-error;
+        }
+
+        // handle vars and labels; know that parsed_items has exactly one thing
+        else {
+            auto it = parsed_items.back();
+            i->Items.push_back(it);
+            if(it->Type == Atomic_Type::var)
+               i->Type = CalleeType::var;
+            else(it->Type == Atomic_Type::label)
+               i->Type - CalleeType::label; 
+        }
+
+        parsed_items.clear();
+        parsed_strings.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < call_assign > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_call();
+
+        //handle assignment to variable
+        auto destination = parsed_items[0];
+        i->items.push_back(destination);
+        
+        // handle runtime function calls
+        if(!parsed_strings.empty()) {
+            std::string runtime = parsed_strings.back();
+            if(runtime == "print")
+                i->Type = Instruction_call::CalleeType::print;
+            else if(runtime == "allocate")
+                i->Type = Instruction_call::CalleeType::allocate;
+            else // array-error
+                i->Type = Instruction_call:CalleeType::array-error;
+        }
+
+        // handle vars and labels; know that this is second thing in parsed_items
+        else {
+            auto it = parsed_items.back();
+            i->Items.push_back(it);
+            if(it->Type == Atomic_Type::var)
+               i->Type = CalleeType::var;
+            else(it->Type == Atomic_Type::label)
+               i->Type - CalleeType::label; 
+        }
+
+        parsed_items.clear();
+        parsed_strings.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
     }
   };
 
@@ -203,7 +317,7 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
     Item* i = new Item();
     i->labelName = in.string();
-    i->type = Type::runtime;
+    // empty type; Instruction_runtime holds the function type information
     parsed_registers.push_back(i);
     }
   };
@@ -212,7 +326,6 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
     Instruction* i = new Instruction();
     auto currFunc = p.functions.back();
-    i->identifier = 9;
     for(auto currItemP : parsed_registers) {
        i->items.push_back(currItemP);
     }
@@ -223,14 +336,14 @@ namespace L3 {
 
   template<> struct action < label_instruction > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-    Item it;
-    it.labelName = in.string();
-    Instruction* i = new Instruction();
-    auto currFunc = p.functions.back();
-    i->identifier = 10;
-    i->items.push_back(it);
-    currFunc->instructions.push_back(i);
-    parsed_registers.clear();
+	    auto currFunc = p.functions.back();
+        auto i = new Instruction_label_instruction();
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+	    i->items.push_back(*currItemP);
+        currFunc->instructions.push_back(i);
     }
   };
 

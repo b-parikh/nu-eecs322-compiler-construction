@@ -12,12 +12,6 @@ using namespace pegtl;
 using namespace std;
 
 namespace L3{
-  
-  /* 
-   * Data required to parse
-   */ 
-  std::vector<Item> parsed_items;
-
   /* 
    * Grammar rules from now on.
    */
@@ -88,12 +82,6 @@ namespace L3{
         str_return
       >{};
 
-  /*
-   *
-   * Our works
-   *
-   */
-
   struct var:
     pegtl::seq<
       pegtl::one<'%'>,
@@ -113,7 +101,7 @@ namespace L3{
       > {};
 
   /* 
-   * instructions
+   * Instructions
    */
   struct assign_operator:
 	pegtl::string<'<','-'> {};
@@ -128,19 +116,17 @@ namespace L3{
            pegtl::string<'>','>'>
 	>
   > {};
+  
+ struct comparison_operator:
+  pegtl::sor<
+   pegtl::string<'<', '='>,
+   pegtl::one<'<'>,
+   pegtl::one<'='>,
+   pegtl::one<'>'>,
+   pegtl::string<'>','='>
+   > {};
 
-  struct assignment:
-	pegtl::seq<
-	  seps,
-	  var,
-	  seps,
-	  assign_operator,
-	  seps,
-	  pegtl::sor<var, number, Label_rule>,
-      seps
-    > {};
-
-  struct assign_with_oper:
+  struct assign_arithmetic:
     pegtl::seq<
       seps,
       var,
@@ -153,29 +139,20 @@ namespace L3{
       pegtl::sor<var, number>
     > {};
 
- struct comparison_operator:
-  pegtl::sor<
-   pegtl::string<'<', '='>,
-   pegtl::one<'<'>,
-   pegtl::one<'='>,
-   pegtl::one<'>'>,
-   pegtl::string<'>','='>
-   > {};
-
  struct assign_comparison:
     pegtl::seq<
     seps,
-  var,
-  seps,
-  assign_operator,
-  seps,
-  pegtl::sor<var, number>,
-  seps,
-  comparison_operator,
-  seps,
-  pegtl::sor<var, number>
-  seps
-> {};
+    var,
+    seps,
+    assign_operator,
+    seps,
+    pegtl::sor<var, number>,
+    seps,
+    comparison_operator,
+    seps,
+    pegtl::sor<var, number>
+    seps
+  > {};
 
  struct assign_load:
      pegtl::seq<
@@ -206,30 +183,40 @@ namespace L3{
         seps
      > {};
 
- struct goto_jump:
-   pegtl::seq<
-	     seps,
-	     l1_keyword, // goto
-	     seps,
- 	     Label_rule,
-	     seps
-  > {};
+  struct assign:
+	pegtl::seq<
+	  seps,
+	  var,
+	  seps,
+	  assign_operator,
+	  seps,
+	  pegtl::sor<var, number, Label_rule>,
+      seps
+    > {};
 
  struct label_instruction:
    pegtl::seq<
      Label_rule
    > {};
 
-struct cjump_onearg:
+ struct br_unconditional:
+   pegtl::seq<
+	     seps,
+	     pegtl::string<'b','r'>,
+	     seps,
+ 	     Label_rule,
+	     seps
+  > {};
+
+struct br_conditional:
    pegtl::seq<
      seps,
-     l1_keyword, // cjump
+     pegtl::string<'b','r'>,
      seps,
-     compare,
+     var,
      seps,
      Label_rule,
      seps
-     //pegtl::eol
    > {};
 
 struct runtime_func:
@@ -241,30 +228,67 @@ struct runtime_func:
 
  struct call:
    pegtl::seq<
-  seps,
-  l1_keyword,
-  seps,
-  pegtl::sor<
-   Label_rule,
-   runtime_func,
-   reg
-  >,
-  seps,
-  number,
-	seps
+    seps,
+    pegtl::string<'c','a','l','l'>,
+    seps,
+
+    pegtl::sor<
+        Label_rule,
+         runtime_func,
+         var 
+     >,
+    seps,
+    pegtl::one<'('>,
+    pegtl::star<
+        seps,
+        argument,
+        seps,
+        pegtl::opt<
+            pegtl::one<','>
+        >,
+    seps    
+    >,
+    pegtl::one<')'>,
+    seps
+   > {};
+
+  struct call_assign:
+      seps,
+      var,
+      seps,
+      assign_operator,
+      seps,
+      pegtl::string<'c','a','l','l'>,
+      pegtl::sor<
+          Label_rule,
+          runtime_func,
+          var 
+      >,
+      seps,
+      pegtl::one<'('>,
+      seps,
+      pegtl::plus<
+          argument,
+          seps
+      >,
+      pegtl::one<')'>,
+      seps
    > {};
 
   struct Instruction_rule:
     pegtl::sor<
-    pegtl::seq<return_empty>, 
-    pegtl::seq< pegtl::at<assign_comparison>, assign_comparison>,
-    pegtl::seq<label_instruction>,
-    pegtl::seq< pegtl::at<cjump_onearg>, cjump_onearg>,
-    pegtl::seq< pegtl::at<call>, call>,
-    pegtl::seq< pegtl::at<assignment>, assignment>,
-    pegtl::seq< pegtl::at<arithmetic>, arithmetic>,
-    pegtl::seq< pegtl::at<shift>, shift>,
-    pegtl::seq< pegtl::at<goto_jump>, goto_jump>
+    pegtl::seq<pegtl::at<return_value>, return_value>, 
+    pegtl::seq<pegtl::at<return_empty>, return_empty>, 
+    pegtl::seq<pegtl::at<assign_arithmetic>, assign_arithmetic>,
+    pegtl::seq<pegtl::at<assign_comparison>, assign_comparison>,
+    pegtl::seq<pegtl::at<assign_load>, assign_load>,
+    pegtl::seq<pegtl::at<assign_store>, assign_store>,
+    pegtl::seq<pegtl::at<call_assign>, call_assign>,
+    pegtl::seq<pegtl::at<call>, call>,
+    pegtl::seq<pegtl::at<label_instruction>, label_instruction>,
+    pegtl::seq<pegtl::at<br_conditional>, br_conditional>,
+    pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
+    pegtl::seq<pegtl::at<assign>, assign>
     > { };
 
   struct Instructions_rule:
@@ -274,11 +298,13 @@ struct runtime_func:
         Instruction_rule,
         seps
       >
-    > { };
+    > {};
 
-  struct argument : 
-      pegtl::seq<var> {}; // to make sure var action is called
+  struct argument : var {};
 
+  struct comma:
+      pegtl::one<','> {};
+        
   struct Function_rule:
     pegtl::seq<
       pegtl::string<'d','e','f','i','n','e'>,
@@ -288,10 +314,13 @@ struct runtime_func:
       pegtl::one<'('>,
       seps,
       pegtl::star<
-        pegtl::seq<
-            argument,
-            seps
-        >
+          seps,
+          argument,
+          seps,
+          pegtl::opt<
+              pegtl::one<','>
+          >,
+          seps    
       >,
       pegtl::one<')'>,
       seps,
