@@ -24,6 +24,7 @@ namespace L3 {
         std::vector<Item> Items;
     };
   
+    // simple assignment (%b <- %a)
     struct Instruction_assign : Instruction {};
 
     struct Instruction_assign_arithmetic : Instruction {
