@@ -3,7 +3,7 @@
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
-
+#include <iostream>
 #include <L3.h>
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
@@ -135,6 +135,7 @@ namespace L3{
       pegtl::sor<var, number>,
       seps,
       arithmetic_operator,
+      seps,
       pegtl::sor<var, number>
     > {};
 
@@ -243,8 +244,8 @@ struct runtime_func:
     pegtl::sor<
         Label_rule,
          runtime_func,
-         var 
-     >,
+        var 
+    >,
     seps,
     pegtl::one<'('>,
     pegtl::star<
@@ -270,6 +271,7 @@ struct runtime_func:
       assign_operator,
       seps,
       pegtl::string<'c','a','l','l'>,
+      seps,
       pegtl::sor<
           Label_rule,
           runtime_func,
@@ -288,18 +290,18 @@ struct runtime_func:
 
   struct Instruction_rule:
     pegtl::sor<
-    pegtl::seq<pegtl::at<return_value>, return_value>, 
-    pegtl::seq<pegtl::at<return_empty>, return_empty>, 
-    pegtl::seq<pegtl::at<assign_arithmetic>, assign_arithmetic>,
-    pegtl::seq<pegtl::at<assign_comparison>, assign_comparison>,
-    pegtl::seq<pegtl::at<assign_load>, assign_load>,
-    pegtl::seq<pegtl::at<assign_store>, assign_store>,
-    pegtl::seq<pegtl::at<call_assign>, call_assign>,
-    pegtl::seq<pegtl::at<call>, call>,
-    pegtl::seq<pegtl::at<label_instruction>, label_instruction>,
-    pegtl::seq<pegtl::at<br_conditional>, br_conditional>,
-    pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
-    pegtl::seq<pegtl::at<assign>, assign>
+      pegtl::seq<pegtl::at<return_value>, return_value>, 
+      pegtl::seq<pegtl::at<return_empty>, return_empty>, 
+      pegtl::seq<pegtl::at<assign_arithmetic>, assign_arithmetic>,
+      pegtl::seq<pegtl::at<assign_comparison>, assign_comparison>,
+      pegtl::seq<pegtl::at<assign_load>, assign_load>,
+      pegtl::seq<pegtl::at<assign_store>, assign_store>,
+      pegtl::seq<pegtl::at<call_assign>, call_assign>,
+      pegtl::seq<pegtl::at<call>, call>,
+      pegtl::seq<pegtl::at<label_instruction>, label_instruction>,
+      pegtl::seq<pegtl::at<br_conditional>, br_conditional>,
+      pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
+      pegtl::seq<pegtl::at<assign>, assign>
     > { };
 
   struct Instructions_rule:

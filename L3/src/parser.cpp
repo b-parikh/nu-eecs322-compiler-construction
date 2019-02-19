@@ -96,6 +96,7 @@ namespace L3 {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
         auto i = new Item();
+        std::cerr << "var action called " << in.string() << '\n';
         i->Type = Atomic_Type::var;
 	    i->labelName = in.string();
 	    parsed_items.push_back(i);
@@ -105,6 +106,7 @@ namespace L3 {
   template<> struct action < number > {
     template < typename Input > static void apply (const Input &in, Program &p) {
       auto i = new Item();
+      std::cerr << "number action called " << in.string() << '\n';
       i->Type = Atomic_Type::num;
       i->labelName = in.string();
       parsed_items.push_back(i);
@@ -135,6 +137,12 @@ namespace L3 {
 	    parsed_strings.push_back(in.string());
     }
   };
+
+//  template<> struct action < assign_operator > {
+//    template < typename Input > static void apply (const Input &in, Program &p) {
+//        std::cerr << "assign oper called: " << in.string() << '\n';
+//    }
+//  };
 
   template<> struct action < assign_arithmetic > {
     template < typename Input > static void apply (const Input &in, Program &p) {
@@ -291,6 +299,7 @@ namespace L3 {
         Instruction* i = new Instruction();
         i->Type = InstructionType::call_assign;
 
+        std::cerr << "call assign called" << '\n';
         //handle assignment to variable
         Item* destination = parsed_items[0];
         i->Items.push_back(destination);
