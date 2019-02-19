@@ -1,6 +1,6 @@
 #include <string>
+#include <iostream>
 #include <instruction_selector.h>
-#include <L2.h>
 
 namespace L3 {
 
@@ -12,7 +12,7 @@ namespace L3 {
         return item;
     }
 
-    std::vector<L2::Instruction*> enforce_caller_convention(Instruction_call* ip) {
+    std::vector<L2::Instruction*> enforce_caller_convention(Instruction* ip) {
         std::vector<std::string> ARG_REGISTERS = 
         {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
@@ -64,7 +64,7 @@ namespace L3 {
 
         // store rest of args on stack
         if(ARG_REGISTERS.size() > ip->arguments.size()) {
-            for(int j = ARG_REGISTERS.size(); j < arguments.size(); ++j) {
+            for(int j = ARG_REGISTERS.size(); j < ip->arguments.size(); ++j) {
                     
                 // mem rsp stack_loc
                 L2::Instruction* mem_alloc = new L2::Instruction();
@@ -84,7 +84,7 @@ namespace L3 {
                 mem_alloc->items.push_back(*assign_oper);
                 
                 L2::Item* arg;
-                if(currArgument.Type == Atomic_Type::num)
+                if(ip->arguments[j]->Type == Atomic_Type::num)
                     arg = createL2Item(ip->arguments[j]->labelName, L2::Type::num);
                 else // arg is var
                     arg = createL2Item(ip->arguments[j]->labelName, L2::Type::var);
@@ -151,7 +151,7 @@ namespace L3 {
                 L2::Instruction* mem_alloc = new L2::Instruction();
                 
                 L2::Item* arg;
-                if(currArgument.Type == Atomic_Type::num)
+                if(arguments[j]->Type == Atomic_Type::num)
                     arg = createL2Item(arguments[j]->labelName, L2::Type::num);
                 else // arg is var
                     arg = createL2Item(arguments[j]->labelName, L2::Type::var);
@@ -237,7 +237,8 @@ namespace L3 {
 				L2::Item* var1;
 				L2::Item* oper;
 				L2::Item* var2;
-				if(ip->Items[2]->Oper == Compare_Operator::geq || ip->Items[2]->Oper == Compare_Operator::gr) {
+                std::cerr << "inside function";
+				if(ip->Comp_Oper == Compare_Operator::geq || ip->Comp_Oper == Compare_Operator::gr) {
 					ip->Items[2]->labelName.replace(0, 1, "<");
                     
                     var1 = createL2Item(ip->Items[3]->labelName, L2::Type::var);
