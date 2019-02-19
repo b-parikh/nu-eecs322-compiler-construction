@@ -16,8 +16,9 @@ namespace L3 {
   /* 
    * Data required to parse
    */ 
-  std::vector<Item> parsed_items;
+  std::vector<Item*> parsed_items;
   std::vector<std::string> parsed_strings;
+
   /* 
    * Actions attached to grammar rules.
    */
@@ -47,21 +48,22 @@ namespace L3 {
     }
   };
 
-  template<> struct action < argument > {
+  template<> struct action < argument_define > {
       template< typename Input >
           static void apply(const Input& in, Program& p) {
-              Item it = new Item();
+              auto it = new Item();
               it->labelName = in.string();
               it->Type = Atomic_Type::var;
               auto curr_F = p.functions.back();
               curr_F->arguments.push_back(it);
           }
-  }
+  };
 
   template<> struct action < return_empty > {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
       Instruction_return_empty* i = new Instruction_return_empty();
+      i->Type = InstructionType::return_empty;
       auto currentF = p.functions.back();
       currentF->instructions.push_back(i);
     }
@@ -72,9 +74,10 @@ namespace L3 {
 	static void apply( const Input & in, Program & p){
       auto currentF = p.functions.back();
       auto i = new Instruction_return_value(); // return instruction struct
+      i->Type = InstructionType::return_value;
       auto it = parsed_items.back(); // return __(it)__ 
       i->Items.push_back(it);
-      parsed_item.clear();
+      parsed_items.clear();
       currentF->instructions.push_back(i);
     }
   };
@@ -82,7 +85,7 @@ namespace L3 {
   template<> struct action < Label_rule > {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
-      Item* i = new Item();
+      auto i = new Item();
       i->labelName = in.string();
       i->Type = Atomic_Type::label;
       parsed_items.push_back(i);
@@ -92,7 +95,7 @@ namespace L3 {
   template<> struct action < var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-        Item* i = new Item();
+        auto i = new Item();
         i->Type = Atomic_Type::var;
 	    i->labelName = in.string();
 	    parsed_items.push_back(i);
@@ -101,10 +104,9 @@ namespace L3 {
 
   template<> struct action < number > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-      Item* i = new item();
-      i->number.value = std::stoi(in.string());
+      auto i = new Item();
       i->Type = Atomic_Type::num;
-      i->number.toString = in.string();
+      i->labelName = in.string();
       parsed_items.push_back(i);
     }
   };
@@ -113,11 +115,11 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
         auto i = new Instruction_assign();
+        i->Type = InstructionType::assign;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -138,6 +140,7 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
         auto i = new Instruction_assign_arithmetic();
+        i->Type = InstructionType::assign_arithmetic;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
@@ -158,7 +161,6 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -166,7 +168,8 @@ namespace L3 {
   template<> struct action < assign_comparison > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
-        auto i = new Instruction_assign_comparison();
+        auto i = new Instruction_assign_compare();
+        i->Type = InstructionType::assign_compare;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
@@ -185,7 +188,6 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
-	    i->items.push_back(currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -194,11 +196,11 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
         auto i = new Instruction_assign_load();
+        i->Type = InstructionType::assign_load;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -207,11 +209,11 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
         auto i = new Instruction_assign_store();
+        i->Type = InstructionType::assign_store;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -220,11 +222,11 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
         auto i = new Instruction_br_unconditional();
+        i->Type = InstructionType::br_unconditional;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -233,11 +235,11 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
         auto i = new Instruction_br_conditional();
+        i->Type = InstructionType::br_conditional;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -245,18 +247,22 @@ namespace L3 {
   template<> struct action < call > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
-        auto i = new Instruction_call();
+        Instruction_call* i = new Instruction_call();
 
+        i->Type = InstructionType::call;
         // handle runtime function calls
         if(!parsed_strings.empty()) {
             std::string runtime = parsed_strings.back();
 
             if(runtime == "print")
-                i->Type = Instruction_call::CalleeType::print;
+                i->calleeType = CalleeType::print;
             else if(runtime == "allocate")
-                i->Type = Instruction_call::CalleeType::allocate;
+                i->calleeType = CalleeType::allocate;
             else // array-error
-                i->Type = Instruction_call:CalleeType::array-error;
+                i->calleeType = CalleeType::array_error;
+
+            for(auto& it : parsed_items)
+                i->arguments.push_back(it);
         }
 
         // handle vars and labels; know that parsed_items has exactly one thing
@@ -264,14 +270,18 @@ namespace L3 {
             auto it = parsed_items.back();
             i->Items.push_back(it);
             if(it->Type == Atomic_Type::var)
-               i->Type = CalleeType::var;
-            else(it->Type == Atomic_Type::label)
-               i->Type - CalleeType::label; 
+               i->calleeType = CalleeType::var;
+            else if(it->Type == Atomic_Type::label)
+               i->calleeType = CalleeType::label;
+
+            // we know that the first Item in parsed_items is the function label
+            // therefore we can skip it
+            for(int j = 1; j < parsed_items.size(); ++j)
+                i->arguments.push_back(parsed_items[j]);
         }
 
         parsed_items.clear();
         parsed_strings.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
@@ -280,20 +290,24 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
         auto i = new Instruction_call();
+        i->Type = InstructionType::call_assign;
 
         //handle assignment to variable
         auto destination = parsed_items[0];
-        i->items.push_back(destination);
+        i->Items.push_back(destination);
         
         // handle runtime function calls
         if(!parsed_strings.empty()) {
             std::string runtime = parsed_strings.back();
             if(runtime == "print")
-                i->Type = Instruction_call::CalleeType::print;
+                i->calleeType = CalleeType::print;
             else if(runtime == "allocate")
-                i->Type = Instruction_call::CalleeType::allocate;
+                i->calleeType = CalleeType::allocate;
             else // array-error
-                i->Type = Instruction_call:CalleeType::array-error;
+                i->calleeType = CalleeType::array_error;
+
+            for(int j = 1; j < parsed_items.size(); ++j)
+                i->arguments.push_back(parsed_items[j]);
         }
 
         // handle vars and labels; know that this is second thing in parsed_items
@@ -301,48 +315,36 @@ namespace L3 {
             auto it = parsed_items.back();
             i->Items.push_back(it);
             if(it->Type == Atomic_Type::var)
-               i->Type = CalleeType::var;
-            else(it->Type == Atomic_Type::label)
-               i->Type - CalleeType::label; 
+               i->calleeType = CalleeType::var;
+            else if(it->Type == Atomic_Type::label)
+               i->calleeType = CalleeType::label; 
+
+            for(int j = 2; j < parsed_items.size(); ++j)
+                i->arguments.push_back(parsed_items[j]);
         }
 
         parsed_items.clear();
         parsed_strings.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };
 
   template<> struct action < runtime_func > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-    Item* i = new Item();
-    i->labelName = in.string();
     // empty type; Instruction_runtime holds the function type information
-    parsed_registers.push_back(i);
-    }
-  };
-
-  template<> struct action < call > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-    Instruction* i = new Instruction();
-    auto currFunc = p.functions.back();
-    for(auto currItemP : parsed_registers) {
-       i->items.push_back(currItemP);
-    }
-    parsed_registers.clear();
-    currFunc->instructions.push_back(i);
+    parsed_strings.push_back(in.string());
     }
   };
 
   template<> struct action < label_instruction > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currFunc = p.functions.back();
-        auto i = new Instruction_label_instruction();
+        auto i = new Instruction_label();
+        i->Type = InstructionType::label;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-	    i->items.push_back(*currItemP);
         currFunc->instructions.push_back(i);
     }
   };

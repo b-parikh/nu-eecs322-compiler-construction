@@ -1,40 +1,38 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 namespace L3 {
-    
+
+    enum class Compare_Operator{gr, geq, le, leq, eq};
+    enum class Arith_Operator{shift_left, shift_right, plus, minus, multiply, bw_and};
+    enum class Atomic_Type{num, label, var};
+    enum class CalleeType {print, allocate, array_error, var, label};
+    enum class InstructionType{assign, assign_compare, assign_load, assign_arithmetic, assign_store, return_empty, return_value, label, br_unconditional, br_conditional, call, call_assign};
+
     struct Item {
-        enum Atomic_Type{num, label, var};
         Atomic_Type Type; 
-        union {
-            struct number {
-                std::string toString;
-                int64_t value;
-            };
-  
-            std::string labelName;
-        }
+        std::string labelName;
     };
   
     /*
      * Instruction interface.
      */
     struct Instruction{
-        std::vector<Item> Items;
+        std::vector<Item*> Items;
+        InstructionType Type;
     };
   
     // simple assignment (%b <- %a)
     struct Instruction_assign : Instruction {};
 
     struct Instruction_assign_arithmetic : Instruction {
-        enum Arith_Operator{shift_left, shift_right, plus, minus, multiply, bw_and};
         Arith_Operator Oper;
     };
 
     struct Instruction_assign_compare : Instruction {
-        enum Compare_Operator{gr, geq, le, leq, eq};
-        Compare_Operator* Oper;
+        Compare_Operator Oper;
     };
 
     struct Instruction_assign_load : Instruction {};
@@ -52,14 +50,12 @@ namespace L3 {
     struct Instruction_br_conditional : Instruction {};
 
     struct Instruction_call : Instruction {
-        enum CalleeType {print, allocate, array-error, var, label};
-        CalleeType Type;
+        CalleeType calleeType;
         std::vector<Item*> arguments;
     };
     
     struct Instruction_call_assign : Instruction {
-        enum CalleeType {print, allocate, array-error, var, label};
-        CalleeType Type;
+        CalleeType calleeType;
         std::vector<Item*> arguments;
     };
   

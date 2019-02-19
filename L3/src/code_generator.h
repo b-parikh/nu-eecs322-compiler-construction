@@ -1,8 +1,7 @@
 #pragma once
 
-#include <L2.h>
-#include <register_allocation.h>
+#include <L3.h>
 
-namespace L2{
+namespace L3{
   void generate_code(Program p);
 }

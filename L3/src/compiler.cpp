@@ -73,7 +73,7 @@ int main(
   }
 
   /*
-   * Generate x86_64 assembly.
+   * Generate L2.
    */
   if (enable_code_generator){
     L3::generate_code(p);

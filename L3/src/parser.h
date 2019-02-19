@@ -114,8 +114,7 @@ namespace L3{
 		   pegtl::one<'&'>,
            pegtl::string<'<','<'>,
            pegtl::string<'>','>'>
-	>
-  > {};
+	> {};
   
  struct comparison_operator:
   pegtl::sor<
@@ -150,7 +149,7 @@ namespace L3{
     seps,
     comparison_operator,
     seps,
-    pegtl::sor<var, number>
+    pegtl::sor<var, number>,
     seps
   > {};
 
@@ -179,7 +178,7 @@ namespace L3{
             Label_rule,
             var,
             number
-        >
+        >,
         seps
      > {};
 
@@ -226,6 +225,15 @@ struct runtime_func:
      pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o' ,'r'>
    > {};
 
+// for function definition
+ struct argument_define : var {};
+
+ struct argument_call : 
+     pegtl::sor<
+        var,
+        number
+     > {};
+ 
  struct call:
    pegtl::seq<
     seps,
@@ -240,19 +248,22 @@ struct runtime_func:
     seps,
     pegtl::one<'('>,
     pegtl::star<
-        seps,
-        argument,
-        seps,
-        pegtl::opt<
-            pegtl::one<','>
-        >,
-    seps    
+        pegtl::seq<
+            seps,
+            argument_call,
+            seps,
+            pegtl::opt<
+                pegtl::one<','>
+            >
+        >
     >,
+    seps,
     pegtl::one<')'>,
     seps
    > {};
 
   struct call_assign:
+   pegtl::seq<
       seps,
       var,
       seps,
@@ -268,7 +279,7 @@ struct runtime_func:
       pegtl::one<'('>,
       seps,
       pegtl::plus<
-          argument,
+          argument_call,
           seps
       >,
       pegtl::one<')'>,
@@ -300,7 +311,6 @@ struct runtime_func:
       >
     > {};
 
-  struct argument : var {};
 
   struct comma:
       pegtl::one<','> {};
@@ -315,7 +325,7 @@ struct runtime_func:
       seps,
       pegtl::star<
           seps,
-          argument,
+          argument_define,
           seps,
           pegtl::opt<
               pegtl::one<','>
