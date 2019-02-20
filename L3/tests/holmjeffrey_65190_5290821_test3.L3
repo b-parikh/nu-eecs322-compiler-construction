@@ -32,7 +32,8 @@ define :loop1 (%arg){
     %arg <- %arg - 1
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -43,7 +44,8 @@ define :loop2 (%arg){
     %arg <- %arg + 2
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -54,7 +56,8 @@ define :loop3 (%arg){
     %arg <- %arg >> 1
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -65,7 +68,8 @@ define :loop4 (%arg){
     %arg <- %arg * 0
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -76,7 +80,8 @@ define :loop5 (%arg){
     %arg <- %arg - 4
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -87,7 +92,8 @@ define :loop6 (%arg){
     %arg <- %arg << 1
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -98,7 +104,8 @@ define :loop7 (%arg){
     %arg <- %arg > 1
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -109,7 +116,8 @@ define :loop8 (%arg){
     %arg <- %arg + 3
     %value <- %value + 1
     %isDone <- %arg = 0
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return %value
 }
@@ -117,7 +125,8 @@ define :loop8 (%arg){
 define :encode (%v1){
     %isEncoded <- %v1 & 1
     %isEncoded <- %isEncoded = 1
-    br %isEncoded :skip :encode
+    br %isEncoded :skip
+    br :encode
     :encode
     %v1 <- %v1 + 1
     :skip

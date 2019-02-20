@@ -29,7 +29,8 @@ define :loopTransform (%hello){
     %v1 <- %v1 + 4
     %count <- %count + 1
     %isDone <- %count >= 7
-    br %isDone :stop :loopStart
+    br %isDone :stop
+    br :loopStart
     :stop
     return
 }
@@ -46,7 +47,8 @@ define :math (){
 }
 
 define :transform (%v1){
-    br %v1 :add :next1
+    br %v1 :add
+    br :next1
     :add
     %v1 <- %v1 + 12
     %v1 <- %v1 + 234
@@ -62,11 +64,13 @@ define :transform (%v1){
     %v1 <- %v1 + 32
     %v1 <- %v1 + 31
     :next1
-    br %v1 :subtract :next2
+    br %v1 :subtract
+    br :next2
     :subtract
     %v1 <- %v1 - 6
     :next2
-    br %v1 :multiply :next3
+    br %v1 :multiply
+    br :next3
     :multiply
     %v1 <- %v1 * 2
     %v1 <- %v1 * 1
@@ -78,7 +82,8 @@ define :transform (%v1){
     %v1 <- %v1 * -12
     %v1 <- %v1 * -13
     :next3
-    br %v1 :and :next4
+    br %v1 :and
+    br :next4
     :and
     %v1 <- %v1 & 091823012
     %v1 <- %v1 & 283748234
@@ -93,11 +98,13 @@ define :transform (%v1){
     %v1 <- %v1 & 989891823
     %v1 <- %v1 & 98293849
     :next4
-    br %v1 :shiftLeft :next5
+    br %v1 :shiftLeft
+    br :next5
     :shiftLeft
     %v1 <- %v1 << 3
     :next5
-    br %v1 :shiftRight :next6
+    br %v1 :shiftRight
+    br :next6
     :shiftRight
     %v1 <- %v1 >> 2
     :next6
@@ -107,7 +114,8 @@ define :transform (%v1){
 define :encode (%v1){
     %isEncoded <- %v1 & 1
     %isEncoded <- %isEncoded = 1
-    br %isEncoded :skip :encode
+    br %isEncoded :skip
+    br :encode
     :encode
     %v1 <- %v1 + 1
     :skip

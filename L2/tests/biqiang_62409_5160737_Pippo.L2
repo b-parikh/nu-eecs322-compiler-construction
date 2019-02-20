@@ -27,6 +27,7 @@
     cjump rdi <= rsi :lessEq :greater
     :lessEq
     %retval <- 1
+    rax <- %retval
     return
     :greater
     %retval <- 3
@@ -37,6 +38,7 @@
     cjump rdi < rsi :less :greaterEq
     :less
     %retval <- 1
+    rax <- %retval
     return
     :greaterEq
     %retval <- 3

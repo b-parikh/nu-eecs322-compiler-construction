@@ -138,9 +138,9 @@ namespace L3 {
     }
   };
 
-//  template<> struct action < assign_operator > {
+//  template<> struct action < > {
 //    template < typename Input > static void apply (const Input &in, Program &p) {
-//        std::cerr << "assign oper called: " << in.string() << '\n';
+//        std::cerr << "runtime called: " << in.string() << '\n';
 //    }
 //  };
 
@@ -340,6 +340,7 @@ namespace L3 {
   template<> struct action < runtime_func > {
     template < typename Input > static void apply (const Input &in, Program &p) {
     // empty type; Instruction_runtime holds the function type information
+        std::cerr << "runtime function called: " << in.string() << '\n';
     parsed_strings.push_back(in.string());
     }
   };
