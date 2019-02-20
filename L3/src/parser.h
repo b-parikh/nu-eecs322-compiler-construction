@@ -279,17 +279,17 @@ struct runtime_func:
       >,
       seps,
       pegtl::one<'('>,
-      seps,
       pegtl::star<
         pegtl::seq<
+          seps,
           argument_call,
           seps,
           pegtl::opt<
-            pegtl::one<','>,
-            seps
+            pegtl::one<','>
           >
         >
       >,
+      seps,
       pegtl::one<')'>,
       seps
    > {};
@@ -344,9 +344,7 @@ struct runtime_func:
       seps,
       pegtl::one< '{' >,
       seps,
-      pegtl::star<
-        Instructions_rule,
-      >,
+      Instructions_rule,
       seps,
       pegtl::one< '}' >
     > {};

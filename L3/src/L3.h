@@ -25,6 +25,9 @@ namespace L3 {
         std::vector<Item*> Items;
         InstructionType Type;
 
+        Instruction* predecessor = nullptr;
+        Instruction* successor = nullptr;
+
         Arith_Operator Arith_Oper = Arith_Operator::nop; // for arithmetic instructions
         Compare_Operator Comp_Oper = Compare_Operator::nop; // for compare instructions
 

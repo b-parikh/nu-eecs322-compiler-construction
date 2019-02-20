@@ -19,6 +19,19 @@ namespace L3 {
   std::vector<Item*> parsed_items;
   std::vector<std::string> parsed_strings;
 
+  /*
+   * Predecessors and successors are the
+   * physical instructions that come before
+   * and after.
+   */
+  void attach_pred_succ(Instruction* ip, Function* fp) {
+      if(fp->instructions.size() == 0) // ip is first instruction
+          return;
+      
+      ip->predecessor = fp->instructions.back();
+      fp->instructions.back()->successor = ip;
+  }
+
   /* 
    * Actions attached to grammar rules.
    */
@@ -64,8 +77,10 @@ namespace L3 {
 	static void apply( const Input & in, Program & p){
       Instruction* i = new Instruction();
       i->Type = InstructionType::return_empty;
-      auto currentF = p.functions.back();
-      currentF->instructions.push_back(i);
+      auto currFunc = p.functions.back();
+
+      attach_pred_succ(i, currFunc);
+      currFunc->instructions.push_back(i);
     }
   };
 
@@ -78,6 +93,8 @@ namespace L3 {
       auto it = parsed_items.back(); // return __(it)__ 
       i->Items.push_back(it);
       parsed_items.clear();
+
+      attach_pred_succ(i, currentF);
       currentF->instructions.push_back(i);
     }
   };
@@ -96,7 +113,6 @@ namespace L3 {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
         auto i = new Item();
-        std::cerr << "var action called " << in.string() << '\n';
         i->Type = Atomic_Type::var;
 	    i->labelName = in.string();
 	    parsed_items.push_back(i);
@@ -106,7 +122,6 @@ namespace L3 {
   template<> struct action < number > {
     template < typename Input > static void apply (const Input &in, Program &p) {
       auto i = new Item();
-      std::cerr << "number action called " << in.string() << '\n';
       i->Type = Atomic_Type::num;
       i->labelName = in.string();
       parsed_items.push_back(i);
@@ -122,7 +137,9 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
+
     }
   };
 
@@ -169,7 +186,9 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
+
     }
   };
 
@@ -196,6 +215,8 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
+
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -209,6 +230,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -222,6 +244,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -235,7 +258,9 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
+
     }
   };
   
@@ -248,7 +273,9 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
+
     }
   };
 
@@ -274,7 +301,7 @@ namespace L3 {
 
         // handle vars and labels; know that parsed_items has exactly one thing
         else {
-            auto it = parsed_items.back();
+            auto it = parsed_items[0];
             i->Items.push_back(it);
             if(it->Type == Atomic_Type::var)
                i->calleeType = CalleeType::var;
@@ -289,6 +316,7 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -299,7 +327,6 @@ namespace L3 {
         Instruction* i = new Instruction();
         i->Type = InstructionType::call_assign;
 
-        std::cerr << "call assign called" << '\n';
         //handle assignment to variable
         Item* destination = parsed_items[0];
         i->Items.push_back(destination);
@@ -320,7 +347,7 @@ namespace L3 {
 
         // handle vars and labels; know that this is second thing in parsed_items
         else {
-            Item* it = parsed_items.back();
+            Item* it = parsed_items[1];
             i->Items.push_back(it);
             if(it->Type == Atomic_Type::var)
                i->calleeType = CalleeType::var;
@@ -333,14 +360,15 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
+
     }
   };
 
   template<> struct action < runtime_func > {
     template < typename Input > static void apply (const Input &in, Program &p) {
     // empty type; Instruction_runtime holds the function type information
-        std::cerr << "runtime function called: " << in.string() << '\n';
     parsed_strings.push_back(in.string());
     }
   };
@@ -354,6 +382,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
+        attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
