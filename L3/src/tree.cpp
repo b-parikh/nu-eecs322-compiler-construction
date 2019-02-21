@@ -3,6 +3,7 @@
 namespace L3 {
 
     Tree::Tree() {}
+    Tree::~Tree() {}
 
     Tree::Tree(Instruction* ip) {
         this->equivalent_instruction = ip;
