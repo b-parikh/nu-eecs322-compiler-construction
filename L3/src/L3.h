@@ -8,7 +8,7 @@ namespace L3 {
 
     enum class Compare_Operator{gr, geq, le, leq, eq, nop};
     enum class Arith_Operator{shift_left, shift_right, plus, minus, multiply, bw_and, nop};
-    enum class Atomic_Type{num, label, var};
+    enum class Atomic_Type{num, label, var, runtime}; // runtime for use in trees
     enum class CalleeType {print, allocate, array_error, var, label, no_callee};
     enum class InstructionType{assign, assign_compare, assign_load, assign_arithmetic, assign_store, return_empty, return_value, label, br_unconditional, br_conditional, call, call_assign};
 

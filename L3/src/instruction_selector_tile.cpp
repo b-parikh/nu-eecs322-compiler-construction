@@ -1,6 +1,8 @@
 #include <string>
 #include <iostream>
 #include <instruction_selector.h>
+#include <tree.h>
+#include <context.h>
 
 namespace L3 {
 
@@ -268,59 +270,59 @@ namespace L3 {
         return to_return;
     }
 
-	std::vector<std::vector<Instruction*>> identify_contexts (Function* fp) {
-		std::vector<std::vector<Instruction*>> contexts_ret;
-		std::vector<Instruction*> context;
+    std::vector<Context*> identify_contexts (Function* fp) {
+		std::vector<Context*> all_contexts;
+        Context* c = new Context();
 		for (auto &ip : fp->instructions) {
-			if(ip->Type == InstructionType::label && context.empty()) {
-				contexts_ret.push_back(context);
-				context.clear();
+			if(ip->Type == InstructionType::label && !(c->Instructions.empty())) {
+                all_contexts.push_back(c);
+                c = new Context();
 			}
-			context.push_back(ip);
+			c->Instructions.push_back(ip);
 			if(ip->Type == InstructionType::br_unconditional || ip->Type == InstructionType::br_conditional) {
-				contexts_ret.push_back(context);
-				context.clear();
+				all_contexts.push_back(c);
+                c = new Context();
 			}
 		}
-		return contexts_ret;
+        return all_contexts;
 	}
 
-	// TODO: complete this func
-	std::vector<Tree*> generate_trees(std::vector<std::vector<Instruction*>> context) {
-		std::vector<Tree*> trees;
-		for(auto &i : context) {
-			// TODO initalize the tree
-			for(auto &item : i->Items) {
-				// TODO: adds nodes
-			}
-		}
-
-		return trees;
-	}
-
-	// TODO: complete this func
-	std::vector<Tree*> merge_trees(std::vector<Tree*> forest) {
-		std::vector<Tree*> trees_ret;
-		for(auto &tree : forest) {
-			// TODO merge trees with rules
-			}
-		}
-
-		return trees_ret;
-	}
-
-	// TODO: complete this func
-	std::vector<L2::Instruction*> tile_instruction(std::vector<Tree*> trees) {
-		std::vector<L2::Instruction*> l2_instructions;
-		for(auto &tree : trees) {
-			// TODO generate L2 instructions with pre-defined tiles
-            L2::Instruction* i = new L2::Instruction();
-
-			}
-		}
-
-		return l2_instructions;
-	}
+//	// TODO: complete this func
+//	std::vector<Tree*> generate_trees(std::vector<std::vector<Instruction*>> context) {
+//		std::vector<Tree*> trees;
+//		for(auto &i : context) {
+//			// TODO initalize the tree
+//			for(auto &item : i->Items) {
+//				// TODO: adds nodes
+//			}
+//		}
+//
+//		return trees;
+//	}
+//
+//	// TODO: complete this func
+//	std::vector<Tree*> merge_trees(std::vector<Tree*> forest) {
+//		std::vector<Tree*> trees_ret;
+//		for(auto &tree : forest) {
+//			// TODO merge trees with rules
+//			}
+//		}
+//
+//		return trees_ret;
+//	}
+//
+//	// TODO: complete this func
+//	std::vector<L2::Instruction*> tile_instruction(std::vector<Tree*> trees) {
+//		std::vector<L2::Instruction*> l2_instructions;
+//		for(auto &tree : trees) {
+//			// TODO generate L2 instructions with pre-defined tiles
+//            L2::Instruction* i = new L2::Instruction();
+//
+//			}
+//		}
+//
+//		return l2_instructions;
+//	}
 
 	L2::Function* instruction_selection(Function* fp) {
 		L2::Function* new_F = new L2::Function();
@@ -339,23 +341,23 @@ namespace L3 {
         }
 
 		// 1. Go thru all instruction to define Contexts
-		std::vector<std::vector<Instruction*>> contexts = identify_contexts(fp);
-
-		// 2. gerenate trees, merge those, and tile them to create L2 instructions
-		for (auto &context : contexts) {
-			std::vector<Tree*> forest = generate_trees(context);
-
-			std::vector<Tree*> merged_trees = merge_trees(forest);
-
-			for (auto &tree : merged_trees) {
-				std::vector<L2::Instrunction*> l2_instructions = tile_instruction(tree);
-
-				for(auto &l2 : l2_instructions)
-					new_F->instructions.push_back(l2);
-			}
-		}
-
-		return new_F
+//		std::vector<Context*> all_contexts = identify_contexts(fp);
+//
+//		// 2. gerenate trees, merge those, and tile them to create L2 instructions
+//		for (auto &context : contexts) {
+//			std::vector<Tree*> forest = generate_trees(context);
+//
+//			std::vector<Tree*> merged_trees = merge_trees(forest);
+//
+//			for (auto &tree : merged_trees) {
+//				std::vector<L2::Instrunction*> l2_instructions = tile_instruction(tree);
+//
+//				for(auto &l2 : l2_instructions)
+//					new_F->instructions.push_back(l2);
+//			}
+//		}
+//
+//		return new_F
 
 
 		// TODO: Following can be used in tiling. Remove this after tiliing
