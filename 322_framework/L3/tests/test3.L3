@@ -1,7 +1,0 @@
-define :main ( ) {
-  return 0
-}
-
-define :myF (%v1){
-  return %v1
-}
