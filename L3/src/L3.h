@@ -2,9 +2,14 @@
 
 #include <vector>
 #include <string>
-//#include <cstdint>
+#include <unordered_set>
+#include <unordered_map>
 
 namespace L3 {
+
+    typedef std::unordered_set<std::string> set_of_str;
+    typedef std::vector<std::string> vector_of_str;
+    typedef std::unordered_map<std::string, set_of_str> str_to_set; 
 
     enum class Compare_Operator{gr, geq, le, leq, eq, nop};
     enum class Arith_Operator{shift_left, shift_right, plus, minus, multiply, bw_and, nop};
@@ -25,14 +30,19 @@ namespace L3 {
         std::vector<Item*> Items;
         InstructionType Type;
 
-        Instruction* predecessor = nullptr;
-        Instruction* successor = nullptr;
+        Instruction* predecessors;
+        std::vector<Instruction*> successors;
 
         Arith_Operator Arith_Oper = Arith_Operator::nop; // for arithmetic instructions
         Compare_Operator Comp_Oper = Compare_Operator::nop; // for compare instructions
 
         CalleeType calleeType = CalleeType::no_callee; // for call instructions
         std::vector<Item*> arguments; // for call instructions
+
+        set_of_str gen_set;
+        set_of_str kill_set;
+        set_of_str in_set;
+        set_of_str out_set;
     };
   
     // simple assignment (%b <- %a)

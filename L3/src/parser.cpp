@@ -24,13 +24,13 @@ namespace L3 {
    * physical instructions that come before
    * and after.
    */
-  void attach_pred_succ(Instruction* ip, Function* fp) {
-      if(fp->instructions.size() == 0) // ip is first instruction
-          return;
-      
-      ip->predecessor = fp->instructions.back();
-      fp->instructions.back()->successor = ip;
-  }
+//  void attach_pred_succ(Instruction* ip, Function* fp) {
+//      if(fp->instructions.size() == 0) // ip is first instruction
+//          return;
+//      
+//      ip->predecessor = fp->instructions.back();
+//      fp->instructions.back()->successor = ip;
+//  }
 
   /* 
    * Actions attached to grammar rules.
@@ -79,7 +79,7 @@ namespace L3 {
       i->Type = InstructionType::return_empty;
       auto currFunc = p.functions.back();
 
-      attach_pred_succ(i, currFunc);
+      //attach_pred_succ(i, currFunc);
       currFunc->instructions.push_back(i);
     }
   };
@@ -94,7 +94,7 @@ namespace L3 {
       i->Items.push_back(it);
       parsed_items.clear();
 
-      attach_pred_succ(i, currentF);
+      //attach_pred_succ(i, currentF);
       currentF->instructions.push_back(i);
     }
   };
@@ -137,7 +137,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
 
     }
@@ -186,7 +186,7 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
 
     }
@@ -216,7 +216,7 @@ namespace L3 {
         parsed_items.clear();
         parsed_strings.clear();
 
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -230,7 +230,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -244,7 +244,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -258,7 +258,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
 
     }
@@ -273,7 +273,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
 
     }
@@ -316,7 +316,7 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };
@@ -360,7 +360,7 @@ namespace L3 {
 
         parsed_items.clear();
         parsed_strings.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
 
     }
@@ -382,7 +382,7 @@ namespace L3 {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        attach_pred_succ(i, currFunc);
+        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
     }
   };

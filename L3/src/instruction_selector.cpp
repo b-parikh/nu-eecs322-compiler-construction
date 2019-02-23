@@ -285,6 +285,7 @@ namespace L3 {
             new_F->instructions.push_back(cci);
         }
 
+        //analyze(fp);
 		for (auto &ip : fp->instructions) {
 			if(ip->Type == InstructionType::assign){
                 L2::Instruction* i = new L2::Instruction();
@@ -442,11 +443,20 @@ namespace L3 {
 				item->labelName = "cjump";
 				i->items.push_back(*item);
                 
-                Instruction* ip_pred = ip->predecessor;
-                std::vector<L2::Item*> var_op_var = compare_operator_to_L2(ip_pred);
-                i->items.push_back(*(var_op_var[0]));
-                i->items.push_back(*(var_op_var[1]));
-                i->items.push_back(*(var_op_var[2]));
+//                Instruction* ip_pred = ip->predecessors;
+//                std::vector<L2::Item*> var_op_var = compare_operator_to_L2(ip_pred);
+//                i->items.push_back(*(var_op_var[0]));
+//                i->items.push_back(*(var_op_var[1]));
+//                i->items.push_back(*(var_op_var[2]));
+                L2::Item* var = createL2Item(ip->Items[0]->labelName, L2::Type::var);
+                i->items.push_back(*var);                
+
+                L2::Item* equal = createL2Item("=", L2::Type::var);
+                i->items.push_back(*equal);                
+                
+                L2::Item* one = createL2Item("1", L2::Type::var);
+                i->items.push_back(*one); 
+                           
 
                 L2::Item* label_item = createL2Item(ip->Items[1]->labelName, L2::Type::var);
 				i->items.push_back(*label_item);
