@@ -54,7 +54,7 @@ namespace L3 {
 	static void apply( const Input & in, Program & p){
       auto newF = new Function();
       newF->name = in.string();
-      if(newF->name == "main")
+      if(newF->name == ":main")
           newF->isMain = true;
 
       p.functions.push_back(newF);

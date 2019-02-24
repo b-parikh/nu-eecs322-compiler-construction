@@ -119,10 +119,10 @@ namespace L3{
  struct comparison_operator:
   pegtl::sor<
    pegtl::string<'<', '='>,
+   pegtl::string<'>','='>,
    pegtl::one<'<'>,
-   pegtl::one<'='>,
    pegtl::one<'>'>,
-   pegtl::string<'>','='>
+   pegtl::one<'='>
    > {};
 
   struct assign_arithmetic:

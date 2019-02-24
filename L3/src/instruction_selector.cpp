@@ -3,7 +3,6 @@
 #include <instruction_selector.h>
 
 namespace L3 {
-
     L2::Item* createL2Item(std::string labelName, L2::Type aType) {
         L2::Item* item = new L2::Item();
         item->labelName = labelName;
@@ -11,7 +10,6 @@ namespace L3 {
 
         return item;
     }
-
 
     L2::Item* choose_Arith_Oper(Instruction* ip){
         L2::Item* oper;
@@ -125,10 +123,9 @@ namespace L3 {
         mem_alloc->items.push_back(*assign_oper);
 
         // the last item in the instruction is the function being called
-        std::string ret_label = ip->Items[ip->Items.size() -1]->labelName;
-        ret_label.erase(0,1);
-        ret_label = ':' + ret_label;
-        ret_label = ret_label + '_' + callerName + '_' + std::to_string(return_label_count);
+        std::string func_label = ip->Items[ip->Items.size() -1]->labelName;
+        func_label.erase(0,1);
+        std::string ret_label = ':' + func_label + '_' + callerName + '_' + std::to_string(return_label_count);
         return_label_count++;
         L2::Item* ret_label_item = createL2Item(ret_label, L2::Type::label);
         mem_alloc->items.push_back(*ret_label_item);
@@ -138,22 +135,32 @@ namespace L3 {
         // store arguments in registers and maybe to the stack
         add_arguments(ip, instructs_to_ret, stack_loc);
 
+		// shadow the function label name
+        L2::Instruction* func_pointer = new L2::Instruction();
+		std::string var_shadow_name = '%' + func_label + "_shadow" + std::to_string(return_label_count);
+        L2::Item* var_shadow = createL2Item(var_shadow_name, L2::Type::var);
+		func_pointer->items.push_back(*var_shadow);
+	
+        L2::Item* assign_oper_2 = createL2Item("<-", L2::Type::assign_oper);
+        func_pointer->items.push_back(*assign_oper_2);	
 
+		L2::Item* func_label_2 = createL2Item(ip->Items[ip->Items.size() -1]->labelName, L2::Type::var);
+        func_pointer->items.push_back(*func_label_2);	
+
+        instructs_to_ret.push_back(func_pointer);
+
+		// Create actual call function
         L2::Instruction* call_I = new L2::Instruction();
         L2::Item* call = new L2::Item();
         call->labelName = "call";
         call->type = L2::Type::num;
+        call_I->items.push_back(*call);
 
-        L2::Item* fToCall = new L2::Item();
-        fToCall->labelName = ip->Items[ip->Items.size() - 1]->labelName;
-        fToCall->type = L2::Type::label;
+        call_I->items.push_back(*var_shadow);
 
         L2::Item* numArgs = new L2::Item();
         numArgs->labelName = std::to_string(ip->arguments.size());
         numArgs->type = L2::Type::num;
-
-        call_I->items.push_back(*call);
-        call_I->items.push_back(*fToCall);
         call_I->items.push_back(*numArgs);
 
         instructs_to_ret.push_back(call_I);
@@ -165,7 +172,6 @@ namespace L3 {
 
         return instructs_to_ret;
     }
-
 
     std::vector<L2::Instruction*> enforce_callee_convention(std::vector<Item*> arguments) {
         std::vector<std::string> ARG_REGISTERS = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -285,7 +291,6 @@ namespace L3 {
             new_F->instructions.push_back(cci);
         }
 
-        //analyze(fp);
 		for (auto &ip : fp->instructions) {
 			if(ip->Type == InstructionType::assign){
                 L2::Instruction* i = new L2::Instruction();
@@ -443,11 +448,6 @@ namespace L3 {
 				item->labelName = "cjump";
 				i->items.push_back(*item);
                 
-//                Instruction* ip_pred = ip->predecessors;
-//                std::vector<L2::Item*> var_op_var = compare_operator_to_L2(ip_pred);
-//                i->items.push_back(*(var_op_var[0]));
-//                i->items.push_back(*(var_op_var[1]));
-//                i->items.push_back(*(var_op_var[2]));
                 L2::Item* var = createL2Item(ip->Items[0]->labelName, L2::Type::var);
                 i->items.push_back(*var);                
 
@@ -471,7 +471,7 @@ namespace L3 {
                     callerConventionInstructions = enforce_runtime_caller_conv(ip, "array-error");
                 else
                     callerConventionInstructions = enforce_caller_convention(ip, callerName, return_label_count);
-                //std::cerr << "caller convention call\n";
+				//std::cerr << "caller convention call\n";
                 for(auto &i : callerConventionInstructions)
                     new_F->instructions.push_back(i);
 			} else { // call assign
@@ -501,7 +501,7 @@ namespace L3 {
 				new_F->instructions.push_back(i);
 			}
 
-            }
-		    return new_F;
         }
+		return new_F;
+    }
 }

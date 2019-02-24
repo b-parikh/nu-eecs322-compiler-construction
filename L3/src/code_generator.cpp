@@ -11,27 +11,33 @@
 using namespace std;
 
 namespace L3{
-    
+   
+	// replace all labels except function names 
     void replace_labels(Program &p) {
-        std::vector<std::string> allFunctionNames;
-        for(auto& fp : p.functions)
-            allFunctionNames.push_back(fp->name);
-        
         for(auto& fp : p.functions) {
             std::string functionName = fp->name;
             functionName.erase(0,1);
+
+			// Find all label in the function
+	        std::vector<std::string> allLabelNames;
+            for(auto &ip : fp->instructions) {
+                if(ip->Type == InstructionType::label) {
+                    //std::cout << ip->Items[0] ->labelName << '\n';
+                    allLabelNames.push_back(ip->Items[0]->labelName);
+                }
+            }
+
             for(auto &ip : fp->instructions) {
                 if(ip->Type != InstructionType::call && ip->Type != InstructionType::call_assign) {
                     for(auto &itp : ip->Items) {
                         if(itp->Type == Atomic_Type::label) {
-                            if(std::find(allFunctionNames.begin(), allFunctionNames.end(), itp->labelName) != allFunctionNames.end())
-                                continue;
-
-                            itp->labelName = itp->labelName + '_' + functionName;
+                            if(std::find(allLabelNames.begin(), allLabelNames.end(), itp->labelName) != allLabelNames.end())
+								itp->labelName = itp->labelName + '_' + functionName;
                         }
                     }
                 }
             }
+			allLabelNames.clear();
         }
     }
 
@@ -40,11 +46,11 @@ namespace L3{
       // put main at start of function list
       if(p.functions.size() > 1) {
         for(int i = 0; i < p.functions.size(); ++i){
+			//std::cerr<< p.functions[i]->name << ':' << p.functions[i]->isMain << '\n';
             if(p.functions[i]->isMain){
                 Function* temp = p.functions[i];
                 p.functions[i] = p.functions[0];
                 p.functions[0] = temp;
-                 //std::swap(p.functions[i],p.functions[0]);
                  break;
             }
         }
