@@ -24,8 +24,7 @@ namespace IR{
   int num_dim = 0;
 
   //var_Item parsed_Arg;
-  std::map<label_Item, basic_block> label_to_block;
-  basic_block* block_buffer;
+  basic_block block_buffer;
 
   /* 
    * Actions attached to grammar rules.
@@ -98,15 +97,13 @@ namespace IR{
 
   template<> struct action < assign > { // simple assign
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
         Instruction* i = new Instruction();
         i->Type = InstructionType::assign;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        currFunc->instructions.push_back(i);
-
+        block_buffer.instructions.push_back(i);
     }
   };
 
@@ -124,7 +121,6 @@ namespace IR{
 
   template<> struct action < assign_arithmetic > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
         Instruction* i = new Instruction();
         i->Type = InstructionType::assign_arithmetic;
         for(auto& it : parsed_items) {
@@ -148,14 +144,12 @@ namespace IR{
         parsed_items.clear();
         parsed_strings.clear();
 
-        currFunc->instructions.push_back(i);
-
+        block_buffer.instructions.push_back(i);
     }
   };
 
   template<> struct action < assign_comparison > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
         Instruction* i = new Instruction();
         i->Type = InstructionType::assign_compare;
         for(auto& it : parsed_items) {
@@ -177,42 +171,77 @@ namespace IR{
         parsed_items.clear();
         parsed_strings.clear();
 
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
+        block_buffer.instructions.push_back(i);
     }
   };
   
-  template<> struct action < assign_load > {
+  template<> struct action < assign_load_array > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
         Instruction* i = new Instruction();
-        i->Type = InstructionType::assign_load;
-        for(auto& it : parsed_items) {
-            i->Items.push_back(it);
+        i->Type = InstructionType::assign_load_array;
+        i->Items.push_back(parsed_items[0]);
+        i->Items.push_back(parsed_items[1]);
+        for(int i = 2; i < parsed_items.size(); ++i) {
+            i->array_access_location.push_back(parsed_items[i]);
         }
+        block_buffer.instructions.push_back(i);
         parsed_items.clear();
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
     }
   };
 
-  template<> struct action < assign_store > {
+  template<> struct action < assign_store_array > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
         Instruction* i = new Instruction();
-        i->Type = InstructionType::assign_store;
+        i->Type = InstructionType::assign_store_array;
+        i->Items.push_back(parsed_items[0]);
+        i->Items.push_back(parsed_items.back());
+        for(int i = 1; i < parsed_items.size() - 1; ++i) {
+            i->array_access_location.push_back(parsed_items[i]);
+        }
+        block_buffer.instructions.push_back(i);
+        parsed_items.clear();
+    }
+  };
+
+  template<> struct action < assign_length > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::assign_length;
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
-        parsed_items.clear();
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
+
+        block_buffer.instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < assign_new_array > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::assign_new_array;
+
+        i->Items.push_back(parsed_items[0]);
+        for(int i = 1; i < parsed_items.size(); ++i) {
+            i->arguments.push_back(it); // dimensions and sizes of each dimension
+        }
+
+        block_buffer.instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < assign_new_tuple > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::assign_new_tuple;
+
+        i->Items.push_back(parsed_items[0]);
+        i->arguments.push_back(parsed_items.back());
+        block_buffer.instructions.push_back(i);
     }
   };
 
   template<> struct action < call > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
         Instruction* i = new Instruction();
         i->Type = InstructionType::call;
         // handle runtime function calls
@@ -221,8 +250,6 @@ namespace IR{
 
             if(runtime == "print")
                 i->calleeType = CalleeType::print;
-            else if(runtime == "allocate")
-                i->calleeType = CalleeType::allocate;
             else // array-error
                 i->calleeType = CalleeType::array_error;
 
@@ -247,14 +274,13 @@ namespace IR{
 
         parsed_items.clear();
         parsed_strings.clear();
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
+
+        block_buffer.instructions.push_back(i);
     }
   };
 
   template<> struct action < call_assign > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
         Instruction* i = new Instruction();
         i->Type = InstructionType::call_assign;
 
@@ -267,8 +293,6 @@ namespace IR{
             std::string runtime = parsed_strings.back();
             if(runtime == "print")
                 i->calleeType = CalleeType::print;
-            else if(runtime == "allocate")
-                i->calleeType = CalleeType::allocate;
             else // array-error
                 i->calleeType = CalleeType::array_error;
 
@@ -291,8 +315,7 @@ namespace IR{
 
         parsed_items.clear();
         parsed_strings.clear();
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
+        block_buffer.instructions.push_back(i);
 
     }
   };
@@ -306,12 +329,6 @@ namespace IR{
 
   template<> struct action < label_instruction > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	  //Initialize block if this label is not the first instruction of the function
-	  if(block_buffer.empty)
-        block_buffer = new Basic_block();
-      //label_Item* first_label = new label_Item();
-      //block_buffer->starting_label;
-
       Instruction* i = new Instruction();
       i->Type = InstructionType::label;
       for(Item* it : parsed_items) {
@@ -321,7 +338,7 @@ namespace IR{
 
 	  i->Items.push_back(it);
 
-      block_buffer->instructions.push_back(i);
+      block_buffer.instructions.push_back(i);
     }
   };
 
@@ -331,7 +348,7 @@ namespace IR{
       Instruction* i = new Instruction();
       i->Type = InstructionType::return_empty;
 
-      block_buffer->instructions.push_back(i);
+      block_buffer.instructions.push_back(i);
     }
   };
 
@@ -345,7 +362,7 @@ namespace IR{
       i->Items.push_back(it);
       parsed_items.clear();
 
-      block_buffer->instructions.push_back(i);
+      block_buffer.instructions.push_back(i);
     }
   };
 
@@ -358,7 +375,7 @@ namespace IR{
         }
         parsed_items.clear();
 
-        block_buffer->instructions.push_back(i);
+        block_buffer.instructions.push_back(i);
     }
   };
   
@@ -371,7 +388,7 @@ namespace IR{
         }
         parsed_items.clear();
 
-        block_buffer->instructions.push_back(i);
+        block_buffer.instructions.push_back(i);
     }
   };
 
@@ -380,9 +397,14 @@ namespace IR{
     static void apply (const Input &in, Program &p) {
 	  auto currFunc = p.functions.back();
 
-	  currFunc->blocks.push_back(block_buffer);
+      Basic_block newBlock = new Basic_block();
+      newBlock->starting_label = block_buffer.starting_label;
+      newBlock->instructions = block_buffer.instructions;
+      newBlock->end_label = block_buffer.end_label;
 
-	  block_buffer.clear();
+	  currFunc->blocks.push_back(newBlock);
+
+	  block_buffer = {};
     }
   };
 
@@ -404,7 +426,6 @@ namespace IR{
     template < typename Input >
     static void apply (const Input &in, Program &p) {
         parsed_type = in.string();
-
     }
   };
 
@@ -429,21 +450,31 @@ namespace IR{
     }
   };
 
-  template<> struct action < init_var > {
-    template < typename Input >
-    static void apply (const Input &in, Program &p) {
-        Function* currFunc = p.functions.back();
-        BB* currBlock = currFunc.block.back();
-        Instruction* i = new Instruction();
-        if (parsed_type == "int64") {
-             int64_Var* var
-             i->Items.push_back(it);
-        } else if (parsed_type == "tuple") {          
-        
-        parsed_items.clear();
-        currBlock->instructions.push_back(i);
-    }
-  };
+//  template<> struct action < init_var > {
+//    template < typename Input >
+//    static void apply (const Input &in, Program &p) {
+//        Instruction* i = new Instruction();
+//        
+//        Item* varType = new Item();
+//        Item* varName = new Item();
+//
+//        if(parsed_type == "int64") {
+//        }
+//        else if(parsed_type == "tuple") {
+//        }
+//        else if(parsed_type == "code") {
+//        }
+//        else if(parsed_type == "void") {
+//        }
+//        else { // array type
+//        }
+//        num_dim = 0;
+//        parsed_type = "";
+//          
+//          parsed_items.clear();
+//          currBlock->instructions.push_back(i);
+//      }
+//  };
 
    template<> struct action < Function_declare > {
     template < typename Input >
@@ -471,14 +502,14 @@ namespace IR{
       parsed_type = "";
 
 	  // Function name
-      newF->name = in.string();
+      newF->name = parsed_items.back()->labelName;
       if(newF->name == ":main")
           newF->isMain = true;
 
       p.functions.push_back(newF);
 
 	  // Create the initial block
-	  block_buffer = new Basic_block();
+//	  block_buffer = new Basic_block();
     }
   };
 
@@ -508,21 +539,19 @@ namespace IR{
     template < typename Input >
     static void apply (const Input &in, Program &p) {
         Function* currF = p.functions.back();
-        var_Item* newItem;
+        Item* newItem = new Item();
+        newItem->itemType = Atomic_Type::var;
         if(parsed_type == "int64") {
-            newItem = new int64_Var();
             newItem->varType = VarType::int64_type;
         }
         else if(parsed_type == "tuple") {
-            newItem = new tuple_Var();
             newItem->varType = VarType::tuple_type;
+            newItem->numDimensions = num_dim;
         }
         else if(parsed_type == "code") {
-            newItem = new code_Var();
             newItem->varType = VarType::code_type;
         }
         else {
-            newItem = new arr_Var();
             newItem->varType = VarType::arr_type;
             newItem->numDimensions = num_dim;
         }

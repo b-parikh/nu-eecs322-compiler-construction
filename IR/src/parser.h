@@ -95,7 +95,7 @@ namespace IR{
   {};
 
   struct tuple_type:
-        pegtl::string<'t','u','p'.'l','e'>
+        pegtl::string<'t','u','p','l','e'>
   {};
 
   struct code_type:
@@ -153,7 +153,7 @@ namespace IR{
  struct comparison_operator:
   pegtl::sor<
    pegtl::string<'<', '='>,
-   pegtl::string<'>','='>
+   pegtl::string<'>','='>,
    pegtl::one<'<'>,
    pegtl::one<'>'>,
    pegtl::one<'='>
@@ -259,6 +259,8 @@ namespace IR{
 	pegtl::seq<
 	  seps,
 	  var,
+      seps,
+      assign_operator,
 	  seps,
 	  pegtl::string<'n', 'e', 'w'>,
 	  seps,
@@ -271,11 +273,12 @@ namespace IR{
 	  seps
 	> {};
 
-  //TODO
   struct assign_new_tuple:
 	pegtl::seq<
 	  seps,
 	  var,
+      seps,
+      assign_operator,
 	  seps,
 	  pegtl::string<'n', 'e', 'w'>,
 	  seps,
@@ -283,16 +286,33 @@ namespace IR{
 	  seps,
 	  pegtl::one<'('>,
 	  seps,
+      pegtl::sor<
+        var,
+        number
+      >,
+      seps,
 	  pegtl::one<')'>,
 	  seps
 
 	> {};
 
-  //TODO
-  struct assign_lenth:
+  struct assign_length:
 	pegtl::seq<
-
-	> {};
+        seps,
+        var,
+        seps,
+        assign_operator,
+        seps,
+        pegtl::string<'l','e','n','g','t','h'>,
+        seps,
+        var,
+        seps,
+        pegtl::sor<
+            var,
+            number
+        >,
+        seps
+    > {};
 
   struct runtime_func:
     pegtl::sor<
@@ -441,7 +461,7 @@ struct br_conditional:
         seps,
         Instructions_rule,
         seps,
-        end_block,
+        end_block
       > {}; 
 
   struct blocks:

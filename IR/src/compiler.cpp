@@ -61,7 +61,7 @@ int main(
   /*
    * Parse the input file.
    */
-  auto p = L3::parse_file(argv[optind]);
+  auto p = IR::parse_file(argv[optind]);
 
   /* 
    * Print the source program.
@@ -76,7 +76,7 @@ int main(
    * Generate L2.
    */
   if (enable_code_generator){
-    L3::generate_code(p);
+    IR::generate_code(p);
   }
 
   return 0;
