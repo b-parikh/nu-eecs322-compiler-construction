@@ -452,31 +452,42 @@ namespace IR{
     }
   };
 
-//  template<> struct action < init_var > {
-//    template < typename Input >
-//    static void apply (const Input &in, Program &p) {
-//        Instruction* i = new Instruction();
-//        
-//        Item* varType = new Item();
-//        Item* varName = new Item();
-//
-//        if(parsed_type == "int64") {
-//        }
-//        else if(parsed_type == "tuple") {
-//        }
-//        else if(parsed_type == "code") {
-//        }
-//        else if(parsed_type == "void") {
-//        }
-//        else { // array type
-//        }
-//        num_dim = 0;
-//        parsed_type = "";
-//          
-//          parsed_items.clear();
-//          currBlock->instructions.push_back(i);
-//      }
-//  };
+  template<> struct action < init_var > {
+    template < typename Input >
+    static void apply (const Input &in, Program &p) {
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::init_var;
+        
+        //Item* varType = new Item();
+        Item* varName = new Item();
+
+        if(parsed_type == "int64") {
+		  varName->varType = VarType::int64_type;
+        }
+        else if(parsed_type == "tuple") {
+		  varName->varType = VarType::tuple_type;
+        }
+        else if(parsed_type == "code") {
+		  varName->varType = VarType::code_type;
+        }
+        else if(parsed_type == "array") { // array type
+		  varName->varType = VarType::arr_type;
+		  varName->numDimensions = num_dim;
+        }
+        else {
+          std::cerr << "Incorrect var type: " << parsed_type << '\n';
+		}
+		varName->labelName = parsed_items.back()->labelName;
+		i->Items.push_back(varName);
+
+        //:std::cerr << parsed_type << ' ' << parsed_items.back()->labelName << '\n';
+        num_dim = 0;
+        parsed_type = "";
+        parsed_items.clear();
+
+        block_buffer.instructions.push_back(i);
+      }
+  };
 
    template<> struct action < Function_declare > {
     template < typename Input >
@@ -505,6 +516,7 @@ namespace IR{
 
 	  // Function name
       newF->name = parsed_items.back()->labelName;
+	  parsed_items.clear();
 
       p.functions.push_back(newF);
 
@@ -512,28 +524,6 @@ namespace IR{
 //	  block_buffer = new Basic_block();
     }
   };
-
-//   template<> struct action < arg_type > {
-//    template < typename Input >
-//    static void apply (const Input &in, Program &p) {
-//        if(parsed_type == "int64") {
-//            parsed_Arg.varType = VarType::int64_type;
-//        }
-//        else if(parsed_type == "tuple") {
-//            parsed_Arg.varType = VarType::tuple_type;
-//        }
-//        else if(parsed_type == "code") {
-//            parsed_Arg.varType = VarType::code_type;
-//        }
-//        else {
-//            parsed_Arg.varType = VarType::arr_type;
-//            newItem->numDimensions = num_dim;
-//        }
-//
-//        parsed_Arg = newItem;
-//        parsed_type = "";
-//    }
-//  };
 
    template<> struct action < arg_var > {
     template < typename Input >

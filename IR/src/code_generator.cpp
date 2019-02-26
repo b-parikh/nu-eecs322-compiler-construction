@@ -178,7 +178,6 @@ namespace IR{
             ret_vectors.push_back(ret_strings);
         } else { //init_var
 			// std::cerr << "init_var"; // init_var does not print anything for L3
-			return ret_vectors;
         }
 
 		return ret_vectors;
@@ -202,7 +201,7 @@ namespace IR{
 		  if (arg_size > 0) {
 		    for(int i = 0; i < arg_size - 1; i++)
 			  outputFile << fp->arguments[i]->labelName << ", ";
-		    outputFile << fp->arguments[arg_size - 1];
+		    outputFile << fp->arguments[arg_size - 1]->labelName;
 		  }
 		  outputFile << ") {\n";
 
@@ -210,8 +209,8 @@ namespace IR{
 		  std::string longest_var = get_longest_varname(fp);
 
 	      for(auto &bp : fp->blocks) {
+//			std::cerr << fp->name << '\n';
             for(auto &ip : bp->instructions) {
-//			  std::cerr << fp->name << ' ';
 //			  for (auto &item : ip->Items)
 //				std::cerr << item->labelName << ' ';
 //			  std::cerr << '\n';
