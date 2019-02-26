@@ -240,15 +240,51 @@ namespace IR{
         seps
      > {};
 
-  //TODO
+  struct args:
+    pegtl::seq<
+      pegtl::sor<
+        var,
+        number
+      >,
+      seps,
+      pegtl::opt<
+		pegtl::seq<
+		  pegtl::one<','>,
+		  seps
+		>
+      >
+    > {};
+
   struct assign_new_array:
 	pegtl::seq<
-
+	  seps,
+	  var,
+	  seps,
+	  pegtl::string<'n', 'e', 'w'>,
+	  seps,
+	  pegtl::string<'A', 'r', 'r', 'a', 'y'>,
+	  seps,
+	  pegtl::one<'('>,
+	  seps,
+	  pegtl::plus<args>,
+	  pegtl::one<')'>,
+	  seps
 	> {};
 
   //TODO
   struct assign_new_tuple:
 	pegtl::seq<
+	  seps,
+	  var,
+	  seps,
+	  pegtl::string<'n', 'e', 'w'>,
+	  seps,
+	  pegtl::string<'T', 'u', 'p', 'l', 'e'>,
+	  seps,
+	  pegtl::one<'('>,
+	  seps,
+	  pegtl::one<')'>,
+	  seps
 
 	> {};
 
@@ -272,12 +308,6 @@ namespace IR{
        var
      > {};
 
- struct argument_call: 
-     pegtl::sor<
-        var,
-        number
-     > {};
- 
  struct call:
    pegtl::seq<
     seps,
@@ -290,17 +320,8 @@ namespace IR{
     >,
     seps,
     pegtl::one<'('>,
-    pegtl::star<
-        pegtl::seq<
-            seps,
-            argument_call,
-            seps,
-            pegtl::opt<
-                pegtl::one<','>
-            >
-        >
-    >,
-    seps,
+	seps,
+    pegtl::star<args>,
     pegtl::one<')'>,
     seps
    > {};
@@ -321,17 +342,8 @@ namespace IR{
       >,
       seps,
       pegtl::one<'('>,
-      pegtl::star<
-        pegtl::seq<
-          seps,
-          argument_call,
-          seps,
-          pegtl::opt<
-            pegtl::one<','>
-          >
-        >
-      >,
-      seps,
+	  seps,
+      pegtl::star<args>,
       pegtl::one<')'>,
       seps
    > {};
