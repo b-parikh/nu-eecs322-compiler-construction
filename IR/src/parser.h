@@ -481,12 +481,12 @@ struct br_conditional:
 
   struct Function_declare:
 	pegtl::seq<
-	  Label_rule,
-	  seps,
       pegtl::sor<
         var_type,
         void_type
-      >
+      >,
+	  seps,
+      Label_rule
 	> {};
   
   struct Function_rule:
@@ -496,16 +496,18 @@ struct br_conditional:
       Function_declare,
       seps,
       pegtl::one<'('>,
+	  seps,
       pegtl::star<
-          seps,
           arg_type,
           seps,
           arg_var,
           seps,
           pegtl::opt<
-              pegtl::one<','>
-          >,
-          seps    
+			pegtl::seq<
+              pegtl::one<','>,
+			  seps
+			>
+          >
       >,
       pegtl::one<')'>,
       seps,

@@ -24,6 +24,10 @@ namespace IR{
 		        }
 	        }
         }
+
+		// remove % sign
+		longest_var.erase(0,1);
+
 	    return longest_var;
     }
 
@@ -206,7 +210,8 @@ namespace IR{
 		  // Get the longest var that will be used in the array-related functions
 		  std::string longest_var = get_longest_varname(fp);
 
-          for(auto &ip : fp->instructions) {
+	      for(auto &bp : fp->blocks) {
+            for(auto &ip : bp->instructions) {
 			  std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_var);
 			  if (!to_print.empty()) { //init_var does not print anything for L3
 			    for(auto vec_str : to_print) {
@@ -216,6 +221,7 @@ namespace IR{
                 }
                 outputFile << '\n';
 			  }
+		    }
           }
           outputFile << "}\n";
       }
