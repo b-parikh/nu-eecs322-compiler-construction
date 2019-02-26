@@ -55,11 +55,11 @@ namespace IR {
         std::vector<Item*> arguments; // for call instructions
     };
   
-    struct basic_block {
+    struct Basic_block {
         label_Item* starting_label;
         std::vector<Instruction*> instructions;
         std::vector<label_Item> end_label;
-        std::<basic_block*> next_block;
+        std::vector<basic_block*> next_block;
     };
 
     /*

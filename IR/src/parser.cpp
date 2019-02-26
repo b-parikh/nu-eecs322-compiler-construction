@@ -44,17 +44,17 @@ namespace IR{
       }
   };
 
-  template<> struct action < function_name > {
-    template< typename Input >
-	static void apply( const Input & in, Program & p){
-      auto newF = new Function();
-      newF->name = in.string();
-      if(newF->name == "main")
-          newF->isMain = true;
-
-      p.functions.push_back(newF);
-    }
-  };
+//  template<> struct action < function_name > {
+//    template< typename Input >
+//	static void apply( const Input & in, Program & p){
+//      auto newF = new Function();
+//      newF->name = in.string();
+//      if(newF->name == "main")
+//          newF->isMain = true;
+//
+//      p.functions.push_back(newF);
+//    }
+//  };
 
   template<> struct action < argument_define > {
       template< typename Input >
@@ -65,32 +65,6 @@ namespace IR{
               auto curr_F = p.functions.back();
               curr_F->arguments.push_back(it);
           }
-  };
-
-  template<> struct action < return_empty > {
-    template< typename Input >
-	static void apply( const Input & in, Program & p){
-      Instruction* i = new Instruction();
-      i->Type = InstructionType::return_empty;
-      auto currFunc = p.functions.back();
-
-      //attach_pred_succ(i, currFunc);
-      currFunc->instructions.push_back(i);
-    }
-  };
-
-  template<> struct action < return_value > {
-    template< typename Input >
-	static void apply( const Input & in, Program & p){
-      auto currentF = p.functions.back();
-      Instruction* i = new Instruction(); // return instruction struct
-      i->Type = InstructionType::return_value;
-      auto it = parsed_items.back(); // return __(it)__ 
-      i->Items.push_back(it);
-      parsed_items.clear();
-
-      currentF->instructions.push_back(i);
-    }
   };
 
   template<> struct action < Label_rule > {
@@ -131,7 +105,6 @@ namespace IR{
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
 
     }
@@ -148,12 +121,6 @@ namespace IR{
 	    parsed_strings.push_back(in.string());
     }
   };
-
-//  template<> struct action < > {
-//    template < typename Input > static void apply (const Input &in, Program &p) {
-//        std::cerr << "runtime called: " << in.string() << '\n';
-//    }
-//  };
 
   template<> struct action < assign_arithmetic > {
     template < typename Input > static void apply (const Input &in, Program &p) {
@@ -180,7 +147,7 @@ namespace IR{
 
         parsed_items.clear();
         parsed_strings.clear();
-        //attach_pred_succ(i, currFunc);
+
         currFunc->instructions.push_back(i);
 
     }
@@ -240,36 +207,6 @@ namespace IR{
         parsed_items.clear();
         //attach_pred_succ(i, currFunc);
         currFunc->instructions.push_back(i);
-    }
-  };
-
-  template<> struct action < br_unconditional > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
-        Instruction* i = new Instruction();
-        i->Type = InstructionType::br_unconditional;
-        for(auto& it : parsed_items) {
-            i->Items.push_back(it);
-        }
-        parsed_items.clear();
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
-
-    }
-  };
-  
-  template<> struct action < br_conditional > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currFunc = p.functions.back();
-        Instruction* i = new Instruction();
-        i->Type = InstructionType::br_conditional;
-        for(auto& it : parsed_items) {
-            i->Items.push_back(it);
-        }
-        parsed_items.clear();
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
-
     }
   };
 
@@ -369,15 +306,83 @@ namespace IR{
 
   template<> struct action < label_instruction > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    Function* currFunc = p.functions.back();
+	  //Initialize block if this label is not the first instruction of the function
+	  if(block_buffer.empty)
+        block_buffer = new Basic_block();
+      //label_Item* first_label = new label_Item();
+      //block_buffer->starting_label;
+
+      Instruction* i = new Instruction();
+      i->Type = InstructionType::label;
+      for(Item* it : parsed_items) {
+          i->Items.push_back(it);
+      }
+      parsed_items.clear();
+
+	  i->Items.push_back(it);
+
+      block_buffer->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < return_empty > {
+    template< typename Input >
+	static void apply( const Input & in, Program & p){
+      Instruction* i = new Instruction();
+      i->Type = InstructionType::return_empty;
+
+      block_buffer->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < return_value > {
+    template< typename Input >
+	static void apply( const Input & in, Program & p){
+      Instruction* i = new Instruction(); // return instruction struct
+      i->Type = InstructionType::return_value;
+
+      auto it = parsed_items.back(); // return __(it)__ 
+      i->Items.push_back(it);
+      parsed_items.clear();
+
+      block_buffer->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < br_unconditional > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
         Instruction* i = new Instruction();
-        i->Type = InstructionType::label;
-        for(Item* it : parsed_items) {
+        i->Type = InstructionType::br_unconditional;
+        for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        //attach_pred_succ(i, currFunc);
-        currFunc->instructions.push_back(i);
+
+        block_buffer->instructions.push_back(i);
+    }
+  };
+  
+  template<> struct action < br_conditional > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::br_conditional;
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+
+        block_buffer->instructions.push_back(i);
+    }
+  };
+
+   template<> struct action < end_block > {
+    template < typename Input >
+    static void apply (const Input &in, Program &p) {
+	  auto currFunc = p.functions.back();
+
+	  currFunc->blocks.push_back(block_buffer);
+
+	  block_buffer.clear();
     }
   };
 
@@ -440,30 +445,40 @@ namespace IR{
     }
   };
 
-   template<> struct action < Function_return_type > {
+   template<> struct action < Function_declare > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-        Function* currF = p.functions.back();
+      auto newF = new Function();
 
-        if(parsed_type == "int64") {
-            currF->returnType = VarType::int64_type;
-        }
-        else if(parsed_type == "tuple") {
-            currF->returnType = VarType::tuple_type;
-        }
-        else if(parsed_type == "code") {
-            currF->returnType = VarType::code_type;
-        }
-        else if(parsed_type == "void") {
-            currF->returnType = VarType::void_type;
-        }
-        else { // array type
-            // TODO: store num_dim in function?
-            currF->returnType = VarType::arr_type;
-        }
-        num_dim = 0;
+	  // Function return type
+      if(parsed_type == "int64") {
+          newF->returnType = VarType::int64_type;
+      }
+      else if(parsed_type == "tuple") {
+          newF->returnType = VarType::tuple_type;
+      }
+      else if(parsed_type == "code") {
+          newF->returnType = VarType::code_type;
+      }
+      else if(parsed_type == "void") {
+          newF->returnType = VarType::void_type;
+      }
+      else { // array type
+          // TODO: store num_dim in function?
+          newF->returnType = VarType::arr_type;
+      }
+      num_dim = 0;
+      parsed_type = "";
 
-        parsed_type = "";
+	  // Function name
+      newF->name = in.string();
+      if(newF->name == ":main")
+          newF->isMain = true;
+
+      p.functions.push_back(newF);
+
+	  // Create the initial block
+	  block_buffer = new Basic_block();
     }
   };
 
@@ -518,20 +533,6 @@ namespace IR{
         parsed_Arg = {};
     }
   };
-
-   template<> struct action < start_block > {
-    template < typename Input >
-    static void apply (const Input &in, Program &p) {
-        block_buffer = new basic_block();
-        label_Item* first_label = new label_Item();
-        block_buffer->starting_label;
-
-
-    }
-  };
-
-
-
 
   Program parse_file (char *fileName){
 
