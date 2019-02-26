@@ -18,7 +18,7 @@
 #include <map>
 #include <string>
 
-using namespace IR {
+namespace IR {
     
     void build_label_block_map(Program &p) {
         // return block creation
@@ -42,14 +42,14 @@ using namespace IR {
 
             // guaranteed to be br or return  
             Instruction* final_i = bp->instructions.back();
-            if(final_i->Type == br_conditional) { // last two Items are labels
+            if(final_i->Type == InstructionType::br_conditional) { // last two Items are labels
                 Item* label1 = final_i->Items[final_i->Items.size() - 2];
                 Item* label2 = final_i->Items[final_i->Items.size() - 1];
 
                 bp->next_block.push_back(label_to_block[label1.labelName]);
                 bp->next_block.push_back(label_to_block[label2.labelName]);
             }
-            else if(final_t->Type == br_unconditional) {
+            else if(final_t->Type == InstructionType::br_unconditional) {
                 Item* label = final_i->Items.back(); // last item is label
 
                 bp->next_block.push_back(label_to_block[label.labelName]);
@@ -59,8 +59,4 @@ using namespace IR {
             }
         }
     }
-
-    
-
 }
-

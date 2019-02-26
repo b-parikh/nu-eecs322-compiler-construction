@@ -9,12 +9,12 @@
 using namespace std;
 
 namespace IR{
-	std::string get_longest_var(Function* fp) {
+	std::string get_longest_varname(Function* fp) {
 	  std::string longest_var;
 	  int longest_var_len = 0;
 	  for(auto &ip : fp->instructions) {
 		for(auto&item : ip->Items) {
-		  if(item->itemType == var) {
+		  if(item->itemType == Atomic_Type::var) {
 			if(item->labelName.length() > longest_var_len) {
 			  longest_var = item->labelName;
 			  longest_var_len = item->labelName.length();
@@ -26,8 +26,8 @@ namespace IR{
 	  return longest_var;
 	}
 
-    std::vector<std::vector<string>> convert_instruction(Instruction* i, string long_var) {
-        std::vector<<std::vector<string>> ret_vectors;
+    std::vector<std::vector<string>> convert_instruction(Instruction* ip, string long_var) {
+        std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
 
         if(ip->Type == InstructionType::assign) { //as it is
@@ -104,16 +104,16 @@ namespace IR{
 			else // var, label
 			  ret_strings.push_back(ip->Items[0]->labelName);
 
-			ret_strings.push_back('(');
+			ret_strings.push_back("(");
 
-    		int arg_size = ip->arguments.size()
+    		int arg_size = ip->arguments.size();
     		if (arg_size > 0) {
     		  for(int i = 0; i < arg_size - 1; i++)
     			ret_strings.push_back(ip->arguments[i]->labelName + ",");
-    		  outputFile << ip->arguments[arg_size - 1];
+    		  ret_strings.push_back(ip->arguments[arg_size - 1]->labelName);
     		}
   
-			ret_strings.push_back(')');
+			ret_strings.push_back(")");
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::call_assign) { // as it is 
@@ -128,16 +128,16 @@ namespace IR{
 			else // var, label
 			  ret_strings.push_back(ip->Items[1]->labelName);
 
-			ret_strings.push_back('(');
+			ret_strings.push_back("(");
 
-    		int arg_size = ip->arguments.size()
+    		int arg_size = ip->arguments.size();
     		if (arg_size > 0) {
     		  for(int i = 0; i < arg_size - 1; i++)
     			ret_strings.push_back(ip->arguments[i]->labelName + ",");
-    		  outputFile << ip->arguments[arg_size - 1];
+    		  ret_strings.push_back(ip->arguments[arg_size - 1]->labelName);
     		}
   
-			ret_strings.push_back(')');
+			ret_strings.push_back(")");
 
             ret_vectors.push_back(ret_strings);
 
@@ -194,7 +194,7 @@ namespace IR{
           
 		  // PRINT initial line of the function
           outputFile << "define " << fp->name << " (";
-		  int arg_size = fp->arguments.size()
+		  int arg_size = fp->arguments.size();
 		  if (arg_size > 0) {
 		    for(int i = 0; i < arg_size - 1; i++)
 			  outputFile << fp->arguments[i]->labelName << ", ";
@@ -207,7 +207,7 @@ namespace IR{
 
           for(auto &ip : fp->instructions) {
 			  std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_var);
-			  if (!to_print.empty) { //init_var does not print anything for L3
+			  if (!to_print.empty()) { //init_var does not print anything for L3
 			    for(auto vec_str : to_print) {
                   outputFile << "\t";
                   for(auto str : vec_str)

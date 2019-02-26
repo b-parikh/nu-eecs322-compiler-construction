@@ -24,7 +24,7 @@ namespace IR{
   int num_dim = 0;
 
   //var_Item parsed_Arg;
-  basic_block block_buffer;
+  Basic_block block_buffer;
 
   /* 
    * Actions attached to grammar rules.
@@ -55,23 +55,23 @@ namespace IR{
 //    }
 //  };
 
-  template<> struct action < argument_define > {
-      template< typename Input >
-          static void apply(const Input& in, Program& p) {
-              auto it = new Item();
-              it->labelName = in.string();
-              it->Type = Atomic_Type::var;
-              auto curr_F = p.functions.back();
-              curr_F->arguments.push_back(it);
-          }
-  };
-
+//  template<> struct action < argument_define > {
+//      template< typename Input >
+//          static void apply(const Input& in, Program& p) {
+//              auto it = new Item();
+//              it->labelName = in.string();
+//              it->Type = Atomic_Type::var;
+//              auto curr_F = p.functions.back();
+//              curr_F->arguments.push_back(it);
+//          }
+//  };
+//
   template<> struct action < Label_rule > {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
       auto i = new Item();
       i->labelName = in.string();
-      i->Type = Atomic_Type::label;
+      i->itemType = Atomic_Type::label;
       parsed_items.push_back(i);
     }
   };
@@ -80,7 +80,7 @@ namespace IR{
     template < typename Input >
     static void apply (const Input &in, Program &p) {
         auto i = new Item();
-        i->Type = Atomic_Type::var;
+        i->itemType = Atomic_Type::var;
 	    i->labelName = in.string();
 	    parsed_items.push_back(i);
     }
@@ -89,7 +89,7 @@ namespace IR{
   template<> struct action < number > {
     template < typename Input > static void apply (const Input &in, Program &p) {
       auto i = new Item();
-      i->Type = Atomic_Type::num;
+      i->itemType = Atomic_Type::num;
       i->labelName = in.string();
       parsed_items.push_back(i);
     }
@@ -181,8 +181,8 @@ namespace IR{
         i->Type = InstructionType::assign_load_array;
         i->Items.push_back(parsed_items[0]);
         i->Items.push_back(parsed_items[1]);
-        for(int i = 2; i < parsed_items.size(); ++i) {
-            i->array_access_location.push_back(parsed_items[i]);
+        for(int j = 2; j < parsed_items.size(); ++j) {
+            i->array_access_location.push_back(parsed_items[j]);
         }
         block_buffer.instructions.push_back(i);
         parsed_items.clear();
@@ -195,8 +195,8 @@ namespace IR{
         i->Type = InstructionType::assign_store_array;
         i->Items.push_back(parsed_items[0]);
         i->Items.push_back(parsed_items.back());
-        for(int i = 1; i < parsed_items.size() - 1; ++i) {
-            i->array_access_location.push_back(parsed_items[i]);
+        for(int j = 1; j < parsed_items.size() - 1; ++j) {
+            i->array_access_location.push_back(parsed_items[j]);
         }
         block_buffer.instructions.push_back(i);
         parsed_items.clear();
@@ -221,8 +221,8 @@ namespace IR{
         i->Type = InstructionType::assign_new_array;
 
         i->Items.push_back(parsed_items[0]);
-        for(int i = 1; i < parsed_items.size(); ++i) {
-            i->arguments.push_back(it); // dimensions and sizes of each dimension
+        for(int it = 1; it < parsed_items.size(); ++it) {
+            i->arguments.push_back(parsed_items[it]); // dimensions and sizes of each dimension
         }
 
         block_buffer.instructions.push_back(i);
@@ -261,9 +261,9 @@ namespace IR{
         else {
             auto it = parsed_items[0];
             i->Items.push_back(it);
-            if(it->Type == Atomic_Type::var)
+            if(it->itemType == Atomic_Type::var)
                i->calleeType = CalleeType::var;
-            else if(it->Type == Atomic_Type::label)
+            else if(it->itemType == Atomic_Type::label)
                i->calleeType = CalleeType::label;
 
             // we know that the first Item in parsed_items is the function label
@@ -304,9 +304,9 @@ namespace IR{
         else {
             Item* it = parsed_items[1];
             i->Items.push_back(it);
-            if(it->Type == Atomic_Type::var)
+            if(it->itemType == Atomic_Type::var)
                i->calleeType = CalleeType::var;
-            else if(it->Type == Atomic_Type::label)
+            else if(it->itemType == Atomic_Type::label)
                i->calleeType = CalleeType::label; 
 
             for(int j = 2; j < parsed_items.size(); ++j)
@@ -335,8 +335,6 @@ namespace IR{
           i->Items.push_back(it);
       }
       parsed_items.clear();
-
-	  i->Items.push_back(it);
 
       block_buffer.instructions.push_back(i);
     }
@@ -397,7 +395,7 @@ namespace IR{
     static void apply (const Input &in, Program &p) {
 	  auto currFunc = p.functions.back();
 
-      Basic_block newBlock = new Basic_block();
+      Basic_block* newBlock = new Basic_block();
       newBlock->starting_label = block_buffer.starting_label;
       newBlock->instructions = block_buffer.instructions;
       newBlock->end_label = block_buffer.end_label;
@@ -503,8 +501,6 @@ namespace IR{
 
 	  // Function name
       newF->name = parsed_items.back()->labelName;
-      if(newF->name == ":main")
-          newF->isMain = true;
 
       p.functions.push_back(newF);
 
@@ -559,7 +555,6 @@ namespace IR{
         newItem->labelName = in.string();
         num_dim = 0;
         currF->arguments.push_back(newItem);
-        parsed_Arg = {};
     }
   };
 

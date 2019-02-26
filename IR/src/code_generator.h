@@ -1,7 +1,7 @@
 #pragma once
 
-#include <L3.h>
+#include <IR.h>
 
-namespace L3{
+namespace IR{
   void generate_code(Program p);
 }
