@@ -90,15 +90,15 @@ namespace IR{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_load_array) {
-
+		  return ret_vectors;
 		} else if(ip->Type == InstructionType::assign_store_array) {
-
+		  return ret_vectors;
 		} else if(ip->Type == InstructionType::assign_new_array) {
-
+		  return ret_vectors;
 		} else if(ip->Type == InstructionType::assign_new_tuple) {
-
+		  return ret_vectors;
 		} else if(ip->Type == InstructionType::assign_length) {
-
+		  return ret_vectors;
 		} else if(ip->Type == InstructionType::call) { // as it is
 			ret_strings.push_back("call");
 
@@ -178,13 +178,13 @@ namespace IR{
             ret_vectors.push_back(ret_strings);
         } else { //init_var
 			// std::cerr << "init_var"; // init_var does not print anything for L3
+			return ret_vectors;
         }
 
 		return ret_vectors;
     } 
 
     void generate_code(Program p){
-      
       /* 
        * Open the output file.
       */
@@ -194,7 +194,6 @@ namespace IR{
       /* 
        * Generate L3 code
        */ 
-  
       for(auto& fp: p.functions) {
           
 		  // PRINT initial line of the function
@@ -205,25 +204,30 @@ namespace IR{
 			  outputFile << fp->arguments[i]->labelName << ", ";
 		    outputFile << fp->arguments[arg_size - 1];
 		  }
-		  outputFile << ") {";
+		  outputFile << ") {\n";
 
 		  // Get the longest var that will be used in the array-related functions
 		  std::string longest_var = get_longest_varname(fp);
 
 	      for(auto &bp : fp->blocks) {
             for(auto &ip : bp->instructions) {
+//			  std::cerr << fp->name << ' ';
+//			  for (auto &item : ip->Items)
+//				std::cerr << item->labelName << ' ';
+//			  std::cerr << '\n';
 			  std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_var);
 			  if (!to_print.empty()) { //init_var does not print anything for L3
 			    for(auto vec_str : to_print) {
                   outputFile << "\t";
                   for(auto str : vec_str)
                     outputFile << str << ' ';
+                  outputFile << '\n';
                 }
-                outputFile << '\n';
 			  }
 		    }
+			outputFile << '\n'; // line break for the new block
           }
-          outputFile << "}\n";
+          outputFile << "}\n\n";
       }
       outputFile << '\n';
 

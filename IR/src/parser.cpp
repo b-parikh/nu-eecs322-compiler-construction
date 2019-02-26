@@ -212,6 +212,7 @@ namespace IR{
         }
 
         block_buffer.instructions.push_back(i);
+        parsed_items.clear();
     }
   };
 
@@ -226,6 +227,7 @@ namespace IR{
         }
 
         block_buffer.instructions.push_back(i);
+        parsed_items.clear();
     }
   };
 
@@ -236,7 +238,9 @@ namespace IR{
 
         i->Items.push_back(parsed_items[0]);
         i->arguments.push_back(parsed_items.back());
+
         block_buffer.instructions.push_back(i);
+        parsed_items.clear();
     }
   };
 
