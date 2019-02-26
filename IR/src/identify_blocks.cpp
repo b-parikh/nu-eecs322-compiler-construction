@@ -28,14 +28,15 @@ namespace IR {
 
         for(auto& fp : p.functions) {
             for(auto& bp : fp->blocks) {
-                fp->label_to_block[bp->labelName] = bp;
+                std::string first_label = bp->instructions[0]->Items.back()->labelName; // first instruction is label
+                fp->label_to_block[first_label] = bp;
             }
             fp->label_to_block["return"] = p.empty_block;
         }
     }
 
     void connect_blocks(Function* fp) {
-        std::map label_to_block = fp->label_to_block;
+        std::map<std::string, Basic_block*> label_to_block = fp->label_to_block;
         for(auto& bp : fp->blocks) {
             // for every block, push back to its next_block based on its last
             // instruction's labels and the function's label_to_block map
@@ -46,13 +47,13 @@ namespace IR {
                 Item* label1 = final_i->Items[final_i->Items.size() - 2];
                 Item* label2 = final_i->Items[final_i->Items.size() - 1];
 
-                bp->next_block.push_back(label_to_block[label1.labelName]);
-                bp->next_block.push_back(label_to_block[label2.labelName]);
+                bp->next_block.push_back(label_to_block[label1->labelName]);
+                bp->next_block.push_back(label_to_block[label2->labelName]);
             }
-            else if(final_t->Type == InstructionType::br_unconditional) {
+            else if(final_i->Type == InstructionType::br_unconditional) {
                 Item* label = final_i->Items.back(); // last item is label
 
-                bp->next_block.push_back(label_to_block[label.labelName]);
+                bp->next_block.push_back(label_to_block[label->labelName]);
             }
             else { // return instruction
                 bp->next_block.push_back(label_to_block["return"]);

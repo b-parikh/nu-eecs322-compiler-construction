@@ -10,21 +10,22 @@ using namespace std;
 
 namespace IR{
 	std::string get_longest_varname(Function* fp) {
-	  std::string longest_var;
-	  int longest_var_len = 0;
-	  for(auto &ip : fp->instructions) {
-		for(auto&item : ip->Items) {
-		  if(item->itemType == Atomic_Type::var) {
-			if(item->labelName.length() > longest_var_len) {
-			  longest_var = item->labelName;
-			  longest_var_len = item->labelName.length();
-			}
-		  }
-		}
-	  }
-	
-	  return longest_var;
-	}
+	    std::string longest_var;
+	    int longest_var_len = 0;
+	    for(auto &bp : fp->blocks) {
+		    for(auto &instruct : bp->instructions) {
+                for(auto &item : instruct->Items) {
+    		        if(item->itemType == Atomic_Type::var) {
+    		  	        if(item->labelName.length() > longest_var_len) {
+    			            longest_var = item->labelName;
+    			            longest_var_len = item->labelName.length();
+    		            }
+    		        }
+		        }
+	        }
+        }
+	    return longest_var;
+    }
 
     std::vector<std::vector<string>> convert_instruction(Instruction* ip, string long_var) {
         std::vector<std::vector<string>> ret_vectors;
