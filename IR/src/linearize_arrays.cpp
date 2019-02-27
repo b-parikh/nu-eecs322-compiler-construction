@@ -1,5 +1,6 @@
 #include <utils.h>
 #include <linearize_arrays.h>
+
 /*
  * Accessing length of a dimension
  * Accessing array element (RHS vs LHS)
@@ -92,6 +93,7 @@ namespace IR {
         return ret_vectors;
     }
 
+
     // can assume ip->Type is InstructionType::assign_new_array
     std::vector<std::vector<std::string>> new_array_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
         // find the item holding the dimensionSize vector
@@ -181,10 +183,18 @@ namespace IR {
         return ret_vectors;
     }
 
+
     std::vector<std::vector<std::string>> array_load_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+        std::vector<std::string> ret_strings;
+        std::vector<std::vector<std::string>> ret_vectors;
+
+
+        return ret_vectors;
 	}
 
+
     std::vector<std::vector<std::string>> array_store_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+
 	}
 
 

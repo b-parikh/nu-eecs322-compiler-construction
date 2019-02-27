@@ -55,17 +55,6 @@ namespace IR{
 //    }
 //  };
 
-//  template<> struct action < argument_define > {
-//      template< typename Input >
-//          static void apply(const Input& in, Program& p) {
-//              auto it = new Item();
-//              it->labelName = in.string();
-//              it->Type = Atomic_Type::var;
-//              auto curr_F = p.functions.back();
-//              curr_F->arguments.push_back(it);
-//          }
-//  };
-//
   template<> struct action < Label_rule > {
     template< typename Input >
 	static void apply( const Input & in, Program & p){

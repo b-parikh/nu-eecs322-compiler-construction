@@ -444,9 +444,6 @@ struct br_conditional:
    * Basic block construction
    */
 
-  // struct start_block:
-	// Label_rule {};
-
   struct end_block:
       pegtl::sor<
         pegtl::seq<pegtl::at<br_conditional>, br_conditional>,

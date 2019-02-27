@@ -10,6 +10,9 @@
 using namespace std;
 
 namespace IR{
+
+	// To prevent overlapping temp var name,
+    // find the longest varname that will be used inside of array conversion.
 	std::string get_longest_varname(Function* fp) {
 	    std::string longest_var;
 	    int longest_var_len = 0;
@@ -91,9 +94,10 @@ namespace IR{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_load_array) {
-
+			//TODO
+            //ret_vectors = array_load_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::assign_store_array) {
-
+            //ret_vectors = array_store_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::assign_new_array) {
             ret_vectors = new_array_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::assign_new_tuple) {
@@ -232,7 +236,6 @@ namespace IR{
           }
           outputFile << "}\n\n";
       }
-      outputFile << '\n';
 
       /* 
        * Close the output file.
