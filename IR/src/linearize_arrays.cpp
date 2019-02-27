@@ -1,4 +1,3 @@
-#include <L3.h>
 #include <utils.h>
 #include <linearize_arrays.h>
 /*
@@ -182,6 +181,14 @@ namespace IR {
         return ret_vectors;
     }
 
+    std::vector<std::vector<std::string>> array_load_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+	}
+
+    std::vector<std::vector<std::string>> array_store_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+	}
+
+
+	// Initialization of a tuple
     std::vector<std::vector<std::string>> new_tuple(Instruction* ip) {
 		std::string destination = ip->Items[0]->labelName;
         std::string arrayLen = ip->arguments[0]->labelName;

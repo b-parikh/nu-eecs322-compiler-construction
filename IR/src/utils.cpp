@@ -11,14 +11,4 @@ namespace IR {
         return newString;
 
     }
-
-    L3::Item* createL3Item(L3::Atomic_Type Type, std::string label) {
-        L3::Item* newItem = new L3::Item();
-        newItem->Type = Type;
-        newItem->labelName = label;
-        return newItem;
-    }
-
-
-
 }
