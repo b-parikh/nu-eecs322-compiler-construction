@@ -1,7 +1,6 @@
-#include <IR.h>
 #include <L3.h>
 #include <utils.h>
-
+#include <linearize_arrays.h>
 /*
  * Accessing length of a dimension
  * Accessing array element (RHS vs LHS)
@@ -62,13 +61,15 @@ namespace IR {
      * %dimID is var or number
      * varNameModifier prepends '%' to a variable name; else returns the Item's name as a string
      */
-    std::vector<std::vector<std::string>> length_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+    std::vector<std::vector<std::string>> length_translation(Instruction* ip, std::string newLabel, int &labelCounter) {
         Item* destination = ip->Items[0];
         Item* arrayName = ip->Items[1];
         Item* dimID = ip->Items[2];
     
         std::vector<std::string> ret_strings;
         std::vector<std::vector<std::string>> ret_vectors;
+        std::string offsetVarString = "%" + newLabel + std::to_string(labelCounter);
+        labelCounter++;
 
         // %l <- %ar + 16 (start of dimension sizes)
         ret_strings.insert(ret_strings.end(), {destination->labelName, "<-", arrayName->labelName, "+", "16"});
@@ -76,8 +77,6 @@ namespace IR {
         ret_strings.clear();
 
         // %offset <- 8 * %dimID
-        std::string offsetVarString = "%" + newLabel + "_" + std::to_string(varNameCounter);
-        varNameCounter++;
         ret_strings.insert(ret_strings.end(), {offsetVarString, "<-", "8", "*", dimID->labelName});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
@@ -183,6 +182,17 @@ namespace IR {
         return ret_vectors;
     }
 
+    std::vector<std::vector<std::string>> new_tuple(Instruction* ip) {
+		std::string destination = ip->Items[0]->labelName;
+        std::string arrayLen = ip->arguments[0]->labelName;
+    
+        std::vector<std::string> ret_strings;
+        std::vector<std::vector<std::string>> ret_vectors;
+		
+		ret_strings.insert(ret_strings.end(), {destination, "<-", "call", "allocate(", arrayLen, ",", "1)"});
+
+		ret_vectors.push_back(ret_strings);
+
+		return ret_vectors;
+	}
 }
-
-

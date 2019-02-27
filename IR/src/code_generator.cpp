@@ -5,6 +5,7 @@
 #include <code_generator.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <linearize_arrays.h>
 
 using namespace std;
 
@@ -31,12 +32,9 @@ namespace IR{
 	    return longest_var;
     }
 
-    std::vector<std::vector<string>> convert_instruction(Instruction* ip, string long_var) {
+    std::vector<std::vector<string>> convert_instruction(Instruction* ip, std::string long_var, int labelCounter) {
         std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
-
-        // integer to append to longest_var
-        int varNameCounter = 0;
 
         if(ip->Type == InstructionType::assign) { //as it is
 			ret_strings.push_back(ip->Items[0]->labelName);
@@ -93,16 +91,15 @@ namespace IR{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_load_array) {
-		  return ret_vectors;
+
 		} else if(ip->Type == InstructionType::assign_store_array) {
-		  return ret_vectors;
+
 		} else if(ip->Type == InstructionType::assign_new_array) {
-		  return ret_vectors;
+
 		} else if(ip->Type == InstructionType::assign_new_tuple) {
-		  return ret_vectors;
+			ret_vectors = new_tuple(ip);
 		} else if(ip->Type == InstructionType::assign_length) {
-            ret_vectors = length_translation(ip, long_var, varNameCounter);
-		    return ret_vectors;
+            ret_vectors = length_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::call) { // as it is
 			ret_strings.push_back("call");
 
@@ -193,7 +190,10 @@ namespace IR{
       */
       std::ofstream outputFile;
       outputFile.open("prog.L3");
-  
+
+      // integer to append to longest_var
+	  int labelCounter = 0;
+
       /* 
        * Generate L3 code
        */ 
@@ -218,7 +218,7 @@ namespace IR{
 //			  for (auto &item : ip->Items)
 //				std::cerr << item->labelName << ' ';
 //			  std::cerr << '\n';
-			  std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_var);
+			  std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_var, labelCounter);
 			  if (!to_print.empty()) { //init_var does not print anything for L3
 			    for(auto vec_str : to_print) {
                   outputFile << "\t";
