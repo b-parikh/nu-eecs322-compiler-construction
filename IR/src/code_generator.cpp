@@ -35,6 +35,9 @@ namespace IR{
         std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
 
+        // integer to append to longest_var
+        int labelCounter = 0;
+
         if(ip->Type == InstructionType::assign) { //as it is
 			ret_strings.push_back(ip->Items[0]->labelName);
 			ret_strings.push_back("<-");
@@ -98,7 +101,8 @@ namespace IR{
 		} else if(ip->Type == InstructionType::assign_new_tuple) {
 		  return ret_vectors;
 		} else if(ip->Type == InstructionType::assign_length) {
-		  return ret_vectors;
+            ret_vectors = length_translation(ip, long_var, labelCounter);
+		    return ret_vectors;
 		} else if(ip->Type == InstructionType::call) { // as it is
 			ret_strings.push_back("call");
 
