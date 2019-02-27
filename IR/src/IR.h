@@ -34,7 +34,7 @@ namespace IR {
 
         // for tuple_Var and arr_Var
         int numDimensions;
-        std::vector<int> dimensionSize;
+        //std::vector<int> dimensionSize; ( this isn't used )
     };
 
 //    struct var_Item : Item {
@@ -73,7 +73,7 @@ namespace IR {
         CalleeType calleeType = CalleeType::no_callee; // for call instructions
         std::vector<Item*> arguments; // for call instructions and for new array instructions
 
-        std::vector<Item*> array_access_location;
+        std::vector<Item*> array_access_location; // which index of array is being accessed
 
     };
   
