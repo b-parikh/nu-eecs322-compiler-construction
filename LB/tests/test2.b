@@ -1,14 +1,14 @@
 void main ( ){
-  int64 %v1, %v2, %v3
+  int64 v1, v2, v3
 
-  %v1 <- 1
-  %v2 <- 2
-  %v3 <- %v1 + %v2
+  v1 <- 1
+  v2 <- 2
+  v3 <- v1 + v2
 
-  if (%v3 > 1) :true :false
+  if (v3 > 1) :true :false
 
   :true
-  call print(%v3)
+   print(v3)
 
   :false
   return

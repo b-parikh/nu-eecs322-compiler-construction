@@ -19,18 +19,13 @@ namespace L3 {
   std::vector<Item*> parsed_items;
   std::vector<std::string> parsed_strings;
 
-  /*
-   * Predecessors and successors are the
-   * physical instructions that come before
-   * and after.
-   */
-//  void attach_pred_succ(Instruction* ip, Function* fp) {
-//      if(fp->instructions.size() == 0) // ip is first instruction
-//          return;
-//      
-//      ip->predecessor = fp->instructions.back();
-//      fp->instructions.back()->successor = ip;
-//  }
+  // remove 0 from the number starting with 0
+  std::string remove_number_zero (std::string str) {
+	if(str.length() > 1 && str.at(0) == '0')
+	  str.erase(0,1);
+	
+	return str;
+  }
 
   /* 
    * Actions attached to grammar rules.
@@ -123,7 +118,7 @@ namespace L3 {
     template < typename Input > static void apply (const Input &in, Program &p) {
       auto i = new Item();
       i->Type = Atomic_Type::num;
-      i->labelName = in.string();
+      i->labelName = remove_number_zero(in.string());
       parsed_items.push_back(i);
     }
   };

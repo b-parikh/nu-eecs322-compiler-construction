@@ -1,27 +1,27 @@
 void main ( ){
-  int64[] %v
+  int64[] v
 
-  %v <- new Array(5)
-  call initVector(%v)
-  call print(%v)
+  v <- new Array(5)
+   initVector(v)
+   print(v)
 
   return
 
 }
 
-void initVector (int64[] %v) {
+void initVector (int64[] v) {
 
   // Fetch the length
-  int64 %l, %index
-  %l <- length %v 0
+  int64 l, index
+  l <- length v 0
 
   // Iterate over the elements
-  %index <- 0
+  index <- 0
 
   :body
-  call print(%index)
-  %index <- %index + 1
-  while (%index < %l) :body :exit
+   print(index)
+  index <- index + 1
+  while (index < l) :body :exit
 
   :exit
   return
