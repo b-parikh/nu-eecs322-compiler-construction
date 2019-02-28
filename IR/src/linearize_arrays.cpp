@@ -74,7 +74,7 @@ namespace IR {
         labelCounter++;
 
         // %l <- %ar + 16 (start of dimension sizes)
-        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-", arrayName->labelName, "+", "16"});
+        ret_strings.insert(ret_strings.end(), {arrayName->labelName, "<-", arrayName->labelName, "+", "16"});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
@@ -84,12 +84,12 @@ namespace IR {
         ret_strings.clear();
 
         // %l <- %l + %offset
-        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-", destination->labelName, "+", offsetVarString});
+        ret_strings.insert(ret_strings.end(), {arrayName->labelName, "<-", arrayName->labelName, "+", offsetVarString});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
         // %l <- load %l
-        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-",  "load", destination->labelName});
+        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-",  "load", arrayName->labelName});
         ret_vectors.push_back(ret_strings);
 
         return ret_vectors;
