@@ -74,7 +74,7 @@ namespace IR {
         labelCounter++;
 
         // %l <- %ar + 16 (start of dimension sizes)
-        ret_strings.insert(ret_strings.end(), {arrayName->labelName, "<-", arrayName->labelName, "+", "16"});
+        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-", arrayName->labelName, "+", "16"});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
@@ -84,12 +84,12 @@ namespace IR {
         ret_strings.clear();
 
         // %l <- %l + %offset
-        ret_strings.insert(ret_strings.end(), {arrayName->labelName, "<-", arrayName->labelName, "+", offsetVarString});
+        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-", destination->labelName, "+", offsetVarString});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
         // %l <- load %l
-        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-",  "load", arrayName->labelName});
+        ret_strings.insert(ret_strings.end(), {destination->labelName, "<-",  "load", destination->labelName});
         ret_vectors.push_back(ret_strings);
 
         return ret_vectors;
@@ -224,7 +224,13 @@ namespace IR {
         std::vector<std::string> dimSizes_var_names; // will be same size as accessInfo; stores the var name that holds the size of a dimension (vector order corresponds to 1st -> Nth dimension)
 
         // loads the dimensions of the array from memory at runtime; also decodes these values and stores them as variables into the dimSize_var_name vector
-        std::string arr_name = ip->Items[1]->labelName; 
+        std::string arr_name;
+        if(ip->Type == InstructionType::assign_store_array) {
+            arr_name = ip->Items[0]->labelName; 
+        }
+        else{ // load 
+            arr_name = ip->Items[1]->labelName; 
+        }
         for(int i = 0; i < accessInfo.size(); ++i) {
             int mem_loc = i+2; // +2 because location 0 is the size of the array
             // to hold the location of the dim size
@@ -279,7 +285,7 @@ namespace IR {
             ret_strings.clear();
         }
 
-        // offset multiply by 8 
+        // multiply entire offset by 8 
         ret_strings.insert(ret_strings.end(), {offset, "<-", offset, "*", "8"});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
@@ -287,6 +293,10 @@ namespace IR {
         std::string addr = "%" + newLabel + "_addr_" + std::to_string(varNameCounter);
         varNameCounter++;
         ret_strings.insert(ret_strings.end(), {addr, "<-", offset, "+", base_offset});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+        
+        ret_strings.insert(ret_strings.end(), {addr, "<-", addr, "+", arr_name});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
         
@@ -303,17 +313,6 @@ namespace IR {
         
         return ret_vectors;
 	}
-
-
-//    std::vector<std::vector<std::string>> array_store_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
-//        std::vector<std::string> ret_strings;
-//        std::vector<std::vector<std::string>> ret_vectors;
-//
-//
-//
-//        return ret_vectors;
-//	}
-
 
 	// Initialization of a tuple
     std::vector<std::vector<std::string>> new_tuple(Instruction* ip) {
