@@ -94,10 +94,9 @@ namespace IR{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_load_array) {
-			//TODO
-            //ret_vectors = array_load_translation(ip, long_var, labelCounter);
+            ret_vectors = array_load_and_store_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::assign_store_array) {
-            //ret_vectors = array_store_translation(ip, long_var, labelCounter);
+            ret_vectors = array_load_and_store_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::assign_new_array) {
             ret_vectors = new_array_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::assign_new_tuple) {

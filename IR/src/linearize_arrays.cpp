@@ -153,15 +153,27 @@ namespace IR {
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
+        // encode # of dim before storing
+        std::string num_dim_enc = "%" + newLabel + "_" + std::to_string(varNameCounter);
+        varNameCounter++;
+
+        ret_strings.insert(ret_strings.end(), {num_dim_enc, "<-", std::to_string(allDimensions.size()), "<<", "1"});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+
+        ret_strings.insert(ret_strings.end(), {num_dim_enc, "<-", num_dim_enc, "+", "1"});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+        
         // store # of dim at arr + 8
         std::string num_dim_loc_in_arr = "%" + newLabel + "_" + std::to_string(varNameCounter);
         varNameCounter++;
-
+        
         ret_strings.insert(ret_strings.end(), {num_dim_loc_in_arr, "<-", arr_var->labelName, "+", "8"});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
-        ret_strings.insert(ret_strings.end(), {"store", num_dim_loc_in_arr, "<-", std::to_string(allDimensions.size())});
+        ret_strings.insert(ret_strings.end(), {"store", num_dim_loc_in_arr, "<-", num_dim_enc});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
@@ -175,7 +187,7 @@ namespace IR {
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
-            ret_strings.insert(ret_strings.end(), {"store", tempVar, "<-", itp->labelName});
+            ret_strings.insert(ret_strings.end(), {"store", tempVar, "<-", itp->labelName, "\n"});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
@@ -186,20 +198,20 @@ namespace IR {
     }
 
 
-    std::vector<std::vector<std::string>> array_load_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+    std::vector<std::vector<std::string>> array_load_and_store_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
         std::vector<std::string> ret_strings;
         std::vector<std::vector<std::string>> ret_vectors;
-        std::vector<Item*> accessInfo = i->array_access_location;
+        std::vector<Item*> accessInfo = ip->array_access_location;
 
-        std::string base_offset = "%" + newLabel + "_" + std::to_string(varNameCounter);
+        std::string base_offset = "%" + newLabel + "_base_offset_" + std::to_string(varNameCounter);
         varNameCounter++;
         ret_strings.insert(ret_strings.end(), {base_offset, "<-", "16"});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
-        std::string num_dim_offset = "%" + newLabel + "_" + std::to_string(varNameCounter);
+        std::string num_dim_offset = "%" + newLabel + "_num_dim_offset_" + std::to_string(varNameCounter);
         varNameCounter++;
-        ret_strings.insert(ret_strings.end(), {num_dim_offset, "<-", std::to_string(dimInfo.size()), "*", "8"});
+        ret_strings.insert(ret_strings.end(), {num_dim_offset, "<-", std::to_string(accessInfo.size()), "*", "8"});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
@@ -211,14 +223,15 @@ namespace IR {
         // secondary offset based on array dimensions, which we can access at runtime
         std::vector<std::string> dimSizes_var_names; // will be same size as accessInfo; stores the var name that holds the size of a dimension (vector order corresponds to 1st -> Nth dimension)
 
-        std::string arr_name = ip->Items[0]->labelName; 
+        // loads the dimensions of the array from memory at runtime; also decodes these values and stores them as variables into the dimSize_var_name vector
+        std::string arr_name = ip->Items[1]->labelName; 
         for(int i = 0; i < accessInfo.size(); ++i) {
-            int mem_loc = (i+1)*8; // +1 because location 0 is the size of the array
+            int mem_loc = i+2; // +2 because location 0 is the size of the array
             // to hold the location of the dim size
-            std::string dimSizeOffset = "%" + newLabel + "_" + varNameCounter;
+            std::string dimSizeOffset = "%" + newLabel + "_dimSizeOffset_" + std::to_string(varNameCounter);
             varNameCounter++;
 
-            std::string dimSize_var_name = "%" + newLabel + "_" + varNameCounter;
+            std::string dimSize_var_name = "%" + newLabel + "_dimSize_var_name_" + std::to_string(varNameCounter);
             varNameCounter++;
             dimSizes_var_names.push_back(dimSize_var_name);
 
@@ -242,22 +255,64 @@ namespace IR {
         }
 
         // now that all the dimensions have been found, stored, and decoded, begin calculation of the extra offset
+        std::string offset = "%" + newLabel + "_offset_" + std::to_string(varNameCounter); 
+        ret_strings.insert(ret_strings.end(), {offset, "<-", accessInfo.back()->labelName}); // start counting offset at the last access index
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+        
+        varNameCounter++;
+        for(int i = 0; i < accessInfo.size() - 1; ++i) { // skip the last access as we initialize index to this anyways
+            std::string size_of_dims = "%" + newLabel + "_size_of_dims_" + std::to_string(varNameCounter); // during runtime, holds the value of M x N, or L x M x N, or even N
+            varNameCounter++;
+            ret_strings.insert(ret_strings.end(), {size_of_dims, "<-", accessInfo[i]->labelName}); // start the size_of_dims multiplication at the access number (eg. i, j, k, etc.)
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+            
+            for(int j = i + 1; j < dimSizes_var_names.size(); ++j) { // for each dimension's variable name (L, M, N, etc.) 
+                ret_strings.insert(ret_strings.end(), {size_of_dims, "<-", size_of_dims, "*", dimSizes_var_names[j]});
+                ret_vectors.push_back(ret_strings);
+                ret_strings.clear();
+            }
 
+            ret_strings.insert(ret_strings.end(), {offset, "<-", offset, "+", size_of_dims});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+        }
 
+        // offset multiply by 8 
+        ret_strings.insert(ret_strings.end(), {offset, "<-", offset, "*", "8"});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
 
-
+        std::string addr = "%" + newLabel + "_addr_" + std::to_string(varNameCounter);
+        varNameCounter++;
+        ret_strings.insert(ret_strings.end(), {addr, "<-", offset, "+", base_offset});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+        
+        if(ip->Type == InstructionType::assign_store_array) {
+            ret_strings.insert(ret_strings.end(), {"store", addr, "<-", ip->Items.back()->labelName});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+        }
+        else{ // load 
+            ret_strings.insert(ret_strings.end(), {ip->Items[0]->labelName, "<-", "load", addr});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+        }
+        
         return ret_vectors;
 	}
 
 
-    std::vector<std::vector<std::string>> array_store_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
-        std::vector<std::string> ret_strings;
-        std::vector<std::vector<std::string>> ret_vectors;
-
-
-
-        return ret_vectors;
-	}
+//    std::vector<std::vector<std::string>> array_store_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+//        std::vector<std::string> ret_strings;
+//        std::vector<std::vector<std::string>> ret_vectors;
+//
+//
+//
+//        return ret_vectors;
+//	}
 
 
 	// Initialization of a tuple
