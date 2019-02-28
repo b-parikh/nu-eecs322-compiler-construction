@@ -2,9 +2,11 @@
 #include <linearize_arrays.h>
 
 /*
- * Accessing length of a dimension
- * Accessing array element (RHS vs LHS)
- * Allocating an array
+ * Code generation for the following array operations:
+ * (1) Accessing length of a dimension
+ * (2) Storing into array
+ * (3) Loading into array
+ * (4) Creating a new Array
  */
 
 namespace IR {
@@ -187,6 +189,61 @@ namespace IR {
     std::vector<std::vector<std::string>> array_load_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
         std::vector<std::string> ret_strings;
         std::vector<std::vector<std::string>> ret_vectors;
+        std::vector<Item*> accessInfo = i->array_access_location;
+
+        std::string base_offset = "%" + newLabel + "_" + std::to_string(varNameCounter);
+        varNameCounter++;
+        ret_strings.insert(ret_strings.end(), {base_offset, "<-", "16"});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+
+        std::string num_dim_offset = "%" + newLabel + "_" + std::to_string(varNameCounter);
+        varNameCounter++;
+        ret_strings.insert(ret_strings.end(), {num_dim_offset, "<-", std::to_string(dimInfo.size()), "*", "8"});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+
+        // create base offset
+        ret_strings.insert(ret_strings.end(), {base_offset, "<-", base_offset, "+", num_dim_offset});
+        ret_vectors.push_back(ret_strings);
+        ret_strings.clear();
+
+        // secondary offset based on array dimensions, which we can access at runtime
+        std::vector<std::string> dimSizes_var_names; // will be same size as accessInfo; stores the var name that holds the size of a dimension (vector order corresponds to 1st -> Nth dimension)
+
+        std::string arr_name = ip->Items[0]->labelName; 
+        for(int i = 0; i < accessInfo.size(); ++i) {
+            int mem_loc = (i+1)*8; // +1 because location 0 is the size of the array
+            // to hold the location of the dim size
+            std::string dimSizeOffset = "%" + newLabel + "_" + varNameCounter;
+            varNameCounter++;
+
+            std::string dimSize_var_name = "%" + newLabel + "_" + varNameCounter;
+            varNameCounter++;
+            dimSizes_var_names.push_back(dimSize_var_name);
+
+            ret_strings.insert(ret_strings.end(), {dimSizeOffset, "<-", std::to_string(mem_loc), "*", "8"});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+
+            // the actual location of the current dimension's size
+            ret_strings.insert(ret_strings.end(), {dimSizeOffset, "<-", arr_name, "+", dimSizeOffset});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+
+            ret_strings.insert(ret_strings.end(), {dimSize_var_name, "<-", "load", dimSizeOffset});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+
+            // decode the dimension size
+            ret_strings.insert(ret_strings.end(), {dimSize_var_name, "<-", dimSize_var_name,  ">>", "1"});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+        }
+
+        // now that all the dimensions have been found, stored, and decoded, begin calculation of the extra offset
+
+
 
 
         return ret_vectors;
@@ -194,7 +251,12 @@ namespace IR {
 
 
     std::vector<std::vector<std::string>> array_store_translation(Instruction* ip, std::string newLabel, int &varNameCounter) {
+        std::vector<std::string> ret_strings;
+        std::vector<std::vector<std::string>> ret_vectors;
 
+
+
+        return ret_vectors;
 	}
 
 
