@@ -182,6 +182,50 @@ namespace LA{
     seps
   > {};
 
+  struct label_instruction:
+   pegtl::seq<
+     Label_rule
+   > {};
+
+  struct return_value:
+      pegtl::seq<
+        seps,
+        str_return,
+        seps,
+        pegtl::sor<
+           name,
+           number
+        >,
+        seps
+      > {};
+
+ struct return_empty:
+      //pegtl::seq<
+        str_return {};
+      //>{};
+
+ struct br_unconditional:
+   pegtl::seq<
+	     seps,
+	     pegtl::string<'b','r'>,
+	     seps,
+ 	     Label_rule,
+	     seps
+  > {};
+
+  struct br_conditional:
+    pegtl::seq<
+     seps,
+     pegtl::string<'b','r'>,
+     seps,
+     pegtl::sor<name, number>,
+     seps,
+     Label_rule,
+     seps,
+     Label_rule,
+     seps
+   > {};
+ 
  struct assign_load_array:
      pegtl::seq<
         seps,
@@ -233,6 +277,24 @@ namespace LA{
         >,
         seps
      > {};
+
+  struct assign_length:
+	pegtl::seq<
+        seps,
+        name,
+        seps,
+        assign_operator,
+        seps,
+        pegtl::string<'l','e','n','g','t','h'>,
+        seps,
+        name,
+        seps,
+        pegtl::sor<
+            name,
+            number
+        >,
+        seps
+    > {};
 
   struct args:
     pegtl::seq<
@@ -290,28 +352,20 @@ namespace LA{
 
 	> {};
 
-  struct assign_length:
-	pegtl::seq<
-        seps,
-        name,
-        seps,
-        assign_operator,
-        seps,
-        pegtl::string<'l','e','n','g','t','h'>,
-        seps,
-        name,
-        seps,
-        pegtl::sor<
-            name,
-            number
-        >,
-        seps
-    > {};
-
-  struct runtime_func:
-    pegtl::sor<
+  struct print:
+    pegtl::seq<
+	  seps,
       pegtl::string<'p', 'r', 'i', 'n', 't'>,
-      pegtl::string<'a', 'r', 'r', 'a', 'y', '-', 'e', 'r', 'r', 'o' ,'r'>
+	  seps,
+	  pegtl::one<'('>,
+	  seps,
+	  pegtl::sor<
+        name,
+        number
+      >,
+	  seps,
+	  pegtl::one<')'>,
+	  seps,
     > {};
 
  // The instruction for initialziation of var
@@ -325,13 +379,7 @@ namespace LA{
  struct call:
    pegtl::seq<
     seps,
-    pegtl::string<'c','a','l','l'>,
-    seps,
-    pegtl::sor<
-      Label_rule,
-      runtime_func,
-      name
-    >,
+    name,
     seps,
     pegtl::one<'('>,
 	seps,
@@ -347,13 +395,7 @@ namespace LA{
       seps,
       assign_operator,
       seps,
-      pegtl::string<'c','a','l','l'>,
-      seps,
-      pegtl::sor<
-          Label_rule,
-          runtime_func,
-          name
-      >,
+      name,
       seps,
       pegtl::one<'('>,
 	  seps,
@@ -372,8 +414,14 @@ namespace LA{
       pegtl::seq<pegtl::at<assign_new_array>, assign_new_array>,
       pegtl::seq<pegtl::at<assign_new_tuple>, assign_new_tuple>,
       pegtl::seq<pegtl::at<call_assign>, call_assign>,
-      pegtl::seq<pegtl::at<call>, call>,
+      pegtl::seq<pegtl::at<br_conditional>, br_conditional>,
+      pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
+      pegtl::seq<pegtl::at<label_instruction>, label_instruction>,
 	  pegtl::seq<pegtl::at<init_var>, init_var>,
+      pegtl::seq<pegtl::at<return_value>, return_value>,
+      pegtl::seq<pegtl::at<return_empty>, return_empty>,
+	  pegtl::seq<pegtl::at<print>, print>,
+      pegtl::seq<pegtl::at<call>, call>,
       pegtl::seq<pegtl::at<assign>, assign>
     > { };
 
@@ -389,80 +437,6 @@ namespace LA{
 
   struct comma:
       pegtl::one<','> {};
-
-  struct label_instruction:
-   pegtl::seq<
-     Label_rule
-   > {};
-
-  struct return_value:
-      pegtl::seq<
-        seps,
-        str_return,
-        seps,
-        pegtl::sor<
-           name,
-           number
-        >,
-        seps
-      > {};
-
-  struct return_empty:
-      //pegtl::seq<
-        str_return {};
-      //>{};
-
- struct br_unconditional:
-   pegtl::seq<
-	     seps,
-	     pegtl::string<'b','r'>,
-	     seps,
- 	     Label_rule,
-	     seps
-  > {};
-
-struct br_conditional:
-   pegtl::seq<
-     seps,
-     pegtl::string<'b','r'>,
-     seps,
-     pegtl::sor<name, number>,
-     seps,
-     Label_rule,
-     seps,
-     Label_rule,
-     seps
-   > {};
-       
-  /*
-   * Basic block construction
-   */
-
-  struct end_block:
-      pegtl::sor<
-        pegtl::seq<pegtl::at<br_conditional>, br_conditional>,
-        pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
-        pegtl::seq<pegtl::at<return_value>, return_value>,
-        pegtl::seq<pegtl::at<return_empty>, return_empty>
-      > {};
-        
-  struct basic_block:
-      pegtl::seq<
-        label_instruction,
-        seps,
-        Instructions_rule,
-        seps,
-        end_block
-      > {}; 
-
-  struct blocks:
-      pegtl::star<
-         pegtl::seq<
-            seps,
-            basic_block,
-            seps
-        >
-      > {};
 
  struct arg_var: 
      name {};
@@ -503,7 +477,7 @@ struct br_conditional:
       seps,
       pegtl::one< '{' >,
       seps,
-      blocks,
+      Instructions_rule,
       seps,
       pegtl::one< '}' >
     > {};
