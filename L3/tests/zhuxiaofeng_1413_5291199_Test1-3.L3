@@ -52,16 +52,16 @@ define :addOne (%p1){
 	return %p2
 }
 define :sum2 (%p1, %p2){
-	%p3 <- %p1 + %P2
+	%p3 <- %p1 + %p2
 	return %p3
 }
 define :sum3 (%p1, %p2, %p3){
-	%p4 <- %p1 + %P2
+	%p4 <- %p1 + %p2
 	%p5 <- %p4 + %p3
 	return %p5
 }
 define :sum4 (%p1, %p2, %p3, %p4){
-	%p5 <- %p1 + %P2
+	%p5 <- %p1 + %p2
 	%p6 <- %p5 + %p3
 	%p7 <- %p6 + %p4
 	return %p7
@@ -75,40 +75,40 @@ define :otherF2 (%var) {
 	return %var
 }
 define :substract (%p1, %p2){
-	%p3 <- %p1 - %P2
+	%p3 <- %p1 - %p2
 	return %p3
 }
 define :substract3 (%p1, %p2, %p3){
-	%p4 <- %p1 - %P2
+	%p4 <- %p1 - %p2
 	%p5 <- %p4 - %p3
 	return %p5
 }
 define :substract4 (%p1, %p2, %p3, %p4){
-	%p5 <- %p1 - %P2
+	%p5 <- %p1 - %p2
 	%p6 <- %p5 - %p3
 	%p7 <- %p6 - %p4
 	return %p7
 }
 define :product (%p1, %p2){
-	%p3 <- %p1 * %P2
+	%p3 <- %p1 * %p2
 	return %p3
 }
 define :product3 (%p1, %p2, %p3){
-	%p4 <- %p1 * %P2
+	%p4 <- %p1 * %p2
 	%p5 <- %p4 * %p3
 	return %p5
 }
 define :product4 (%p1, %p2, %p3, %p4){
-	%p5 <- %p1 * %P2
+	%p5 <- %p1 * %p2
 	%p6 <- %p5 * %p3
 	%p7 <- %p6 * %p4
 	return %p7
 }
 define :left_shift (%p1, %p2){
-	%p3 <- %p1 << %P2
+	%p3 <- %p1 << %p2
 	return %p3
 }
 define :right_shift (%p1, %p2){
-	%p3 <- %p1 >> %P2
+	%p3 <- %p1 >> %p2
 	return %p3
 }

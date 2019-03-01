@@ -96,19 +96,19 @@ define :otherF2 (%var) {
 	return %var
 }
 define :aop_minus (%p1, %p2){
-	%p3 <- %p1 - %P2
+	%p3 <- %p1 - %p2
 	return %p3
 }
 define :aop_plus (%p1, %p2){
-	%p4 <- %p1 + %P2
+	%p4 <- %p1 + %p2
 	return %p4
 }
 define :aop_and (%p1, %p2){
-	%p5 <- %p1 & %P2
+	%p5 <- %p1 & %p2
 	return %p5
 }
 define :aop_product (%p1, %p2){
-	%p3 <- %p1 * %P2
+	%p3 <- %p1 * %p2
 	return %p3
 }
 define :isSmaller (%p1, %p2){
@@ -130,7 +130,7 @@ define :isSmallerAndEqual (%p1, %p2){
 	return 0
 }
 define :isEqual (%p1, %p2){
-	%p3 <- %p1 = %P2
+	%p3 <- %p1 = %p2
 	br %p3 :smaller
   br :larger
 	:smaller

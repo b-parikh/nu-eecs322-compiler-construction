@@ -18,7 +18,7 @@ void main() {
 }
 
 int64 find(int64[][][] A, int64 v) {
-	int64 length1, length2, length3, i, j, k, found
+	int64 length1, length2, length3, i, j, k, found, check_value
 
 	length1 <- length A 0
 	length2 <- length A 1

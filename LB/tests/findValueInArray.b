@@ -1,6 +1,6 @@
 void main ( ){
 	int64[][][] a
-	int64 v1, v3, v5, v7, v11, v13, v17
+	int64 v1, v3, v5, v7, v11, v13, v15, v17
 
 	v1 <- 1
 	v3 <- 3

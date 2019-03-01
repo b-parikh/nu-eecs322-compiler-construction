@@ -31,7 +31,7 @@ rm_tests_without_oracle:
 	../scripts/rm_tests_without_oracle.sh $(EXT_CLASS)
 
 test: dirs $(PL_CLASS)
-	../scripts/test.sh $(EXT_CLASS) $(CC_CLASS)
+	./scripts/test.sh $(EXT_CLASS) $(CC_CLASS)
 
 test_programs: dirs $(PL_CLASS)
 	../scripts/test_programs.sh $(EXT_CLASS) $(CC_CLASS)
