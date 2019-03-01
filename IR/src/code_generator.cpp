@@ -100,8 +100,8 @@ namespace IR{
 		} else if(ip->Type == InstructionType::assign_new_array) {
             ret_vectors = new_array_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::assign_new_tuple) {
-            ret_vectors = new_array_translation(ip, long_var, labelCounter);
-			//ret_vectors = new_tuple(ip);
+            //ret_vectors = new_array_translation(ip, long_var, labelCounter);
+			ret_vectors = new_tuple(ip);
 		} else if(ip->Type == InstructionType::assign_length) {
             ret_vectors = length_translation(ip, long_var, labelCounter);
 		} else if(ip->Type == InstructionType::call) { // as it is

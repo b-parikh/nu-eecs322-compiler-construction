@@ -469,7 +469,6 @@ namespace IR{
 		varName->labelName = parsed_items.back()->labelName;
 		i->Items.push_back(varName);
 
-        //:std::cerr << parsed_type << ' ' << parsed_items.back()->labelName << '\n';
         num_dim = 0;
         parsed_type = "";
         parsed_items.clear();
