@@ -38,6 +38,9 @@ namespace LA{
       name
     > {};
 
+  struct var:
+	name {};
+
   struct number:
     pegtl::seq<
       pegtl::opt<
@@ -126,11 +129,11 @@ namespace LA{
   struct assign:
 	pegtl::seq<
 	  seps,
-	  name,
+	  var,
 	  seps,
 	  assign_operator,
 	  seps,
-	  pegtl::sor<name, number, Label_rule>,
+	  pegtl::sor<var, number, Label_rule>,
       seps
     > {};
 
@@ -156,29 +159,29 @@ namespace LA{
   struct assign_arithmetic:
     pegtl::seq<
       seps,
-      name,
+      var,
       seps,
       assign_operator,
       seps,
-      pegtl::sor<name, number>,
+      pegtl::sor<var, number>,
       seps,
       arithmetic_operator,
       seps,
-      pegtl::sor<name, number>
+      pegtl::sor<var, number>
     > {};
 
  struct assign_comparison:
     pegtl::seq<
     seps,
-    name,
+    var,
     seps,
     assign_operator,
     seps,
-    pegtl::sor<name, number>,
+    pegtl::sor<var, number>,
     seps,
     comparison_operator,
     seps,
-    pegtl::sor<name, number>,
+    pegtl::sor<var, number>,
     seps
   > {};
 
@@ -193,7 +196,7 @@ namespace LA{
         str_return,
         seps,
         pegtl::sor<
-           name,
+           var,
            number
         >,
         seps
@@ -218,7 +221,7 @@ namespace LA{
      seps,
      pegtl::string<'b','r'>,
      seps,
-     pegtl::sor<name, number>,
+     pegtl::sor<var, number>,
      seps,
      Label_rule,
      seps,
@@ -229,18 +232,18 @@ namespace LA{
  struct assign_load_array:
      pegtl::seq<
         seps,
-        name,
+        var,
         seps,
         assign_operator,
         seps,
-		name,
+		var,
 		seps,
 		pegtl::plus<
 		  pegtl::seq<
 			pegtl::one<'['>,
 			seps,
 			pegtl::sor<
-			  name,
+			  var,
 			  number
 			>,
 			seps,
@@ -253,14 +256,14 @@ namespace LA{
  struct assign_store_array:
      pegtl::seq<
         seps,
-        name,
+        var,
         seps,
 		pegtl::plus<
 		  pegtl::seq<
 			pegtl::one<'['>,
 			seps,
 			pegtl::sor<
-			  name,
+			  var,
 			  number
 			>,
 			seps,
@@ -272,7 +275,7 @@ namespace LA{
         seps,
         pegtl::sor<
             Label_rule,
-            name,
+            var,
             number
         >,
         seps
@@ -281,16 +284,16 @@ namespace LA{
   struct assign_length:
 	pegtl::seq<
         seps,
-        name,
+        var,
         seps,
         assign_operator,
         seps,
         pegtl::string<'l','e','n','g','t','h'>,
         seps,
-        name,
+        var,
         seps,
         pegtl::sor<
-            name,
+            var,
             number
         >,
         seps
@@ -299,7 +302,7 @@ namespace LA{
   struct args:
     pegtl::seq<
       pegtl::sor<
-        name,
+        var,
         number
       >,
       seps,
@@ -314,7 +317,7 @@ namespace LA{
   struct assign_new_array:
 	pegtl::seq<
 	  seps,
-	  name,
+	  var,
       seps,
       assign_operator,
 	  seps,
@@ -332,7 +335,7 @@ namespace LA{
   struct assign_new_tuple:
 	pegtl::seq<
 	  seps,
-	  name,
+	  var,
       seps,
       assign_operator,
 	  seps,
@@ -343,7 +346,7 @@ namespace LA{
 	  pegtl::one<'('>,
 	  seps,
       pegtl::sor<
-        name,
+        var,
         number
       >,
       seps,
@@ -360,12 +363,12 @@ namespace LA{
 	  pegtl::one<'('>,
 	  seps,
 	  pegtl::sor<
-        name,
+        var,
         number
       >,
 	  seps,
 	  pegtl::one<')'>,
-	  seps,
+	  seps
     > {};
 
  // The instruction for initialziation of var
@@ -373,13 +376,13 @@ namespace LA{
      pegtl::seq<
        var_type,
        seps,
-       name
+       var 
      > {};
 
  struct call:
    pegtl::seq<
     seps,
-    name,
+    var,
     seps,
     pegtl::one<'('>,
 	seps,
@@ -391,11 +394,11 @@ namespace LA{
   struct call_assign:
    pegtl::seq<
       seps,
-      name,
+      var,
       seps,
       assign_operator,
       seps,
-      name,
+      var,
       seps,
       pegtl::one<'('>,
 	  seps,
@@ -439,7 +442,7 @@ namespace LA{
       pegtl::one<','> {};
 
  struct arg_var: 
-     name {};
+     var {};
 
  struct arg_type:
      var_type {};
@@ -451,7 +454,7 @@ namespace LA{
         void_type
       >,
 	  seps,
-      name
+      var 
 	> {};
   
   struct Function_rule:

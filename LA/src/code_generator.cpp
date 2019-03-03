@@ -5,51 +5,148 @@
 #include <code_generator.h>
 #include <stdlib.h>
 #include <algorithm>
-#include <linearize_arrays.h>
 
 using namespace std;
 
 namespace LA{
 
-	// To prevent overlapping temp var name,
-    // find the longest varname that will be used inside of array conversion.
-	std::string get_longest_varname(Function* fp) {
-	    std::string longest_var;
-	    int longest_var_len = 0;
-	    for(auto &bp : fp->blocks) {
-		    for(auto &instruct : bp->instructions) {
-                for(auto &item : instruct->Items) {
-    		        if(item->itemType == Atomic_Type::var) {
-    		  	        if(item->labelName.length() > longest_var_len) {
-    			            longest_var = item->labelName;
-    			            longest_var_len = item->labelName.length();
-    		            }
-    		        }
-		        }
+    // Find the longest label that will be used to create a label for a basic block
+	std::string get_longest_label(Function* fp) {
+	    std::string longest_label;
+	    int longest_label_len = 0;
+	    for(auto &instruct : fp->instructions) {
+               for(auto &item : instruct->Items) {
+   		        if(item->itemType == Atomic_Type::label) {
+   		  	        if(item->labelName.length() > longest_label_len) {
+   			            longest_label = item->labelName;
+   			            longest_label_len = item->labelName.length();
+   		            }
+   		        }
 	        }
         }
 
-		// remove % sign
-		longest_var.erase(0,1);
+		// no label found
+		if(longest_label_len == 0)
+			return ":no_label_available_" + fp->name;
+		else {
+			// remove : sign
+			if(longest_label.at(0) == ':')
+				longest_label.erase(0,1);
 
-	    return longest_var;
+			return ":" + longest_label + '_' + fp->name;
+		}
     }
 
-    std::vector<std::vector<string>> convert_instruction(Instruction* ip, std::string long_var, int labelCounter) {
+	// return ir label if it is a label, otherwise return ir var
+	std::string to_ir_item_label(Item* laItem, Instruction* ip=nullptr) {
+		if(laItem->itemType == Atomic_Type::label) {
+			if(ip ==nullptr || ip->calleeType == CalleeType::label)
+				return ':' + laItem->labelName;
+			else
+				return laItem->labelName;
+		} else if(laItem->itemType == Atomic_Type::var)
+			return '%' + laItem->labelName;
+		else
+			return laItem->labelName;
+	}
+
+	std::string get_arg_type(Item* item) {
+		VarType argType = item->varType;
+		if(argType == VarType::int64_type)
+			return "int64";
+		else if(argType == VarType::arr_type) {
+			std::string brackets;
+			for(int i=0; i<item->numDimensions; i++)
+				brackets += "[]";
+			//brackets = "int64" + brackets;
+			return "int64" + brackets;
+		} else if(argType == VarType::tuple_type)
+			return "tuple";
+		else // code_type
+			return "code";
+	}
+
+	std::string get_return_type(Function* fp) {
+		VarType returnType = fp->returnType;
+		if(returnType == VarType::int64_type)
+			return "int64";
+		else if(returnType == VarType::arr_type) {
+			std::string brackets;
+			for(int i=0; i<fp->numDimensions; i++)
+				brackets += "[]";
+			brackets = "int64" + brackets;
+			return brackets;
+		} else if(returnType == VarType::tuple_type)
+			return "tuple";
+		else if(returnType == VarType::code_type)
+			return "code";
+		else // void_type
+			return "void";
+	}
+
+	// Generate blocks for IR
+	Function* generate_blocks(Function* fp, std::string longestLabel) {
+		Function* newF = new Function();
+		bool firstInst = true;
+		int labelCounter = 0;
+		for(auto &ip : fp->instructions) {
+			if(firstInst) {
+				// Insert the initial label for a block
+				if(ip->Type != InstructionType::label) {
+					Instruction* newI = new Instruction();
+					newI->Type = InstructionType::label;
+
+					Item* newItem = new Item();
+					newItem->labelName = longestLabel + std::to_string(labelCounter);
+					labelCounter++;
+					newItem->itemType = Atomic_Type::label;
+
+					newI->Items.push_back(newItem);
+
+					newF->instructions.push_back(newI);
+				}
+
+				firstInst = false;
+			} else if(ip->Type == InstructionType::label) {
+				Instruction* newI = new Instruction();
+				newI->Type = InstructionType::br_unconditional;
+
+				Item* newItem = new Item();
+				newItem->labelName = ip->Items.back()->labelName;
+				newItem->itemType = Atomic_Type::label;
+
+				newI->Items.push_back(newItem);
+
+				newF->instructions.push_back(newI);
+			}
+
+			// Insert all original instructions
+			newF->instructions.push_back(ip);
+				
+			if (ip->Type == InstructionType::br_unconditional || ip->Type == InstructionType::br_conditional ||
+				ip->Type == InstructionType::return_empty || ip->Type == InstructionType::return_value) {
+				firstInst = true;
+			}
+		}
+
+		return newF;
+	}
+
+    std::vector<std::vector<string>> convert_instruction(Instruction* ip) {//, std::string long_var, int labelCounter) {
         std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
 
         if(ip->Type == InstructionType::assign) { //as it is
-			ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
-			ret_strings.push_back(ip->Items[1]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[1], ip));
 
             ret_vectors.push_back(ret_strings);
         } else if(ip->Type == InstructionType::assign_arithmetic) { //as it is
-			ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
 
-			ret_strings.push_back(ip->Items[1]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[1], ip));
 
 			if(ip->Arith_Oper == Arith_Operator::shift_left) {
 			  ret_strings.push_back("<<");
@@ -67,14 +164,14 @@ namespace LA{
 			  std::cerr << "Incorrect Arith Operator\n";
 			}
 
-			ret_strings.push_back(ip->Items[2]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[2], ip));
 	
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_compare) { //as it is
-			ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
 
-			ret_strings.push_back(ip->Items[1]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[1], ip));
 
 			if(ip->Comp_Oper == Compare_Operator::gr) {
 			  ret_strings.push_back(">");
@@ -90,61 +187,97 @@ namespace LA{
 			  std::cerr << "Incorrect Compare Operator\n";
 			}
 
-			ret_strings.push_back(ip->Items[2]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[2], ip));
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_load_array) {
-			//TODO
-            //ret_vectors = array_load_translation(ip, long_var, labelCounter);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
+    		ret_strings.push_back("<-");
+			ret_strings.push_back(to_ir_item_label(ip->Items[1], ip));			
+			int numDimensions = ip->array_access_location.size();
+			for(int i=0; i<numDimensions; i++) {
+	    		ret_strings.push_back("[");
+				ret_strings.push_back(to_ir_item_label(ip->array_access_location[i], ip));
+				ret_strings.push_back("]");
+			}
+
+            ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_store_array) {
-            //ret_vectors = array_store_translation(ip, long_var, labelCounter);
+    		ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
+			int numDimensions = ip->array_access_location.size();
+			for(int i=0; i<numDimensions; i++) {
+	    		ret_strings.push_back("[");
+				ret_strings.push_back(to_ir_item_label(ip->array_access_location[i], ip));
+				ret_strings.push_back("]");
+			}
+    		ret_strings.push_back("<-");
+			ret_strings.push_back(to_ir_item_label(ip->Items.back(), ip));			
+
+            ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_new_array) {
-            ret_vectors = new_array_translation(ip, long_var, labelCounter);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
+    		ret_strings.push_back("<-");
+    		ret_strings.push_back("new");
+    		ret_strings.push_back("Array");
+    		ret_strings.push_back("(");
+			for(int i=0; i<ip->arguments.size()-1; i++) {
+				ret_strings.push_back(to_ir_item_label(ip->arguments[i], ip));
+				ret_strings.push_back(",");
+			}
+			ret_strings.push_back(to_ir_item_label(ip->arguments.back(), ip));
+
+    		ret_strings.push_back(")");
+
+            ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_new_tuple) {
-			ret_vectors = new_tuple(ip);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
+    		ret_strings.push_back("<-");
+    		ret_strings.push_back("new");
+    		ret_strings.push_back("Tuple");
+    		ret_strings.push_back("(");
+			ret_strings.push_back(to_ir_item_label(ip->arguments.back(), ip));
+    		ret_strings.push_back(")");
+
+            ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_length) {
-            ret_vectors = length_translation(ip, long_var, labelCounter);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
+    		ret_strings.push_back("<-");
+    		ret_strings.push_back("length");
+			ret_strings.push_back(to_ir_item_label(ip->Items[1], ip));
+			ret_strings.push_back(to_ir_item_label(ip->Items[2], ip));
+
+            ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::call) { // as it is
 			ret_strings.push_back("call");
 
-			if(ip->calleeType == CalleeType::print)
-			  ret_strings.push_back("print");
-			else if(ip->calleeType == CalleeType::array_error)
-			  ret_strings.push_back("array-error");
-			else // var, label
-			  ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 
 			ret_strings.push_back("(");
 
     		int arg_size = ip->arguments.size();
     		if (arg_size > 0) {
     		  for(int i = 0; i < arg_size - 1; i++)
-    			ret_strings.push_back(ip->arguments[i]->labelName + ",");
-    		  ret_strings.push_back(ip->arguments[arg_size - 1]->labelName);
+    			ret_strings.push_back(to_ir_item_label(ip->arguments[i], ip) + ",");
+    		  ret_strings.push_back(to_ir_item_label(ip->arguments[arg_size - 1], ip));
     		}
   
 			ret_strings.push_back(")");
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::call_assign) { // as it is 
-			ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
 			ret_strings.push_back("call");
 
-			if(ip->calleeType == CalleeType::print)
-			  ret_strings.push_back("print");
-			else if(ip->calleeType == CalleeType::array_error)
-			  ret_strings.push_back("array-error");
-			else // var, label
-			  ret_strings.push_back(ip->Items[1]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[1], ip));
 
 			ret_strings.push_back("(");
 
     		int arg_size = ip->arguments.size();
     		if (arg_size > 0) {
     		  for(int i = 0; i < arg_size - 1; i++)
-    			ret_strings.push_back(ip->arguments[i]->labelName + ",");
-    		  ret_strings.push_back(ip->arguments[arg_size - 1]->labelName);
+    			ret_strings.push_back(to_ir_item_label(ip->arguments[i], ip) + ",");
+    		  ret_strings.push_back(to_ir_item_label(ip->arguments[arg_size - 1], ip));
     		}
   
 			ret_strings.push_back(")");
@@ -161,7 +294,7 @@ namespace LA{
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::return_value) { // as it is
 			ret_strings.push_back("return");
-			ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::br_unconditional) { // as it is
@@ -171,18 +304,24 @@ namespace LA{
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::br_conditional) { // explicit jump
 			ret_strings.push_back("br");
-			ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back(ip->Items[1]->labelName);
-
-            ret_vectors.push_back(ret_strings);
-			ret_strings.clear();
-
-			ret_strings.push_back("br");
 			ret_strings.push_back(ip->Items[2]->labelName);
 
             ret_vectors.push_back(ret_strings);
-        } else { //init_var
-			// std::cerr << "init_var"; // init_var does not print anything for L3
+ 		} else if(ip->Type == InstructionType::print) {
+			ret_strings.push_back("call");
+			ret_strings.push_back("print");
+			ret_strings.push_back("(");
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
+			ret_strings.push_back(")");
+
+            ret_vectors.push_back(ret_strings);
+       } else { //init_var
+			ret_strings.push_back(get_arg_type(ip->Items[0]));
+			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
+
+			ret_vectors.push_back(ret_strings);
         }
 
 		return ret_vectors;
@@ -195,45 +334,42 @@ namespace LA{
       std::ofstream outputFile;
       outputFile.open("prog.IR");
 
-      // integer to append to longest_var
-	  int labelCounter = 0;
-
       /* 
        * Generate IR code
        */ 
       for(auto& fp: p.functions) {
-          
+		  // create an item for the function name for the conversion
+		  Item* func_name = new Item();
+		  func_name->labelName = fp->name;
+		  func_name->itemType = Atomic_Type::label;
+
 		  // PRINT initial line of the function
-          outputFile << "define " << fp->name << " (";
+          outputFile << "define " << get_return_type(fp) << " " << to_ir_item_label(func_name) << " (";
 		  int arg_size = fp->arguments.size();
 		  if (arg_size > 0) {
 		    for(int i = 0; i < arg_size - 1; i++)
-			  outputFile << fp->arguments[i]->labelName << ", ";
-		    outputFile << fp->arguments[arg_size - 1]->labelName;
+			  outputFile << get_arg_type(fp->arguments[i]) << ' ' << to_ir_item_label(fp->arguments[i]) << ", ";
+		    outputFile << get_arg_type(fp->arguments[arg_size - 1]) << ' ' << to_ir_item_label(fp->arguments[arg_size - 1]);
 		  }
 		  outputFile << ") {\n";
 
 		  // Get the longest var that will be used in the array-related functions
-		  std::string longest_var = get_longest_varname(fp);
+		  std::string longest_label = get_longest_label(fp);
 
-	      for(auto &bp : fp->blocks) {
-//			std::cerr << fp->name << '\n';
-            for(auto &ip : bp->instructions) {
-//			  for (auto &item : ip->Items)
-//				std::cerr << item->labelName << ' ';
-//			  std::cerr << '\n';
-			  std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_var, labelCounter);
-			  if (!to_print.empty()) { //init_var does not print anything for L3
-			    for(auto vec_str : to_print) {
-                  outputFile << "\t";
-                  for(auto str : vec_str)
-                    outputFile << str << ' ';
-                  outputFile << '\n';
-                }
-			  }
+		  Function* blockedF = generate_blocks(fp, longest_label);
+
+          for(auto &ip : blockedF->instructions) {
+			//std::cerr<< int(ip->Type) <<'\n';
+			std::vector<std::vector<string>> to_print = convert_instruction(ip);
+			if (!to_print.empty()) { //init_var does not print anything for L3
+			  for(auto vec_str : to_print) {
+                outputFile << "\t";
+                for(auto str : vec_str)
+                  outputFile << str << ' ';
+                outputFile << '\n';
+              }
 		    }
-			outputFile << '\n'; // line break for the new block
-          }
+		  }
           outputFile << "}\n\n";
       }
 
@@ -241,6 +377,6 @@ namespace LA{
        * Close the output file.
        */ 
       outputFile.close();
-      return ;
+      return;
     }
 }
