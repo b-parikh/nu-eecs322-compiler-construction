@@ -27,19 +27,6 @@ namespace LA {
     }
 
     // name <- t op t
-    // t may be a constant number and needs to be encoded prior calculation
-    // handles assign_arithmetic and assign_compare
-//    std::vector<Item*> assign_to_encode_pre_instruction(Instruction* ip) {
-//        std::vector<Item*> items_to_encode;
-//        if(ip->Items[1]->itemType == Atomic_Type::num)
-//            items_to_encode.push_back(ip->Items[1]);
-//        if(ip->Items[2]->itemType == Atomic_Type::num)
-//            items_to_encode.push_back(ip->Items[2]);
-//
-//        return items_to_encode;
-//    }
-
-    // name <- t op t
     // name needs to be encoded
     // handles assign_arithmetic and assign_compare
     std::vector<Item*> assign_to_encode(Instruction* ip) {
@@ -115,7 +102,7 @@ namespace LA {
         return items_to_encode;
     }
 
-    std::vector<std::vector<std::string>> encode_all_items(Instruction* ip, std::vector<Item*> items_to_encode, std::string newLabel, int &varNameCounter) {
+    std::vector<std::vector<std::string>> encode_all_items(Instruction* ip, std::vector<Item*> items_to_encode, std::string newVarLabel, int &varNameCounter) {
         std::vector<std::vector<std::string>> ret_vectors;
         std::vector<std::string> ret_strings;
         for(auto &itp : items_to_encode) {
@@ -131,7 +118,7 @@ namespace LA {
             }
             else { // itemType is num (label isn't possible here)
                 // initialize new variable 
-                std::string newVarName = "%" + newLabel + "_" + std::to_string(varNameCounter);
+                std::string newVarName = "%" + newVarLabel + "_" + std::to_string(varNameCounter);
                 varNameCounter++;
 
                 ret_strings.insert(ret_strings.end(), {"int64", newVarName});
@@ -155,7 +142,7 @@ namespace LA {
         return ret_vectors;
     }
 
-    std::vector<std::vector<std::string>> encode_items(Instruction* ip, std::vector<Item*> items_to_encode, std::string newLabel, int &varNameCounter) {
+    std::vector<std::vector<std::string>> encode_items(Instruction* ip, std::vector<Item*> items_to_encode, std::string newVarLabel, int &varNameCounter) {
         std::vector<std::vector<std::string>> ret_vectors;
         std::vector<std::string> ret_strings;
         for(auto &itp : items_to_encode) {
@@ -222,13 +209,13 @@ namespace LA {
         return items_to_decode;
     }
 
-    std::vector<std::vector<std::string>> decode_all_items(Instruction* ip, std::vector<Item*> items_to_decode, std::string newLabel, int &varNameCounter) {
+    std::vector<std::vector<std::string>> decode_all_items(Instruction* ip, std::vector<Item*> items_to_decode, std::string newVarLabel, int &varNameCounter) {
         std::vector<std::vector<std::string>> ret_vectors;
         std::vector<std::string> ret_strings;
         for(auto &itp : items_to_decode) {
             // create new variable to hold decoded version of current variable 
             // all variables being decoded are int64 type
-            std::string newVarName = "%" + itp->labelName + "_" + newLabel + "_" + std::to_string(varNameCounter);
+            std::string newVarName = "%" + itp->labelName + "_" + newVarLabel + "_" + std::to_string(varNameCounter);
             varNameCounter++;
 
             ret_strings.insert(ret_strings.end(), {"int64", newVarName});

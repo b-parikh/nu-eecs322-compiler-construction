@@ -151,16 +151,18 @@ namespace LA{
 		return newF;
 	}
 
-    std::vector<std::vector<string>> convert_instruction(Instruction* ip, std::string newLabel, int& varNameCounter) {
+    std::vector<std::vector<string>> convert_instruction(Instruction* ip, std::string newVarLabel, int& varNameCounter, std::string newLabel, int& labelNameCounter) {
         std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
         std::vector<Item*> to_encode;
         std::vector<Item*> to_decode;
 
+        newLabel.erase(0,1); // to remove the ":" at the start
+
         if(ip->Type == InstructionType::assign) { 
             // encode RHS before putting into a variable (if RHS is a number)
             to_encode = assign_encode(ip);
-            ret_vectors = encode_all_items(ip, to_encode, newLabel, varNameCounter);
+            ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
             
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
@@ -170,7 +172,7 @@ namespace LA{
         } else if(ip->Type == InstructionType::assign_arithmetic) { //as it is
             // decode t in t op t if t is a variable
             to_decode = assign_to_decode(ip);
-            ret_vectors = decode_all_items(ip, to_decode, newLabel, varNameCounter);
+            ret_vectors = decode_all_items(ip, to_decode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
@@ -200,13 +202,13 @@ namespace LA{
             ret_strings.clear();
 
             to_encode = assign_to_encode(ip);
-            std::vector<std::vector<std::string>> encoded_instructions = encode_all_items(ip, to_encode, newLabel, varNameCounter);
+            std::vector<std::vector<std::string>> encoded_instructions = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
 	        ret_vectors.insert(ret_vectors.end(), encoded_instructions.begin(), encoded_instructions.end());
 
 		} else if(ip->Type == InstructionType::assign_compare) { //as it is
             // decode t in t op t if t is a variable
             to_decode = assign_to_decode(ip);
-            ret_vectors = decode_all_items(ip, to_decode, newLabel, varNameCounter);
+            ret_vectors = decode_all_items(ip, to_decode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
@@ -233,13 +235,17 @@ namespace LA{
             ret_vectors.push_back(ret_strings);
             
             to_encode = assign_to_encode(ip);
-            std::vector<std::vector<std::string>> encoded_instructions = encode_all_items(ip, to_encode, newLabel, varNameCounter);
+            std::vector<std::vector<std::string>> encoded_instructions = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
 	        ret_vectors.insert(ret_vectors.end(), encoded_instructions.begin(), encoded_instructions.end());
 
 		} else if(ip->Type == InstructionType::assign_load_array) {
-            // if load operation has variables are arguments, decode them
+            ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+
+            // if load operation has variables that are arguments, decode them
             to_decode = assign_load_array_decode(ip);
-            ret_vectors = decode_all_items(ip, to_decode, newLabel, varNameCounter);
+            std::vector<std::vector<std::string>> decoded_ret_vectors = decode_all_items(ip, to_decode, newVarLabel, varNameCounter);
+            ret_vectors.insert(ret_vectors.end(), decoded_ret_vectors.begin(), decoded_ret_vectors.end());
+
 
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
     		ret_strings.push_back("<-");
@@ -253,10 +259,14 @@ namespace LA{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_store_array) {
+            ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+
             to_encode = assign_store_array_encode(ip);
-            ret_vectors = encode_all_items(ip, to_encode, newLabel, varNameCounter);
+            std::vector<std::vector<std::string>> encoded_ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
+            ret_vectors.insert(ret_vectors.end(), encoded_ret_vectors.begin(), encoded_ret_vectors.end());
+
             to_decode = assign_store_array_decode(ip);
-            std::vector<std::vector<std::string>> decoded_ret_vectors = decode_all_items(ip, to_decode, newLabel, varNameCounter);
+            std::vector<std::vector<std::string>> decoded_ret_vectors = decode_all_items(ip, to_decode, newVarLabel, varNameCounter);
             ret_vectors.insert(ret_vectors.end(), decoded_ret_vectors.begin(), decoded_ret_vectors.end());
 
     		ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
@@ -273,7 +283,7 @@ namespace LA{
 		} else if(ip->Type == InstructionType::assign_new_array) {
             // encode arguments to new Array that may be constants
             to_encode = assign_new_array_encode(ip);
-            ret_vectors = encode_all_items(ip, to_encode, newLabel, varNameCounter);
+            ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
     		ret_strings.push_back("<-");
@@ -292,7 +302,7 @@ namespace LA{
 		} else if(ip->Type == InstructionType::assign_new_tuple) {
             // encode arguments to new Tuple that may be constants
             to_encode = assign_new_array_encode(ip);
-            ret_vectors = encode_all_items(ip, to_encode, newLabel, varNameCounter);
+            ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
     		ret_strings.push_back("<-");
@@ -306,7 +316,7 @@ namespace LA{
 		} else if(ip->Type == InstructionType::assign_length) {
             // decode 3rd argument if it's a variable
             to_decode = array_length_decode(ip);
-            ret_vectors = decode_all_items(ip, to_decode, newLabel, varNameCounter);
+            ret_vectors = decode_all_items(ip, to_decode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
     		ret_strings.push_back("<-");
@@ -363,7 +373,7 @@ namespace LA{
 		} else if(ip->Type == InstructionType::return_value) { // as it is
             to_encode = return_value_encode(ip);
             // ret_vectors will contain an instruction ONLY if the return value is a number; otherwise the return value will be encoded in previous assign instruction
-            ret_vectors = encode_items(ip, to_encode, newLabel, varNameCounter);
+            ret_vectors = encode_items(ip, to_encode, newVarLabel, varNameCounter);
 			ret_strings.push_back("return");
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 
@@ -377,7 +387,7 @@ namespace LA{
 			ret_strings.push_back("br");
             std::vector<Item*> items_to_decode = br_conditional_decode(ip);
             // decode the argument Item 
-            ret_vectors = decode_all_items(ip, items_to_decode, newLabel, varNameCounter);
+            ret_vectors = decode_all_items(ip, items_to_decode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back(ip->Items[0]->labelName);
 			//ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
@@ -388,7 +398,7 @@ namespace LA{
             ret_strings.clear();
  		} else if(ip->Type == InstructionType::print) {
             to_encode = print_encode(ip);
-            ret_vectors = encode_all_items(ip, to_encode, newLabel, varNameCounter);
+            ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back("call");
 			ret_strings.push_back("print");
@@ -434,17 +444,17 @@ namespace LA{
 		  }
 		  outputFile << ") {\n";
 
+          // to generate new labels and variables
 		  std::string longest_label = get_longest_label(fp);
-
-		  // Get the longest var that will be used in the array-related functions
 		  std::string longest_variable = get_longest_variable(fp);
-
+          int varNameCounter = 0;
+          int labelNameCounter = 0;
+          
 		  Function* blockedF = generate_blocks(fp, longest_label);
 
-          int varNameCounter = 0;
           for(auto &ip : blockedF->instructions) {
 			//std::cerr<< int(ip->Type) <<'\n';
-			std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_variable, varNameCounter);
+			std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_variable, varNameCounter, longest_label, labelNameCounter);
 			if (!to_print.empty()) { //init_var does not print anything for L3
 			  for(auto vec_str : to_print) {
                 outputFile << "\t";
