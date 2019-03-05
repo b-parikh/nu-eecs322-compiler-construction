@@ -51,6 +51,11 @@ namespace LA {
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
+            // to keep basic block formatting, add a br unconditional
+            ret_strings.insert(ret_strings.end(), {"br", bound_check_passes_label});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+
             // not out of bound so continue to next dimension
             ret_strings.insert(ret_strings.end(), {bound_check_passes_label});
             ret_vectors.push_back(ret_strings);
