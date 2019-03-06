@@ -40,6 +40,11 @@ namespace LA {
             ret_strings.insert(ret_strings.end(), {"int64", brVar});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
+
+			ret_strings.insert(ret_strings.end(), {brVar, "<-", newTempVar, "<=", location->labelName});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+
             // branch conditional
             std::string array_error_label = ":array_error_" + newLabel + "_" + std::to_string(labelNameCounter++);
             std::string bound_check_passes_label = ":bound_check_passes_" + newLabel + "_" + std::to_string(labelNameCounter++);
@@ -56,6 +61,10 @@ namespace LA {
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
+//            ret_strings.push_back("return");
+//            ret_vectors.push_back(ret_strings);
+//            ret_strings.clear();
+//
             // to keep basic block formatting, add a br unconditional
             ret_strings.insert(ret_strings.end(), {"br", bound_check_passes_label});
             ret_vectors.push_back(ret_strings);
