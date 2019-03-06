@@ -17,8 +17,8 @@ namespace LA {
             arrName = "%" + ip->Items[1]->labelName;
 
         // temp variable to be used in all array access checks
-        std::string newTempVar = "%newTempVar_" + newVarLabel + std::to_string(varNameCounter++);
-        ret_strings.insert(ret_strings.end(), {"int64", newTempVar});
+        std::string lengthVar = "%lengthVar" + newVarLabel + std::to_string(varNameCounter++);
+        ret_strings.insert(ret_strings.end(), {"int64", lengthVar});
         ret_vectors.push_back(ret_strings);
         ret_strings.clear();
 
@@ -26,22 +26,31 @@ namespace LA {
 
         for(auto& location : ip->array_access_location) {
             // find length of current dimension
-            ret_strings.insert(ret_strings.end(), {newTempVar, "<-", "length", arrName, std::to_string(indexCount)});
+            ret_strings.insert(ret_strings.end(), {lengthVar, "<-", "length", arrName, std::to_string(indexCount)});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
             // check if array access is out-of-bound
-//            ret_strings.insert(ret_strings.end(), {newTempVar, "<-", location->labelName, ">=", newTempVar});
-//            ret_vectors.push_back(ret_strings);
-//            ret_strings.clear();
-
-            std::string brVar = "%nbrVar_" + newVarLabel + std::to_string(varNameCounter++);
-
+            std::string brVar = "%brVar_" + newVarLabel + std::to_string(varNameCounter++);
             ret_strings.insert(ret_strings.end(), {"int64", brVar});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
-			ret_strings.insert(ret_strings.end(), {brVar, "<-", newTempVar, "<=", location->labelName});
+            // the value of the index being accessed is encoded as it's going to be compared to length value, which is encoded
+            std::string locationEncoded = "%locationEncoded_" + newVarLabel + std::to_string(varNameCounter++);
+            ret_strings.insert(ret_strings.end(), {"int64", locationEncoded});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+            
+            ret_strings.insert(ret_strings.end(), {locationEncoded, "<-", location->labelName, "<<", "1"});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+
+            ret_strings.insert(ret_strings.end(), {locationEncoded, "<-", locationEncoded, "+", "1"});
+            ret_vectors.push_back(ret_strings);
+            ret_strings.clear();
+
+			ret_strings.insert(ret_strings.end(), {brVar, "<-", lengthVar, "<=", locationEncoded});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
