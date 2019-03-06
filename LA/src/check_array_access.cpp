@@ -31,14 +31,19 @@ namespace LA {
             ret_strings.clear();
 
             // check if array access is out-of-bound
-            ret_strings.insert(ret_strings.end(), {newTempVar, "<-", location->labelName, ">=", newTempVar});
+//            ret_strings.insert(ret_strings.end(), {newTempVar, "<-", location->labelName, ">=", newTempVar});
+//            ret_vectors.push_back(ret_strings);
+//            ret_strings.clear();
+
+            std::string brVar = "%nbrVar_" + newVarLabel + std::to_string(varNameCounter++);
+
+            ret_strings.insert(ret_strings.end(), {"int64", brVar});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
-
             // branch conditional
             std::string array_error_label = ":array_error_" + newLabel + "_" + std::to_string(labelNameCounter++);
             std::string bound_check_passes_label = ":bound_check_passes_" + newLabel + "_" + std::to_string(labelNameCounter++);
-            ret_strings.insert(ret_strings.end(), {"br", newTempVar, array_error_label, bound_check_passes_label});
+            ret_strings.insert(ret_strings.end(), {"br", brVar, array_error_label, bound_check_passes_label});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
