@@ -217,7 +217,7 @@ namespace IR{
 		  std::string longest_var = get_longest_varname(fp);
 
 	      for(auto &bp : fp->blocks) {
-//			std::cerr << fp->name << '\n';
+			std::cerr << bp->instructions->Items[0] << '\n';
             for(auto &ip : bp->instructions) {
 //			  for (auto &item : ip->Items)
 //				std::cerr << item->labelName << ' ';

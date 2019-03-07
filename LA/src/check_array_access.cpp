@@ -26,6 +26,7 @@ namespace LA {
 
         for(auto& location : ip->array_access_location) {
             // find length of current dimension
+            
             ret_strings.insert(ret_strings.end(), {lengthVar, "<-", "length", arrName, std::to_string(indexCount)});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
@@ -54,6 +55,17 @@ namespace LA {
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
+			//TODO for debug
+//			ret_strings.insert(ret_strings.end(), {"call print (", lengthVar, ")"});
+//            ret_vectors.push_back(ret_strings);
+//            ret_strings.clear();
+//			ret_strings.insert(ret_strings.end(), {"call print (", locationEncoded, ")"});
+//            ret_vectors.push_back(ret_strings);
+//            ret_strings.clear();
+//			ret_strings.insert(ret_strings.end(), {"call print (", brVar, ")"});
+//            ret_vectors.push_back(ret_strings);
+//            ret_strings.clear();
+
             // branch conditional
             std::string array_error_label = ":array_error_" + newLabel + "_" + std::to_string(labelNameCounter++);
             std::string bound_check_passes_label = ":bound_check_passes_" + newLabel + "_" + std::to_string(labelNameCounter++);
@@ -66,7 +78,7 @@ namespace LA {
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
-            ret_strings.insert(ret_strings.end(), {"call", "array-error", "(", arrName, ",", std::to_string(indexCount), ")"});
+            ret_strings.insert(ret_strings.end(), {"call", "array-error", "(", arrName, ",", locationEncoded, ")"});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 

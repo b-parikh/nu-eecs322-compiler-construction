@@ -38,11 +38,23 @@ namespace LA{
     }
 
 	std::string get_longest_variable(Function* fp) {
+		std::vector<Item*> declared;
+		declared.insert(declared.end(), fp->arguments.begin(), fp->arguments.end());
+
 	    std::string longest_variable;
 	    int longest_variable_len = 0;
 	    for(auto &instruct : fp->instructions) {
                for(auto &item : instruct->Items) {
    		        if(item->itemType == Atomic_Type::var) {
+					if(instruct->Type == InstructionType::init_var)
+						declared.push_back(item);
+					else {
+						for(auto &declared_item : declared) {
+							if(item->labelName == declared_item->labelName)
+								item->varType = declared_item->varType;
+						}
+					}
+
    		  	        if(item->labelName.length() > longest_variable_len) {
    			            longest_variable = item->labelName;
    			            longest_variable_len = item->labelName.length();
@@ -239,7 +251,8 @@ namespace LA{
 	        ret_vectors.insert(ret_vectors.end(), encoded_instructions.begin(), encoded_instructions.end());
 
 		} else if(ip->Type == InstructionType::assign_load_array) {
-            ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+			if(ip->Items[1]->varType == VarType::arr_type)
+				ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
 
             // if load operation has variables that are arguments, decode them
             to_decode = assign_load_array_decode(ip);
@@ -259,7 +272,9 @@ namespace LA{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_store_array) {
-            ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+			//std::cerr << int(ip->Items[0]->varType) << "\n";
+			if(ip->Items[0]->varType == VarType::arr_type)
+		      ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
 
             to_encode = assign_store_array_encode(ip);
             std::vector<std::vector<std::string>> encoded_ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);

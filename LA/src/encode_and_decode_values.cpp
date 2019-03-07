@@ -187,7 +187,7 @@ namespace LA {
     std::vector<Item*> assign_load_array_decode(Instruction* ip) {
         std::vector<Item*> items_to_decode;
         for(auto& arg : ip->arguments) {
-            if(arg->itemType == Atomic_Type::var)
+//            if(arg->itemType == Atomic_Type::var)
                 items_to_decode.push_back(arg);
         }
 
