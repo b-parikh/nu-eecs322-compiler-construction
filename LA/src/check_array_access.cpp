@@ -42,8 +42,14 @@ namespace LA {
             ret_strings.insert(ret_strings.end(), {"int64", locationEncoded});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
-            
-            ret_strings.insert(ret_strings.end(), {locationEncoded, "<-", location->labelName, "<<", "1"});
+           
+			std::string temp_loc;
+			if(location->itemType == Atomic_Type::var)
+				temp_loc = "%" + location->labelName;
+			else
+				temp_loc = location->labelName; 
+
+            ret_strings.insert(ret_strings.end(), {locationEncoded, "<-", temp_loc, "<<", "1"});
             ret_vectors.push_back(ret_strings);
             ret_strings.clear();
 
