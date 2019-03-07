@@ -251,8 +251,16 @@ namespace LA{
 	        ret_vectors.insert(ret_vectors.end(), encoded_instructions.begin(), encoded_instructions.end());
 
 		} else if(ip->Type == InstructionType::assign_load_array) {
-			if(ip->Items[1]->varType == VarType::arr_type)
-				ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+            // check if allocated previously
+            ret_vectors = check_array_allocation(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+
+			if(ip->Items[0]->varType == VarType::arr_type) {
+                std::vector<std::vector<std::string>> arr_access_temp = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+                ret_vectors.insert(ret_vectors.end(), arr_access_temp.begin(), arr_access_temp.end());
+            }
+
+//			if(ip->Items[1]->varType == VarType::arr_type)
+//				ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
 
             // if load operation has variables that are arguments, decode them
             to_decode = assign_load_array_decode(ip);
@@ -273,9 +281,14 @@ namespace LA{
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_store_array) {
 			//std::cerr << int(ip->Items[0]->varType) << "\n";
+            // check if allocated previously
+            ret_vectors = check_array_allocation(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+
             // don't check if tuple
-			if(ip->Items[0]->varType == VarType::arr_type)
-		      ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+			if(ip->Items[0]->varType == VarType::arr_type) {
+                std::vector<std::vector<std::string>> arr_access_temp = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+                ret_vectors.insert(ret_vectors.end(), arr_access_temp.begin(), arr_access_temp.end());
+            }
 
             to_encode = assign_store_array_encode(ip);
             std::vector<std::vector<std::string>> encoded_ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
@@ -435,6 +448,9 @@ namespace LA{
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 
 			ret_vectors.push_back(ret_strings);
+            // set all arrays/tuples to 0
+            std::vector<std::vector<std::string>> init_instructions = initialize_arrays_and_tuples(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
+            ret_vectors.insert(ret_vectors.end(), init_instructions.begin(), init_instructions.end());
         }
 
 		return ret_vectors;
