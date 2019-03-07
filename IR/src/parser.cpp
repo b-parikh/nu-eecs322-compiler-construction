@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <parser.h>
 #include <map>
+//#include <iostream>
 
 #include <IR.h>
 
@@ -328,6 +329,7 @@ namespace IR{
           i->Items.push_back(it);
       }
       parsed_items.clear();
+	//std::cerr<<i->Items[0]->labelName << '\n';
 
       block_buffer.instructions.push_back(i);
     }
@@ -387,7 +389,6 @@ namespace IR{
     template < typename Input >
     static void apply (const Input &in, Program &p) {
 	  auto currFunc = p.functions.back();
-
       Basic_block* newBlock = new Basic_block();
       newBlock->starting_label = block_buffer.starting_label;
       newBlock->instructions = block_buffer.instructions;

@@ -1,4 +1,6 @@
-all: L1_lang L2_lang L3_lang IR_lang LA_lang LB_lang
+all: langs
+	
+langs: L1_lang L2_lang L3_lang IR_lang LA_lang LB_lang
 
 L1_lang:
 	cd L1 ; make 
@@ -24,16 +26,21 @@ LC_lang:
 LD_lang:
 	cd LD ; make
 
-LE_lang:
-	cd LE ; make
-
 framework:
 	./scripts/framework.sh
 
 homework:
 	./scripts/homework.sh
 
-generate_tests: all
+rm_programs: langs
+	cd L1 ; make test_programs ; make rm_tests_without_oracle
+	cd L2 ; make test_programs ; make rm_tests_without_oracle
+	cd L3 ; make test_programs ; make rm_tests_without_oracle
+	cd IR ; make test_programs ; make rm_tests_without_oracle
+	cd LA ; make test_programs ; make rm_tests_without_oracle
+	cd LB ; make test_programs ; make rm_tests_without_oracle
+
+generate_tests: langs
 	./scripts/generateTests.sh
 
 clean:

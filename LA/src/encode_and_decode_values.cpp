@@ -50,7 +50,7 @@ namespace LA {
 
     std::vector<Item*> return_value_encode(Instruction* ip) {
         std::vector<Item*> items_to_encode;
-        if(ip->Items[1]->itemType == Atomic_Type::num)
+        if(ip->Items[0]->itemType == Atomic_Type::num)
             items_to_encode.push_back(ip->Items[0]);
 
         return items_to_encode;
@@ -147,13 +147,34 @@ namespace LA {
         std::vector<std::vector<std::string>> ret_vectors;
         std::vector<std::string> ret_strings;
         for(auto &itp : items_to_encode) {
-            ret_strings.insert(ret_strings.end(), {itp->labelName, "<-", itp->labelName, "<<", "1"});
-            ret_vectors.push_back(ret_strings);
-            ret_strings.clear();
-            
-            ret_strings.insert(ret_strings.end(), {itp->labelName, "<-", itp->labelName, "+", "1"});
-            ret_vectors.push_back(ret_strings);
-            ret_strings.clear();
+            if(itp->itemType == Atomic_Type::var) {
+                ret_strings.insert(ret_strings.end(), {itp->labelName, "<-", itp->labelName, "<<", "1"});
+                ret_vectors.push_back(ret_strings);
+                ret_strings.clear();
+                
+                ret_strings.insert(ret_strings.end(), {itp->labelName, "<-", itp->labelName, "+", "1"});
+                ret_vectors.push_back(ret_strings);
+                ret_strings.clear();
+			} else {
+	            std::string newVarName = "%" + newVarLabel + "_" + std::to_string(varNameCounter);
+                varNameCounter++;
+
+                ret_strings.insert(ret_strings.end(), {"int64", newVarName});
+                ret_vectors.push_back(ret_strings);
+                ret_strings.clear();
+
+                // new variable holds decoded value
+                ret_strings.insert(ret_strings.end(), {newVarName, "<-", itp->labelName, "<<", "1"});
+                ret_vectors.push_back(ret_strings);
+                ret_strings.clear();
+
+                ret_strings.insert(ret_strings.end(), {newVarName, "<-", newVarName, "+", "1"});
+                ret_vectors.push_back(ret_strings);
+                ret_strings.clear();
+
+                // modify Item that's within the instruction to use the new encoded variable
+                itp->labelName = newVarName;
+			}
         }
             
         return ret_vectors;

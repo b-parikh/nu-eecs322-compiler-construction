@@ -39,6 +39,7 @@ for i in *.${extFile} ; do
   else
     let failed=$failed+1 ;
     testsFailed="${i} ${testsFailed}";
+    rm ${i} ${i}.out ;
   fi
   popd &> /dev/null ; 
 done
