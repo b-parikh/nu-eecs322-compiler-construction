@@ -1,7 +1,6 @@
 #include <check_array_allocation.h>
 
 namespace LA {
-
    
     // if the init instruction is for array or tuple, then initialize the array or tuple to 0
     // can assume this is init instruction and ip->Items[0] is the type in question
@@ -16,7 +15,6 @@ namespace LA {
         }
 
         return ret_vectors;
-        
     }
 
     // before each array store or load, check to see if array is equal to 0 to ensure it has been allocated to
@@ -69,10 +67,5 @@ namespace LA {
         ret_strings.clear();
 
         return ret_vectors;
-
-
-
     }
-
-
 } 

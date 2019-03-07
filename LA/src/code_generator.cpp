@@ -301,11 +301,7 @@ namespace LA{
 			int numDimensions = ip->array_access_location.size();
 			for(int i=0; i<numDimensions; i++) {
 	    		ret_strings.push_back("[");
-                //if(ip->array_access_location[i]->itemType == Atomic_Type::num)
-                    ret_strings.push_back(ip->array_access_location[i]->labelName);
-                //else // var type
-                    //ret_strings.push_back("%" + ip->array_access_location[i]->labelName);
-				//ret_strings.push_back(to_ir_item_label(ip->array_access_location[i], ip));
+                ret_strings.push_back(ip->array_access_location[i]->labelName);
 				ret_strings.push_back("]");
 			}
     		ret_strings.push_back("<-");
@@ -428,7 +424,6 @@ namespace LA{
             ret_vectors = decode_all_items(ip, items_to_decode, newVarLabel, varNameCounter);
 
 			ret_strings.push_back(ip->Items[0]->labelName);
-			//ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back(ip->Items[1]->labelName);
 			ret_strings.push_back(ip->Items[2]->labelName);
 
@@ -441,7 +436,6 @@ namespace LA{
 			ret_strings.push_back("call");
 			ret_strings.push_back("print");
 			ret_strings.push_back("(");
-            //ret_strings.push_back(ip->Items[0]->labelName);
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back(")");
 
