@@ -254,15 +254,13 @@ namespace LA{
             // check if allocated previously
             ret_vectors = check_array_allocation(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
 
+            // if array type, check if invalid access (using length function)
 			if(ip->Items[0]->varType == VarType::arr_type) {
                 std::vector<std::vector<std::string>> arr_access_temp = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
                 ret_vectors.insert(ret_vectors.end(), arr_access_temp.begin(), arr_access_temp.end());
             }
 
-//			if(ip->Items[1]->varType == VarType::arr_type)
-//				ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
-
-            // if load operation has variables that are arguments, decode them
+            // if load operation has variable arguments, decode them
             to_decode = assign_load_array_decode(ip);
             std::vector<std::vector<std::string>> decoded_ret_vectors = decode_all_items(ip, to_decode, newVarLabel, varNameCounter);
             ret_vectors.insert(ret_vectors.end(), decoded_ret_vectors.begin(), decoded_ret_vectors.end());
@@ -272,9 +270,10 @@ namespace LA{
     		ret_strings.push_back("<-");
 			ret_strings.push_back(to_ir_item_label(ip->Items[1], ip));			
 			int numDimensions = ip->array_access_location.size();
-			for(int i=0; i<numDimensions; i++) {
+			for(int i = 0; i < numDimensions; ++i) {
 	    		ret_strings.push_back("[");
-				ret_strings.push_back(to_ir_item_label(ip->array_access_location[i], ip));
+                ret_strings.push_back(ip->array_access_location[i]->labelName);
+				//ret_strings.push_back(to_ir_item_label(ip->array_access_location[i], ip));
 				ret_strings.push_back("]");
 			}
 
@@ -302,7 +301,11 @@ namespace LA{
 			int numDimensions = ip->array_access_location.size();
 			for(int i=0; i<numDimensions; i++) {
 	    		ret_strings.push_back("[");
-				ret_strings.push_back(to_ir_item_label(ip->array_access_location[i], ip));
+                //if(ip->array_access_location[i]->itemType == Atomic_Type::num)
+                    ret_strings.push_back(ip->array_access_location[i]->labelName);
+                //else // var type
+                    //ret_strings.push_back("%" + ip->array_access_location[i]->labelName);
+				//ret_strings.push_back(to_ir_item_label(ip->array_access_location[i], ip));
 				ret_strings.push_back("]");
 			}
     		ret_strings.push_back("<-");

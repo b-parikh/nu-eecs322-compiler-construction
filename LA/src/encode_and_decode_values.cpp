@@ -107,7 +107,7 @@ namespace LA {
         std::vector<std::vector<std::string>> ret_vectors;
         std::vector<std::string> ret_strings;
         for(auto &itp : items_to_encode) {
-//            // don't create new variable to encode already present variable
+            // don't create new variable to encode already present variable
             if(itp->itemType == Atomic_Type::var) {
                 ret_strings.insert(ret_strings.end(), {"%" + itp->labelName, "<-", "%" + itp->labelName, "<<", "1"});
                 ret_vectors.push_back(ret_strings);
@@ -187,8 +187,8 @@ namespace LA {
 
     std::vector<Item*> assign_load_array_decode(Instruction* ip) {
         std::vector<Item*> items_to_decode;
-        for(auto& arg : ip->arguments) {
-//            if(arg->itemType == Atomic_Type::var)
+        for(auto& arg : ip->array_access_location) {
+            if(arg->itemType == Atomic_Type::var)
                 items_to_decode.push_back(arg);
         }
 
@@ -197,7 +197,11 @@ namespace LA {
 
     std::vector<Item*> assign_store_array_decode(Instruction* ip) {
         std::vector<Item*> items_to_decode;
-        items_to_decode.insert(items_to_decode.end(),ip->arguments.begin(), ip->arguments.end());
+        //items_to_decode.insert(items_to_decode.end(),ip->arguments.begin(), ip->arguments.end());
+        for(auto& arg : ip->array_access_location) {
+            if(arg->itemType == Atomic_Type::var)
+                items_to_decode.push_back(arg);
+        }
 
         return items_to_decode;
     }
