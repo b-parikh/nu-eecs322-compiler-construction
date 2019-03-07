@@ -273,6 +273,7 @@ namespace LA{
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::assign_store_array) {
 			//std::cerr << int(ip->Items[0]->varType) << "\n";
+            // don't check if tuple
 			if(ip->Items[0]->varType == VarType::arr_type)
 		      ret_vectors = check_array_access(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
 
@@ -341,6 +342,9 @@ namespace LA{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::call) { 
+            to_encode = call_encode(ip);
+            ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
+
 			ret_strings.push_back("call");
 
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
@@ -358,6 +362,9 @@ namespace LA{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::call_assign) { // as it is 
+            to_encode = call_encode(ip);
+            ret_vectors = encode_all_items(ip, to_encode, newVarLabel, varNameCounter);
+
 			ret_strings.push_back(to_ir_item_label(ip->Items[0], ip));
 			ret_strings.push_back("<-");
 			ret_strings.push_back("call");

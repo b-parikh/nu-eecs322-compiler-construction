@@ -68,6 +68,7 @@ namespace LA {
 
     std::vector<Item*> assign_store_array_encode(Instruction* ip) {
         std::vector<Item*> items_to_encode;
+        // encode numbers as they're stored into array/tuple; assume variables are encoded already
         if(ip->Items[1]->itemType == Atomic_Type::num)
             items_to_encode.push_back(ip->Items[1]);
 
