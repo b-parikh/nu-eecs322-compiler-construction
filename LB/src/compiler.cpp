@@ -61,7 +61,7 @@ int main(
   /*
    * Parse the input file.
    */
-  auto p = LB::parse_file(argv[optind]);
+  auto p = LA::parse_file(argv[optind]);
 
   /* 
    * Print the source program.
@@ -73,10 +73,10 @@ int main(
   }
 
   /*
-   * Generate LA.
+   * Generate IR.
    */
   if (enable_code_generator){
-    LB::generate_code(p);
+    LA::generate_code(p);
   }
 
   return 0;

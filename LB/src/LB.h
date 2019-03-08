@@ -9,7 +9,7 @@ namespace LB {
     enum class Atomic_Type{label, var, num};
     enum class VarType{int64_type, arr_type, tuple_type, code_type, void_type};
     //enum class InstructionType{assign, assign_arithmetic, assign_compare, call, call_assign, return_empty, return_value, br_unconditional, br_conditional, init_var, assign_load_array, assign_store_array, assign_new_array, assign_new_tuple, assign_length, label, print};
-    enum class InstructionType{assign, assign_cond, call, call_assign, return_empty, return_value, br_unconditional, if_inst, init_var, assign_load_array, assign_store_array, assign_new_array, assign_new_tuple, assign_length, label, print, while_inst, continue_inst, break_inst, scope_begin, scope_end};
+    enum class InstructionType{assign, assign_operator, call, call_assign, return_empty, return_value, br_unconditional, if_statement, while_statement, init_var, assign_load_array, assign_store_array, assign_new_array, assign_new_tuple, assign_length, label, print};
     enum class CalleeType{var, label, no_callee};
     enum class Oper{gr, geq, le, leq, eq, sar, sal, plus, minus, multipy, bw_and, nop};
 //    enum class Compare_Operator{gr, geq, le, leq, eq, nop};
@@ -39,11 +39,7 @@ namespace LB {
     struct Instruction{
         /*
          * Common to all instructions
-         *
-         * Scope - Each instruction has a number (level) specifying scope. 
-         * Scope starts from 0 and corresponds to base function layer.
          */
-        int level;
         InstructionType Type;
         std::vector<Item*> Items;
 
@@ -78,7 +74,7 @@ namespace LB {
         VarType returnType;
         std::vector<Item*> arguments;
         Scope* func_scope; // function level scope
-        std::map<std::string, Item*> varName_to_Item;
+        std::map<string, Item*> varName_to_Item;
     };
   
     /*

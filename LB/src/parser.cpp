@@ -24,6 +24,7 @@ namespace LB{
   std::vector<std::string> fp_list;
   Scope* currS = nullptr; // this scope will have instructions pushed into it
   std::vector<Scope*> scopeStack; // holds parent scopes
+  int scope_level = 0; // function's base scope is level 0
 
   /* 
    * Actions attached to grammar rules.
@@ -41,7 +42,6 @@ namespace LB{
     }
   };
 
-  // TODO: put var into currS's varName_to_Item map
   template<> struct action < var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
@@ -49,6 +49,7 @@ namespace LB{
         i->itemType = Atomic_Type::var;
 	    i->labelName = in.string();
 	    parsed_items.push_back(i);
+        currS->varName_to_Item[in.string()] = i; //put var into currS's varName_to_Item map
     }
   };
 
@@ -86,8 +87,7 @@ namespace LB{
     }
   };
 
-  //TODO
-  template<> struct action < assign_cond > {
+  template<> struct action < assign_arithmetic > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 		auto currF = p.functions.back();
         Instruction* i = new Instruction();
@@ -116,7 +116,7 @@ namespace LB{
         currF->instructions.push_back(i);
     }
   };
-  //TODO remove
+
   template<> struct action < assign_comparison > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 		auto currF = p.functions.back();
@@ -222,8 +222,6 @@ namespace LB{
   template<> struct action < call > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 		auto currF = p.functions.back();
-        Instruction* i = new Instruction();
-        i->Type = InstructionType::call;
 
         // no runtime func in LA
         // handle vars and labels; know that parsed_items has exactly one thing
@@ -359,12 +357,11 @@ namespace LB{
     }
   };
   
-   //TODO
-  template<> struct action < if_inst > {
+  // t op t
+  template<> struct action < operation > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currF = p.functions.back();
-        Instruction* i = new Instruction();
-        i->Type = InstructionType::br_conditional;
+
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
@@ -374,42 +371,19 @@ namespace LB{
     }
   };
 
-    //TODO
-  template<> struct action < while_inst > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currF = p.functions.back();
-        Instruction* i = new Instruction();
-        i->Type = InstructionType::br_conditional;
-        for(auto& it : parsed_items) {
-            i->Items.push_back(it);
-        }
-        parsed_items.clear();
-
-        currF->instructions.push_back(i);
-    }
-  };
-
-  template<> struct action < continue_inst > {
-    template< typename Input >
-	static void apply( const Input & in, Program & p){
-	  auto currF = p.functions.back();
-      Instruction* i = new Instruction();
-      i->Type = InstructionType::continue_inst;
-
-      currF->instructions.push_back(i);
-    }
-  };
-
-  template<> struct action < break_inst > {
-    template< typename Input >
-	static void apply( const Input & in, Program & p){
-	  auto currF = p.functions.back();
-      Instruction* i = new Instruction();
-      i->Type = InstructionType::break_inst;
-
-      currF->instructions.push_back(i);
-    }
-  };
+//  template<> struct action < br_conditional > {
+//    template < typename Input > static void apply (const Input &in, Program &p) {
+//	    auto currF = p.functions.back();
+//        Instruction* i = new Instruction();
+//        i->Type = InstructionType::br_conditional;
+//        for(auto& it : parsed_items) {
+//            i->Items.push_back(it);
+//        }
+//        parsed_items.clear();
+//
+//        currF->instructions.push_back(i);
+//    }
+//  };
 
   template<> struct action < int64_type > {
     template < typename Input >
@@ -453,7 +427,6 @@ namespace LB{
     }
   };
 
-  //TODO multiple vars
   template<> struct action < init_var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
@@ -501,6 +474,7 @@ namespace LB{
 
       // function level scope; parent is nullptr
       auto newS = new Scope(); 
+      newS->level = scope_level;
       newF->func_scope = newS;
       currS = newS;
 
@@ -562,7 +536,6 @@ namespace LB{
     }
   };
 
-   //TODO
    template<> struct action < scope_begin > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
@@ -575,11 +548,11 @@ namespace LB{
        }
    };
    
-   //TODO
    template<> struct action < scope_end > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
            auto prevS = scopeStack.back(); 
+           scopeStack.pop_back();
            prevS->childen_scopes.push_back(currS); // store current scope into higher level scope
            
            // set higher level scope to current scope
