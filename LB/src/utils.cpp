@@ -9,6 +9,5 @@ namespace LB {
         }
         
         return newString;
-
     }
 }

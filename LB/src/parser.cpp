@@ -86,7 +86,8 @@ namespace LB{
     }
   };
 
-  template<> struct action < assign_arithmetic > {
+  //TODO
+  template<> struct action < assign_cond > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 		auto currF = p.functions.back();
         Instruction* i = new Instruction();
@@ -115,7 +116,7 @@ namespace LB{
         currF->instructions.push_back(i);
     }
   };
-
+  //TODO remove
   template<> struct action < assign_comparison > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 		auto currF = p.functions.back();
@@ -358,7 +359,8 @@ namespace LB{
     }
   };
   
-  template<> struct action < br_conditional > {
+   //TODO
+  template<> struct action < if_inst > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currF = p.functions.back();
         Instruction* i = new Instruction();
@@ -369,6 +371,43 @@ namespace LB{
         parsed_items.clear();
 
         currF->instructions.push_back(i);
+    }
+  };
+
+    //TODO
+  template<> struct action < while_inst > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currF = p.functions.back();
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::br_conditional;
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+
+        currF->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < continue_inst > {
+    template< typename Input >
+	static void apply( const Input & in, Program & p){
+	  auto currF = p.functions.back();
+      Instruction* i = new Instruction();
+      i->Type = InstructionType::continue_inst;
+
+      currF->instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < break_inst > {
+    template< typename Input >
+	static void apply( const Input & in, Program & p){
+	  auto currF = p.functions.back();
+      Instruction* i = new Instruction();
+      i->Type = InstructionType::break_inst;
+
+      currF->instructions.push_back(i);
     }
   };
 
@@ -414,6 +453,7 @@ namespace LB{
     }
   };
 
+  //TODO multiple vars
   template<> struct action < init_var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
@@ -522,6 +562,7 @@ namespace LB{
     }
   };
 
+   //TODO
    template<> struct action < scope_begin > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
@@ -534,6 +575,7 @@ namespace LB{
        }
    };
    
+   //TODO
    template<> struct action < scope_end > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
