@@ -21,6 +21,7 @@ namespace LB{
   std::string parsed_type = "";
   int num_dim = 0;
 
+  Instruction* currI;
   std::vector<std::string> fp_list;
   Scope* currS = nullptr; // this scope will have instructions pushed into it
   std::vector<Scope*> scopeStack; // holds parent scopes
@@ -71,7 +72,7 @@ namespace LB{
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
     }
   };
 
@@ -87,63 +88,63 @@ namespace LB{
     }
   };
 
-  template<> struct action < assign_arithmetic > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-		auto currF = p.functions.back();
-        Instruction* i = new Instruction();
-        i->Type = InstructionType::assign_arithmetic;
-        for(auto& it : parsed_items) {
-            i->Items.push_back(it);
-        }
-        
-        std::string oper = parsed_strings.back();
-        if(oper == ">>")
-            i->Arith_Oper = Arith_Operator::shift_right; 
-        else if(oper == "<<")
-            i->Arith_Oper = Arith_Operator::shift_left; 
-        else if(oper == "+")
-            i->Arith_Oper = Arith_Operator::plus; 
-        else if(oper == "-")
-            i->Arith_Oper = Arith_Operator::minus; 
-        else if(oper == "*")
-            i->Arith_Oper = Arith_Operator::multiply; 
-        else
-            i->Arith_Oper = Arith_Operator::bw_and; 
+//  template<> struct action < assign_arithmetic > {
+//    template < typename Input > static void apply (const Input &in, Program &p) {
+//		auto currF = p.functions.back();
+//        Instruction* i = new Instruction();
+//        i->Type = InstructionType::assign_arithmetic;
+//        for(auto& it : parsed_items) {
+//            i->Items.push_back(it);
+//        }
+//        
+//        std::string oper = parsed_strings.back();
+//        if(oper == ">>")
+//            i->Arith_Oper = Arith_Operator::shift_right; 
+//        else if(oper == "<<")
+//            i->Arith_Oper = Arith_Operator::shift_left; 
+//        else if(oper == "+")
+//            i->Arith_Oper = Arith_Operator::plus; 
+//        else if(oper == "-")
+//            i->Arith_Oper = Arith_Operator::minus; 
+//        else if(oper == "*")
+//            i->Arith_Oper = Arith_Operator::multiply; 
+//        else
+//            i->Arith_Oper = Arith_Operator::bw_and; 
+//
+//        parsed_items.clear();
+//        parsed_strings.clear();
+//
+//        currF->instructions.push_back(i);
+//    }
+//  };
 
-        parsed_items.clear();
-        parsed_strings.clear();
-
-        currF->instructions.push_back(i);
-    }
-  };
-
-  template<> struct action < assign_comparison > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-		auto currF = p.functions.back();
-        Instruction* i = new Instruction();
-        i->Type = InstructionType::assign_compare;
-        for(auto& it : parsed_items) {
-            i->Items.push_back(it);
-        }
-        
-        std::string oper = parsed_strings.back();
-        if(oper == ">")
-            i->Comp_Oper = Compare_Operator::gr; 
-        else if(oper == ">=")
-            i->Comp_Oper = Compare_Operator::geq; 
-        else if(oper == "<")
-            i->Comp_Oper = Compare_Operator::le; 
-        else if(oper == "<=")
-            i->Comp_Oper = Compare_Operator::leq; 
-        else
-            i->Comp_Oper = Compare_Operator::eq; 
-
-        parsed_items.clear();
-        parsed_strings.clear();
-
-        currF->instructions.push_back(i);
-    }
-  };
+//  template<> struct action < assign_comparison > {
+//    template < typename Input > static void apply (const Input &in, Program &p) {
+//		auto currF = p.functions.back();
+//        Instruction* i = new Instruction();
+//        i->Type = InstructionType::assign_compare;
+//        for(auto& it : parsed_items) {
+//            i->Items.push_back(it);
+//        }
+//        
+//        std::string oper = parsed_strings.back();
+//        if(oper == ">")
+//            i->Comp_Oper = Compare_Operator::gr; 
+//        else if(oper == ">=")
+//            i->Comp_Oper = Compare_Operator::geq; 
+//        else if(oper == "<")
+//            i->Comp_Oper = Compare_Operator::le; 
+//        else if(oper == "<=")
+//            i->Comp_Oper = Compare_Operator::leq; 
+//        else
+//            i->Comp_Oper = Compare_Operator::eq; 
+//
+//        parsed_items.clear();
+//        parsed_strings.clear();
+//
+//        currF->instructions.push_back(i);
+//    }
+//  };
   
   template<> struct action < assign_load_array > {
     template < typename Input > static void apply (const Input &in, Program &p) {
@@ -155,7 +156,7 @@ namespace LB{
         for(int j = 2; j < parsed_items.size(); ++j) {
             i->array_access_location.push_back(parsed_items[j]);
         }
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -170,7 +171,7 @@ namespace LB{
         for(int j = 1; j < parsed_items.size() - 1; ++j) {
             i->array_access_location.push_back(parsed_items[j]);
         }
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -184,7 +185,7 @@ namespace LB{
             i->Items.push_back(it);
         }
 
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -200,7 +201,7 @@ namespace LB{
             i->arguments.push_back(parsed_items[it]); // dimensions and sizes of each dimension
         }
 
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -214,7 +215,7 @@ namespace LB{
         i->Items.push_back(parsed_items[0]);
         i->arguments.push_back(parsed_items.back());
 
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -222,8 +223,10 @@ namespace LB{
   template<> struct action < call > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 		auto currF = p.functions.back();
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::call;
 
-        // no runtime func in LA
+        // no runtime func in LB
         // handle vars and labels; know that parsed_items has exactly one thing
         auto it = parsed_items[0];
         i->Items.push_back(it);
@@ -248,7 +251,7 @@ namespace LB{
 
         parsed_items.clear();
 
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
     }
   };
 
@@ -285,7 +288,7 @@ namespace LB{
 
         parsed_items.clear();
 
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
     }
   };
 
@@ -299,7 +302,7 @@ namespace LB{
       }
       parsed_items.clear();
 
-	  currF->instructions.push_back(i);
+      currF->func_scope->Instructions.push_back(i);
     }
   };
 
@@ -313,7 +316,7 @@ namespace LB{
       }
       parsed_items.clear();
 
-      currF->instructions.push_back(i);
+      currF->func_scope->Instructions.push_back(i);
     }
   };
 
@@ -324,7 +327,7 @@ namespace LB{
       Instruction* i = new Instruction();
       i->Type = InstructionType::return_empty;
 
-      currF->instructions.push_back(i);
+      currF->func_scope->Instructions.push_back(i);
     }
   };
 
@@ -339,7 +342,7 @@ namespace LB{
       i->Items.push_back(it);
       parsed_items.clear();
 
-      currF->instructions.push_back(i);
+      currF->func_scope->Instructions.push_back(i);
     }
   };
 
@@ -353,38 +356,128 @@ namespace LB{
         }
         parsed_items.clear();
 
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
     }
   };
   
   // t op t
   template<> struct action < operation > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currF = p.functions.back();
-
-        for(auto& it : parsed_items) {
-            i->Items.push_back(it);
-        }
-        parsed_items.clear();
-
-        currF->instructions.push_back(i);
-    }
-  };
-
-//  template<> struct action < br_conditional > {
-//    template < typename Input > static void apply (const Input &in, Program &p) {
 //	    auto currF = p.functions.back();
-//        Instruction* i = new Instruction();
-//        i->Type = InstructionType::br_conditional;
+//
 //        for(auto& it : parsed_items) {
 //            i->Items.push_back(it);
 //        }
 //        parsed_items.clear();
 //
 //        currF->instructions.push_back(i);
-//    }
-//  };
+    }
+  };
 
+  template<> struct action < if_instruction > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currF = p.functions.back();
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::if_statement;
+        // t, t, label1, label2
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+
+        std::string oper = parsed_strings.back();
+        if(oper == ">>")
+            i->Operator = Oper::shift_right; 
+        else if(oper == "<<")
+            i->Operator = Oper::shift_left; 
+        else if(oper == "+")
+            i->Operator = Oper::plus; 
+        else if(oper == "-")
+            i->Operator = Oper::minus; 
+        else if(oper == "*")
+            i->Operator = Oper::multiply; 
+        else if(oper == "&")
+            i->Operator = Oper::bw_and; 
+        else if(oper == ">")
+            i->Operator = Oper::gr; 
+        else if(oper == ">=")
+            i->Operator = Oper::geq; 
+        else if(oper == "<")
+            i->Operator = Oper::le; 
+        else if(oper == "<=")
+            i->Operator = Oper::leq; 
+        else
+            i->Operator = Oper::eq; 
+
+        parsed_items.clear();
+        parsed_strings.clear();
+
+        currF->func_scope->Instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < while_instruction > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+	    auto currF = p.functions.back();
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::while_statement;
+        // t, t, label1, label2
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
+        parsed_items.clear();
+
+        std::string oper = parsed_strings.back();
+        if(oper == ">>")
+            i->Operator = Oper::shift_right; 
+        else if(oper == "<<")
+            i->Operator = Oper::shift_left; 
+        else if(oper == "+")
+            i->Operator = Oper::plus; 
+        else if(oper == "-")
+            i->Operator = Oper::minus; 
+        else if(oper == "*")
+            i->Operator = Oper::multiply; 
+        else if(oper == "&")
+            i->Operator = Oper::bw_and; 
+        else if(oper == ">")
+            i->Operator = Oper::gr; 
+        else if(oper == ">=")
+            i->Operator = Oper::geq; 
+        else if(oper == "<")
+            i->Operator = Oper::le; 
+        else if(oper == "<=")
+            i->Operator = Oper::leq; 
+        else
+            i->Operator = Oper::eq; 
+
+        parsed_items.clear();
+        parsed_strings.clear();
+
+        currF->func_scope->Instructions.push_back(i);
+    }
+  };
+
+  template<> struct action < continue_instruction > {
+    template< typename Input >
+        static void apply( const Input & in, Program & p){
+            auto currF = p.functions.back();
+            Instruction* i = new Instruction();
+            i->Type = InstructionType::continue_instruction;
+            currF->func_scope->Instructions.push_back(i);
+        }
+  };
+    
+  template<> struct action < break_instruction > {
+    template< typename Input >
+        static void apply( const Input & in, Program & p){
+            auto currF = p.functions.back();
+            Instruction* i = new Instruction();
+            i->Type = InstructionType::break_instruction;
+            currF->func_scope->Instructions.push_back(i);
+         }
+  };
+        
   template<> struct action < int64_type > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
@@ -433,37 +526,43 @@ namespace LB{
 	    auto currF = p.functions.back();
         Instruction* i = new Instruction();
         i->Type = InstructionType::init_var;
-        
-        //Item* varType = new Item();
-        Item* varName = new Item();
-		varName->itemType = Atomic_Type::var;
 
+        VarType type;
         if(parsed_type == "int64") {
-		  varName->varType = VarType::int64_type;
+		  type = VarType::int64_type;
         }
         else if(parsed_type == "tuple") {
-		  varName->varType = VarType::tuple_type;
+		  type = VarType::tuple_type;
         }
         else if(parsed_type == "code") {
-		  varName->varType = VarType::code_type;
-		  // TO process this in call function
-		  fp_list.push_back(parsed_items.back()->labelName);
+		  type = VarType::code_type;
         }
         else if(parsed_type == "array") { // array type
-		  varName->varType = VarType::arr_type;
-		  varName->numDimensions = num_dim;
+		  type = VarType::arr_type;
         }
         else {
           std::cerr << "Incorrect var type: " << parsed_type << '\n';
 		}
-		varName->labelName = parsed_items.back()->labelName;
-		i->Items.push_back(varName);
+
+        // all declarations are stored in parsed_items
+        // all declarations have the same type
+        for(auto& var : parsed_items) {
+            if(type == VarType::arr_type)
+		        var->numDimensions = num_dim;
+            else if(type == VarType::code_type) {
+		        // To process this in call function
+		        fp_list.push_back(var->labelName);
+            }
+
+            var->varType = type; 
+            i->Items.push_back(var);
+        }
 
         num_dim = 0;
         parsed_type = "";
         parsed_items.clear();
 
-        currF->instructions.push_back(i);
+        currF->func_scope->Instructions.push_back(i);
       }
   };
 
@@ -553,7 +652,7 @@ namespace LB{
        static void apply(const Input &in, Program &p) {
            auto prevS = scopeStack.back(); 
            scopeStack.pop_back();
-           prevS->childen_scopes.push_back(currS); // store current scope into higher level scope
+           prevS->children_scopes.push_back(currS); // store current scope into higher level scope
            
            // set higher level scope to current scope
            currS = prevS;

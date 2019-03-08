@@ -244,7 +244,7 @@ namespace LB{
   > {};
 
   //TODO: Implement action
-  struct if_then_else:
+  struct if_instruction:
     pegtl::seq<
      seps,
      pegtl::string<'i','f'>,
@@ -262,10 +262,10 @@ namespace LB{
    > {};
  
   //TODO: Implement action
- struct while_then_else:
+ struct while_instruction:
     pegtl::seq<
      seps,
-     pegtl::string<'w','h', 'i', 'l','e'>,
+     pegtl::string<'w', 'h', 'i', 'l','e'>,
      seps,
      pegtl::one<'('>,
      seps,
@@ -435,6 +435,7 @@ namespace LB{
        > 
      > {};
 
+
  struct call:
    pegtl::seq<
     seps,
@@ -463,27 +464,45 @@ namespace LB{
       seps
    > {};
 
-  //TODO: Remove old and insert new instructions
-  struct Instruction_rule:
-    pegtl::sor<
-      pegtl::seq<pegtl::at<assign_arithmetic>, assign_arithmetic>,
-      pegtl::seq<pegtl::at<assign_comparison>, assign_comparison>,
-      pegtl::seq<pegtl::at<assign_load_array>, assign_load_array>,
-      pegtl::seq<pegtl::at<assign_store_array>, assign_store_array>,
-      pegtl::seq<pegtl::at<assign_length>, assign_length>,
-      pegtl::seq<pegtl::at<assign_new_array>, assign_new_array>,
-      pegtl::seq<pegtl::at<assign_new_tuple>, assign_new_tuple>,
-      pegtl::seq<pegtl::at<call_assign>, call_assign>,
-      pegtl::seq<pegtl::at<br_conditional>, br_conditional>,
-      pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
-      pegtl::seq<pegtl::at<label_instruction>, label_instruction>,
-	  pegtl::seq<pegtl::at<init_var>, init_var>,
-      pegtl::seq<pegtl::at<return_value>, return_value>,
-      pegtl::seq<pegtl::at<return_empty>, return_empty>,
-	  pegtl::seq<pegtl::at<print>, print>,
-      pegtl::seq<pegtl::at<call>, call>,
-      pegtl::seq<pegtl::at<assign>, assign>
-    > { };
+  //TODO: Implement action
+  struct scope_begin:
+      pegtl::one<'{'> {};
+
+  //TODO: Implement action
+  struct scope_end:
+      pegtl::one<'}'> {};
+
+  struct continue_instruction:
+    pegtl::string<'c','o','n','t','i','n','u','e'> {};
+    
+  struct break_instruction:
+    pegtl::string<'b','r','e','a','k'> {};
+        
+ struct Instruction_rule:
+   pegtl::sor<
+     pegtl::seq<pegtl::at<assign_operation>, assign_operation>,
+     pegtl::seq<pegtl::at<assign_load_array>, assign_load_array>,
+     pegtl::seq<pegtl::at<assign_store_array>, assign_store_array>,
+     pegtl::seq<pegtl::at<assign_length>, assign_length>,
+     pegtl::seq<pegtl::at<assign_new_array>, assign_new_array>,
+     pegtl::seq<pegtl::at<assign_new_tuple>, assign_new_tuple>,
+     pegtl::seq<pegtl::at<call_assign>, call_assign>,
+     pegtl::seq<pegtl::at<if_instruction>, if_instruction>,
+     pegtl::seq<pegtl::at<while_instruction>, while_instruction>,
+     pegtl::seq<pegtl::at<continue_instruction>, continue_instruction>,
+     pegtl::seq<pegtl::at<break_instruction>, break_instruction>,
+     pegtl::seq<pegtl::at<while_instruction>, while_instruction>,
+     pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
+     pegtl::seq<pegtl::at<label_instruction>, label_instruction>,
+     pegtl::seq<pegtl::at<init_var>, init_var>,
+     pegtl::seq<pegtl::at<return_value>, return_value>,
+     pegtl::seq<pegtl::at<return_empty>, return_empty>,
+     pegtl::seq<pegtl::at<scope_begin>, scope_begin>, // scope as an instruction
+     pegtl::seq<pegtl::at<scope_end>, scope_end>,
+     pegtl::seq<pegtl::at<print>, print>,
+     pegtl::seq<pegtl::at<call>, call>,
+     pegtl::seq<pegtl::at<assign>, assign>
+   > {};
 
   struct Instructions_rule:
     pegtl::star<
@@ -493,14 +512,6 @@ namespace LB{
         seps
       >
     > {};
-
-  //TODO: Implement action
-  struct scope_begin:
-      pegtl::one<'{'> {};
-
-  //TODO: Implement action
-  struct scope_end:
-      pegtl::one<'}'> {};
 
  struct arg_var: 
      var {};
