@@ -8,7 +8,7 @@
 
 using namespace std;
 
-namespace LA{
+namespace LB{
 
     // Find the longest label that will be used to create a label for a basic block
 	std::string get_longest_label(Function* fp) {

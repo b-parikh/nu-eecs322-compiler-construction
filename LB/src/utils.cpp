@@ -1,6 +1,6 @@
 #include <utils.h>
 
-namespace LA {
+namespace LB {
     // prepends '%' if variable, else returns labelName
     std::string varNameModifier(Item* itp) {
         std::string newString = itp->labelName;

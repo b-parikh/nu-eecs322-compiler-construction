@@ -1,8 +1,8 @@
 #pragma once
 
-#include <LA.h>
+#include <LB.h>
 #include <string>
 
-namespace LA {
+namespace LB {
     std::string varNameModifier(Item* itp);
 }

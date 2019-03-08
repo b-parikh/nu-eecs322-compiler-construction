@@ -4,14 +4,14 @@
 #include <tao/pegtl/analyze.hpp>
 #include <tao/pegtl/contrib/raw_string.hpp>
 #include <iostream>
-#include <LA.h>
+#include <LB.h>
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 
 using namespace pegtl;
 using namespace std;
 
-namespace LA{
+namespace LB{
 
   /* 
    * Grammar rules from now on.
