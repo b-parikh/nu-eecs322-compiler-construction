@@ -659,6 +659,7 @@ namespace LB{
        template < typename Input >
        static void apply(const Input &in, Program &p) {
          scope_level--; // we've gone up one level
+         std::cerr << "scope end called";
 
 		 if(scopeStack.size() > 0) { // scope above function scope exists
            auto prevS = scopeStack.back(); 
