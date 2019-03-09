@@ -26,7 +26,7 @@ namespace LB{
   std::vector<std::string> fp_list;
   Scope* currS = nullptr; // this scope will have instructions pushed into it
   std::vector<Scope*> scopeStack; // holds parent scopes
-  int scope_level = 0; // function's base scope is level 0
+  int scope_level = -1; // function's base scope is level 0
 
   /* 
    * Actions attached to grammar rules.
@@ -568,6 +568,33 @@ namespace LB{
       }
   };
 
+   template<> struct action < arg_var > {
+    template < typename Input >
+    static void apply (const Input &in, Program &p) {
+        Function* currF = p.functions.back();
+        Item* newItem = new Item();
+        newItem->itemType = Atomic_Type::var;
+        if(parsed_type == "int64") {
+            newItem->varType = VarType::int64_type;
+        }
+        else if(parsed_type == "tuple") {
+            newItem->varType = VarType::tuple_type;
+            newItem->numDimensions = num_dim;
+        }
+        else if(parsed_type == "code") {
+            newItem->varType = VarType::code_type;
+        }
+        else {
+            newItem->varType = VarType::arr_type;
+            newItem->numDimensions = num_dim;
+        }
+
+        newItem->labelName = in.string();
+        num_dim = 0;
+        currF->arguments.push_back(newItem);
+    }
+  };
+
    template<> struct action < Function_declare > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
@@ -575,7 +602,7 @@ namespace LB{
 
       // function level scope; parent is nullptr
       auto newS = new Scope(); 
-      newS->level = scope_level;
+      newS->level = scope_level; 
       newF->func_scope = newS;
       currS = newS;
 
@@ -610,36 +637,15 @@ namespace LB{
     }
   };
 
-   template<> struct action < arg_var > {
-    template < typename Input >
-    static void apply (const Input &in, Program &p) {
-        Function* currF = p.functions.back();
-        Item* newItem = new Item();
-        newItem->itemType = Atomic_Type::var;
-        if(parsed_type == "int64") {
-            newItem->varType = VarType::int64_type;
-        }
-        else if(parsed_type == "tuple") {
-            newItem->varType = VarType::tuple_type;
-            newItem->numDimensions = num_dim;
-        }
-        else if(parsed_type == "code") {
-            newItem->varType = VarType::code_type;
-        }
-        else {
-            newItem->varType = VarType::arr_type;
-            newItem->numDimensions = num_dim;
-        }
-
-        newItem->labelName = in.string();
-        num_dim = 0;
-        currF->arguments.push_back(newItem);
-    }
-  };
-
    template<> struct action < scope_begin > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
+           scope_level++; // we've gone down one level
+           // level 0 is function scope; function scope created in Function_declare
+           if(scope_level == 0)
+              return;
+
+           // new scope deeper than function scope
            auto newS = new Scope();
            newS->parent_scope = currS;
            scopeStack.push_back(currS);
@@ -652,7 +658,9 @@ namespace LB{
    template<> struct action < scope_end > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
-		 if(scopeStack.size() > 0) {
+         scope_level--; // we've gone up one level
+
+		 if(scopeStack.size() > 0) { // scope above function scope exists
            auto prevS = scopeStack.back(); 
            scopeStack.pop_back();
            prevS->children_scopes.push_back(currS); // store current scope into higher level scope
