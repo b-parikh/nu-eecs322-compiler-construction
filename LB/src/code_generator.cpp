@@ -106,8 +106,6 @@ namespace LB{
         std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
 
-        //newLabel.erase(0,1); // to remove the ":" at the start
-
         if(ip->Type == InstructionType::assign) { 
 			ret_strings.push_back(ip->Items[0]->labelName);
 			ret_strings.push_back("<-");
@@ -120,21 +118,31 @@ namespace LB{
 
 			ret_strings.push_back(ip->Items[1]->labelName);
 
-//			if(ip->Arith_Oper == Arith_Operator::shift_left) {
-//			  ret_strings.push_back("<<");
-//			} else if(ip->Arith_Oper == Arith_Operator::shift_right) {
-//			  ret_strings.push_back(">>");
-//			} else if(ip->Arith_Oper == Arith_Operator::plus) {
-//			  ret_strings.push_back("+");
-//			} else if(ip->Arith_Oper == Arith_Operator::minus) {
-//			  ret_strings.push_back("-");
-//			} else if(ip->Arith_Oper == Arith_Operator::multiply) {
-//			  ret_strings.push_back("*");
-//			} else if(ip->Arith_Oper == Arith_Operator::bw_and) {
-//			  ret_strings.push_back("&");
-//			} else {
-//			  std::cerr << "Incorrect Arith Operator\n";
-//			}
+			if(ip->Operator == Oper::shift_left) {
+			  ret_strings.push_back("<<");
+			} else if(ip->Operator == Oper::shift_right) {
+			  ret_strings.push_back(">>");
+			} else if(ip->Operator == Oper::plus) {
+			  ret_strings.push_back("+");
+			} else if(ip->Operator == Oper::minus) {
+			  ret_strings.push_back("-");
+			} else if(ip->Operator == Oper::multiply) {
+			  ret_strings.push_back("*");
+			} else if(ip->Operator == Oper::bw_and) {
+			  ret_strings.push_back("&");
+			} else if(ip->Operator == Oper::gr) {
+			  ret_strings.push_back(">");
+			} else if(ip->Operator == Oper::geq) {
+			  ret_strings.push_back(">=");
+			} else if(ip->Operator == Oper::le) {
+			  ret_strings.push_back("<");
+			} else if(ip->Operator == Oper::leq) {
+			  ret_strings.push_back("<=");
+			} else if(ip->Operator == Oper::eq) {
+			  ret_strings.push_back("=");
+			} else {
+			  std::cerr << "Incorrect Arith Operator\n";
+			}
 
 			ret_strings.push_back(ip->Items[2]->labelName);
             ret_vectors.push_back(ret_strings);
@@ -245,15 +253,24 @@ namespace LB{
 			ret_strings.push_back(ip->Items[0]->labelName);
 
             ret_vectors.push_back(ret_strings);
-		} else if(ip->Type == InstructionType::if_instruction) { // explicit jump
-			ret_strings.push_back("br");
+		} else if(ip->Type == InstructionType::if_instruction) {
+			//TODO
 
-			ret_strings.push_back(ip->Items[0]->labelName);
-			ret_strings.push_back(ip->Items[1]->labelName);
-			ret_strings.push_back(ip->Items[2]->labelName);
+		} else if(ip->Type == InstructionType::while_instruction) {
+			//TODO
 
-            ret_vectors.push_back(ret_strings);
-            ret_strings.clear();
+		} else if(ip->Type == InstructionType::continue_instruction) {
+			//TODO
+
+		} else if(ip->Type == InstructionType::break_instruction) {
+			//TODO
+
+//		} else if(ip->Type == InstructionType::scope_start) {
+			//TODO
+
+//		} else if(ip->Type == InstructionType::scope_end) {
+			//TODO
+
  		} else if(ip->Type == InstructionType::print) {
 			ret_strings.push_back("print");
 			ret_strings.push_back("(");
@@ -262,6 +279,7 @@ namespace LB{
 
             ret_vectors.push_back(ret_strings);
        } else { //init_var
+			//TODO
 			ret_strings.push_back(get_arg_type(ip->Items[0]));
 			ret_strings.push_back(ip->Items[0]->labelName);
 
