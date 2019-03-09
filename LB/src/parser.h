@@ -535,11 +535,13 @@ namespace LB{
       >,
       pegtl::one<')'>,
       seps,
-      pegtl::one< '{' >,
+      //pegtl::one< '{' >,
+      scope_begin;
       seps,
       Instructions_rule,
       seps,
-      pegtl::one< '}' >
+      //pegtl::one< '}' >
+      scope_end;
     > {};
 
   struct Functions_rule:
