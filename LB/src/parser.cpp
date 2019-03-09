@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <stdint.h>
 #include <parser.h>
+#include <iostream>
 
 #include <LB.h>
 
@@ -50,7 +51,8 @@ namespace LB{
         i->itemType = Atomic_Type::var;
 	    i->labelName = in.string();
 	    parsed_items.push_back(i);
-        currS->varName_to_Item[in.string()] = i; //put var into currS's varName_to_Item map
+		if(currS)
+          currS->varName_to_Item[in.string()] = i; //put var into currS's varName_to_Item map
     }
   };
 
@@ -378,7 +380,7 @@ namespace LB{
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currF = p.functions.back();
         Instruction* i = new Instruction();
-        i->Type = InstructionType::if_statement;
+        i->Type = InstructionType::if_instruction;
         // t, t, label1, label2
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
@@ -420,7 +422,7 @@ namespace LB{
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currF = p.functions.back();
         Instruction* i = new Instruction();
-        i->Type = InstructionType::while_statement;
+        i->Type = InstructionType::while_instruction;
         // t, t, label1, label2
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
@@ -650,12 +652,14 @@ namespace LB{
    template<> struct action < scope_end > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
+		 if(scopeStack.size() > 0) {
            auto prevS = scopeStack.back(); 
            scopeStack.pop_back();
            prevS->children_scopes.push_back(currS); // store current scope into higher level scope
            
            // set higher level scope to current scope
            currS = prevS;
+		 }
        }
    };
 

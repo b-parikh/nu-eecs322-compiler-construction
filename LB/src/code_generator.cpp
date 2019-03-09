@@ -245,7 +245,7 @@ namespace LB{
 			ret_strings.push_back(ip->Items[0]->labelName);
 
             ret_vectors.push_back(ret_strings);
-		} else if(ip->Type == InstructionType::if_statement) { // explicit jump
+		} else if(ip->Type == InstructionType::if_instruction) { // explicit jump
 			ret_strings.push_back("br");
 
 			ret_strings.push_back(ip->Items[0]->labelName);
@@ -286,12 +286,13 @@ namespace LB{
        */ 
       for(auto& fp: p.functions) {
 		  // create an item for the function name for the conversion
+		  std::cerr<<fp->name << '\n';
 		  Item* func_name = new Item();
 		  func_name->labelName = fp->name;
 		  func_name->itemType = Atomic_Type::label;
 
 		  // PRINT initial line of the function
-          outputFile << get_return_type(fp) << " " << func_name << " (";
+          outputFile << get_return_type(fp) << " " << func_name->labelName << " (";
 		  int arg_size = fp->arguments.size();
 		  if (arg_size > 0) {
 		    for(int i = 0; i < arg_size - 1; i++)
