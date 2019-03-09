@@ -197,21 +197,6 @@ namespace LB{
 //      pegtl::sor<var, number>
     > {};
 
-// struct assign_comparison:
-//    pegtl::seq<
-//    seps,
-//    var,
-//    seps,
-//    assign_operator,
-//    seps,
-//    pegtl::sor<var, number>,
-//    seps,
-//    comparison_operator,
-//    seps,
-//    pegtl::sor<var, number>,
-//    seps
-//  > {};
-
   struct label_instruction:
    pegtl::seq<
      Label_rule

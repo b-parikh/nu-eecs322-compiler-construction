@@ -73,7 +73,7 @@ int main(
   }
 
   /*
-   * Generate IR.
+   * Generate LA.
    */
   if (enable_code_generator){
     LB::generate_code(p);
