@@ -28,6 +28,35 @@ namespace LB{
   std::vector<Scope*> scopeStack; // holds parent scopes
   int scope_level = -1; // function's base scope is level 0
 
+  Oper get_oper_enum(std::string oper) {
+	Oper oper_enum;
+
+    if(oper == ">>")
+        oper_enum = Oper::shift_right; 
+    else if(oper == "<<")
+        oper_enum = Oper::shift_left; 
+    else if(oper == "+")
+		oper_enum = Oper::plus; 
+    else if(oper == "-")
+        oper_enum = Oper::minus; 
+    else if(oper == "*")
+        oper_enum = Oper::multiply; 
+    else if(oper == "&")
+        oper_enum = Oper::bw_and; 
+    else if(oper == ">")
+        oper_enum = Oper::gr; 
+    else if(oper == ">=")
+		oper_enum = Oper::geq; 
+    else if(oper == "<")
+        oper_enum = Oper::le; 
+    else if(oper == "<=")
+        oper_enum = Oper::leq; 
+    else
+        oper_enum = Oper::eq; 
+
+    return oper_enum;
+  }
+
   /* 
    * Actions attached to grammar rules.
    */
@@ -90,64 +119,25 @@ namespace LB{
     }
   };
 
-//  template<> struct action < assign_arithmetic > {
-//    template < typename Input > static void apply (const Input &in, Program &p) {
-//		auto currF = p.functions.back();
-//        Instruction* i = new Instruction();
-//        i->Type = InstructionType::assign_arithmetic;
-//        for(auto& it : parsed_items) {
-//            i->Items.push_back(it);
-//        }
-//        
-//        std::string oper = parsed_strings.back();
-//        if(oper == ">>")
-//            i->Arith_Oper = Arith_Operator::shift_right; 
-//        else if(oper == "<<")
-//            i->Arith_Oper = Arith_Operator::shift_left; 
-//        else if(oper == "+")
-//            i->Arith_Oper = Arith_Operator::plus; 
-//        else if(oper == "-")
-//            i->Arith_Oper = Arith_Operator::minus; 
-//        else if(oper == "*")
-//            i->Arith_Oper = Arith_Operator::multiply; 
-//        else
-//            i->Arith_Oper = Arith_Operator::bw_and; 
-//
-//        parsed_items.clear();
-//        parsed_strings.clear();
-//
-//        currF->instructions.push_back(i);
-//    }
-//  };
+  template<> struct action < assign_operation > {
+    template < typename Input > static void apply (const Input &in, Program &p) {
+		auto currF = p.functions.back();
+        Instruction* i = new Instruction();
+        i->Type = InstructionType::assign_operation;
+        for(auto& it : parsed_items) {
+            i->Items.push_back(it);
+        }
 
-//  template<> struct action < assign_comparison > {
-//    template < typename Input > static void apply (const Input &in, Program &p) {
-//		auto currF = p.functions.back();
-//        Instruction* i = new Instruction();
-//        i->Type = InstructionType::assign_compare;
-//        for(auto& it : parsed_items) {
-//            i->Items.push_back(it);
-//        }
-//        
-//        std::string oper = parsed_strings.back();
-//        if(oper == ">")
-//            i->Comp_Oper = Compare_Operator::gr; 
-//        else if(oper == ">=")
-//            i->Comp_Oper = Compare_Operator::geq; 
-//        else if(oper == "<")
-//            i->Comp_Oper = Compare_Operator::le; 
-//        else if(oper == "<=")
-//            i->Comp_Oper = Compare_Operator::leq; 
-//        else
-//            i->Comp_Oper = Compare_Operator::eq; 
-//
-//        parsed_items.clear();
-//        parsed_strings.clear();
-//
-//        currF->instructions.push_back(i);
-//    }
-//  };
-  
+        std::string oper = parsed_strings.back();
+		i->Operator = get_oper_enum(oper);
+
+        parsed_items.clear();
+        parsed_strings.clear();
+
+        currF->func_scope->Instructions.push_back(i);
+    }
+  };
+
   template<> struct action < assign_load_array > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 		auto currF = p.functions.back();
@@ -385,31 +375,9 @@ namespace LB{
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
-        parsed_items.clear();
 
         std::string oper = parsed_strings.back();
-        if(oper == ">>")
-            i->Operator = Oper::shift_right; 
-        else if(oper == "<<")
-            i->Operator = Oper::shift_left; 
-        else if(oper == "+")
-            i->Operator = Oper::plus; 
-        else if(oper == "-")
-            i->Operator = Oper::minus; 
-        else if(oper == "*")
-            i->Operator = Oper::multiply; 
-        else if(oper == "&")
-            i->Operator = Oper::bw_and; 
-        else if(oper == ">")
-            i->Operator = Oper::gr; 
-        else if(oper == ">=")
-            i->Operator = Oper::geq; 
-        else if(oper == "<")
-            i->Operator = Oper::le; 
-        else if(oper == "<=")
-            i->Operator = Oper::leq; 
-        else
-            i->Operator = Oper::eq; 
+		i->Operator = get_oper_enum(oper);
 
         parsed_items.clear();
         parsed_strings.clear();
@@ -427,31 +395,9 @@ namespace LB{
         for(auto& it : parsed_items) {
             i->Items.push_back(it);
         }
-        parsed_items.clear();
 
         std::string oper = parsed_strings.back();
-        if(oper == ">>")
-            i->Operator = Oper::shift_right; 
-        else if(oper == "<<")
-            i->Operator = Oper::shift_left; 
-        else if(oper == "+")
-            i->Operator = Oper::plus; 
-        else if(oper == "-")
-            i->Operator = Oper::minus; 
-        else if(oper == "*")
-            i->Operator = Oper::multiply; 
-        else if(oper == "&")
-            i->Operator = Oper::bw_and; 
-        else if(oper == ">")
-            i->Operator = Oper::gr; 
-        else if(oper == ">=")
-            i->Operator = Oper::geq; 
-        else if(oper == "<")
-            i->Operator = Oper::le; 
-        else if(oper == "<=")
-            i->Operator = Oper::leq; 
-        else
-            i->Operator = Oper::eq; 
+		i->Operator = get_oper_enum(oper);
 
         parsed_items.clear();
         parsed_strings.clear();

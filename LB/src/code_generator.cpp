@@ -102,6 +102,39 @@ namespace LB{
 			return "void";
 	}
 
+	std::string get_oper_str(Oper oper_enum) {
+		std::string oper_str;
+
+		if(oper_enum == Oper::shift_left) {
+		  oper_str = "<<";
+		} else if(oper_enum == Oper::shift_right) {
+		  oper_str = ">>";
+		} else if(oper_enum == Oper::plus) {
+		  oper_str = "+";
+		} else if(oper_enum == Oper::minus) {
+		  oper_str = "-";
+		} else if(oper_enum == Oper::multiply) {
+		  oper_str = "*";
+		} else if(oper_enum == Oper::bw_and) {
+		  oper_str = "&";
+		} else if(oper_enum == Oper::gr) {
+		  oper_str = ">";
+		} else if(oper_enum == Oper::geq) {
+		  oper_str = ">=";
+		} else if(oper_enum == Oper::le) {
+		  oper_str = "<";
+		} else if(oper_enum == Oper::leq) {
+		  oper_str = "<=";
+		} else if(oper_enum == Oper::eq) {
+		  oper_str = "=";
+		} else {
+		  oper_str = "";
+		  std::cerr << "Incorrect Arith Operator\n";
+		}
+
+		return oper_str;
+	}
+
     std::vector<std::vector<string>> convert_instruction(Instruction* ip, std::string newVarLabel, int& varNameCounter, std::string newLabel, int& labelNameCounter) {
         std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
@@ -118,31 +151,7 @@ namespace LB{
 
 			ret_strings.push_back(ip->Items[1]->labelName);
 
-			if(ip->Operator == Oper::shift_left) {
-			  ret_strings.push_back("<<");
-			} else if(ip->Operator == Oper::shift_right) {
-			  ret_strings.push_back(">>");
-			} else if(ip->Operator == Oper::plus) {
-			  ret_strings.push_back("+");
-			} else if(ip->Operator == Oper::minus) {
-			  ret_strings.push_back("-");
-			} else if(ip->Operator == Oper::multiply) {
-			  ret_strings.push_back("*");
-			} else if(ip->Operator == Oper::bw_and) {
-			  ret_strings.push_back("&");
-			} else if(ip->Operator == Oper::gr) {
-			  ret_strings.push_back(">");
-			} else if(ip->Operator == Oper::geq) {
-			  ret_strings.push_back(">=");
-			} else if(ip->Operator == Oper::le) {
-			  ret_strings.push_back("<");
-			} else if(ip->Operator == Oper::leq) {
-			  ret_strings.push_back("<=");
-			} else if(ip->Operator == Oper::eq) {
-			  ret_strings.push_back("=");
-			} else {
-			  std::cerr << "Incorrect Arith Operator\n";
-			}
+			ret_strings.push_back(get_oper_str(ip->Operator));
 
 			ret_strings.push_back(ip->Items[2]->labelName);
             ret_vectors.push_back(ret_strings);
@@ -254,7 +263,26 @@ namespace LB{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::if_instruction) {
-			//TODO
+			ret_strings.push_back("int64");
+			std::string cond = newVarLabel + std::to_string(varNameCounter);
+			varNameCounter++;
+			ret_strings.push_back(cond);
+			ret_vectors.push_back(ret_strings);
+			ret_strings.clear();
+			
+			ret_strings.push_back(cond);
+			ret_strings.push_back("<-");
+			ret_strings.push_back(ip->Items[0]->labelName);
+			ret_strings.push_back(get_oper_str(ip->Operator));
+			ret_strings.push_back(ip->Items[1]->labelName);
+            ret_vectors.push_back(ret_strings);
+			ret_strings.clear();
+
+			ret_strings.push_back("br");
+            ret_strings.push_back(cond);
+            ret_strings.push_back(ip->Items[2]->labelName);
+            ret_strings.push_back(ip->Items[3]->labelName);
+            ret_vectors.push_back(ret_strings);
 
 		} else if(ip->Type == InstructionType::while_instruction) {
 			//TODO
@@ -279,14 +307,14 @@ namespace LB{
 
             ret_vectors.push_back(ret_strings);
        } else { //init_var
-			//TODO
-			ret_strings.push_back(get_arg_type(ip->Items[0]));
-			ret_strings.push_back(ip->Items[0]->labelName);
+			std::string var_type = get_arg_type(ip->Items[0]);
 
-			ret_vectors.push_back(ret_strings);
-            // set all arrays/tuples to 0
-            //std::vector<std::vector<std::string>> init_instructions = initialize_arrays_and_tuples(ip, newVarLabel, varNameCounter, newLabel, labelNameCounter);
-            //ret_vectors.insert(ret_vectors.end(), init_instructions.begin(), init_instructions.end());
+			for(auto &var : ip->Items) {
+				ret_strings.push_back(var_type);
+				ret_strings.push_back(var->labelName);
+				ret_vectors.push_back(ret_strings);
+				ret_strings.clear();
+			}
         }
 
 		return ret_vectors;

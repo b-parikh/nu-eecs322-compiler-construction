@@ -87,6 +87,14 @@ namespace LB{
       > 
     > {};
 
+  struct seps_no_linebreak:
+    pegtl::star<
+      pegtl::sor<
+        pegtl::one<' ', '\t'>,
+        comment
+      >
+    > {};
+
   /*
    * Variable types
    */
@@ -179,7 +187,6 @@ namespace LB{
       pegtl::sor<var, number>
     > {};
 
-  //TODO: Implement action
   struct assign_operation:
     pegtl::seq<
       seps,
@@ -228,7 +235,6 @@ namespace LB{
 	     seps
   > {};
 
-  //TODO: Implement action
   struct if_instruction:
     pegtl::seq<
      seps,
@@ -407,18 +413,21 @@ namespace LB{
     > {};
 
  // The instruction for initialziation of var
- //TODO: Implement action
- struct init_var: 
-     pegtl::seq<
-       var_type,
-       seps,
-       pegtl::plus<
-         var,
-         seps,
-         comma,
-         seps
-       > 
-     > {};
+  struct init_var: 
+    pegtl::seq<
+      var_type,
+      seps,
+      pegtl::plus<
+        var,
+        seps_no_linebreak,
+        pegtl::opt<
+		  pegtl::seq<
+			comma,
+		    seps_no_linebreak
+		  >
+	    >
+	  > 
+    > {};
 
 
  struct call:
@@ -449,11 +458,9 @@ namespace LB{
       seps
    > {};
 
-  //TODO: Implement action
   struct scope_begin:
       pegtl::one<'{'> {};
 
-  //TODO: Implement action
   struct scope_end:
       pegtl::one<'}'> {};
 
@@ -476,7 +483,6 @@ namespace LB{
      pegtl::seq<pegtl::at<while_instruction>, while_instruction>,
      pegtl::seq<pegtl::at<continue_instruction>, continue_instruction>,
      pegtl::seq<pegtl::at<break_instruction>, break_instruction>,
-     pegtl::seq<pegtl::at<while_instruction>, while_instruction>,
      pegtl::seq<pegtl::at<br_unconditional>, br_unconditional>,
      pegtl::seq<pegtl::at<label_instruction>, label_instruction>,
      pegtl::seq<pegtl::at<init_var>, init_var>,
