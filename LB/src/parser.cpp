@@ -352,20 +352,6 @@ namespace LB{
     }
   };
   
-  // t op t
-  template<> struct action < operation > {
-    template < typename Input > static void apply (const Input &in, Program &p) {
-//	    auto currF = p.functions.back();
-//
-//        for(auto& it : parsed_items) {
-//            i->Items.push_back(it);
-//        }
-//        parsed_items.clear();
-//
-//        currF->instructions.push_back(i);
-    }
-  };
-
   template<> struct action < if_instruction > {
     template < typename Input > static void apply (const Input &in, Program &p) {
 	    auto currF = p.functions.back();

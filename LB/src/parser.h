@@ -174,7 +174,6 @@ namespace LB{
    pegtl::one<'='>
    > {};
 
-  //TODO: Implement action maybe??
   struct operation:
     pegtl::seq<
       pegtl::sor<var, number>,
@@ -196,12 +195,6 @@ namespace LB{
       seps,
       operation,
       seps
-//      pegtl::sor<
-//        arithmetic_operator,
-//        comparison_operator
-//      >,
-//      seps,
-//      pegtl::sor<var, number>
     > {};
 
   struct label_instruction:
