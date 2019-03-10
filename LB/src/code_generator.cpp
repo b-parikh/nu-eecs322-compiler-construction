@@ -265,7 +265,7 @@ namespace LB{
 		} else if(ip->Type == InstructionType::break_instruction) {
 			//TODO
 
-//		} else if(ip->Type == InstructionType::scope_start) {
+		} else if(ip->Type == InstructionType::scope_begin) {
 			//TODO
 
 //		} else if(ip->Type == InstructionType::scope_end) {
@@ -297,14 +297,14 @@ namespace LB{
        * Open the output file.
       */
       std::ofstream outputFile;
-      outputFile.open("prog.LA");
+      outputFile.open("prog.a");
 
       /* 
        * Generate IR code
        */ 
       for(auto& fp: p.functions) {
 		  // create an item for the function name for the conversion
-		  std::cerr<<fp->name << '\n';
+		  //std::cerr<<fp->name << '\n';
 		  Item* func_name = new Item();
 		  func_name->labelName = fp->name;
 		  func_name->itemType = Atomic_Type::label;
@@ -337,7 +337,7 @@ namespace LB{
               }
 		    }
 		  }
-          outputFile << "}\n\n";
+          outputFile << "}\n";
       }
 
       /* 
