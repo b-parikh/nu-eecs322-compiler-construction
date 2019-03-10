@@ -72,9 +72,10 @@ namespace LB {
         std::string name;
         VarType returnType;
         std::vector<Item*> arguments;
-        Scope* func_scope; // function level scope
-        std::map<std::string, Item*> varName_to_Item;
+        Scope* func_scope = nullptr; // function level scope
+        //std::map<std::string, Item*> varName_to_Item; // stored in func_scope
         int numDimensions; // if return type is arr
+        int level = 0; // function level is always 0
     };
   
     /*

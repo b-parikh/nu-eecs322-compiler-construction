@@ -481,7 +481,7 @@ namespace LB{
      pegtl::seq<pegtl::at<init_var>, init_var>,
      pegtl::seq<pegtl::at<return_value>, return_value>,
      pegtl::seq<pegtl::at<return_empty>, return_empty>,
-     pegtl::seq<pegtl::at<scope_begin>, scope_begin>, // scope as an instruction
+     //pegtl::seq<pegtl::at<scope_begin>, scope_begin>, // scope as an instruction
      //pegtl::seq<pegtl::at<scope_end>, scope_end>,
      pegtl::seq<pegtl::at<print>, print>,
      pegtl::seq<pegtl::at<call>, call>,

@@ -103,7 +103,7 @@ namespace LB{
             i->Items.push_back(it);
         }
         parsed_items.clear();
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
     }
   };
 
@@ -134,7 +134,7 @@ namespace LB{
         parsed_items.clear();
         parsed_strings.clear();
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
     }
   };
 
@@ -148,7 +148,7 @@ namespace LB{
         for(int j = 2; j < parsed_items.size(); ++j) {
             i->array_access_location.push_back(parsed_items[j]);
         }
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -163,7 +163,7 @@ namespace LB{
         for(int j = 1; j < parsed_items.size() - 1; ++j) {
             i->array_access_location.push_back(parsed_items[j]);
         }
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -177,7 +177,7 @@ namespace LB{
             i->Items.push_back(it);
         }
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -193,7 +193,7 @@ namespace LB{
             i->arguments.push_back(parsed_items[it]); // dimensions and sizes of each dimension
         }
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -207,7 +207,7 @@ namespace LB{
         i->Items.push_back(parsed_items[0]);
         i->arguments.push_back(parsed_items.back());
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
         parsed_items.clear();
     }
   };
@@ -243,7 +243,7 @@ namespace LB{
 
         parsed_items.clear();
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
     }
   };
 
@@ -280,7 +280,7 @@ namespace LB{
 
         parsed_items.clear();
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
     }
   };
 
@@ -294,7 +294,7 @@ namespace LB{
       }
       parsed_items.clear();
 
-      currF->func_scope->Instructions.push_back(i);
+      currS->Instructions.push_back(i);
     }
   };
 
@@ -308,7 +308,7 @@ namespace LB{
       }
       parsed_items.clear();
 
-      currF->func_scope->Instructions.push_back(i);
+      currS->Instructions.push_back(i);
     }
   };
 
@@ -319,7 +319,7 @@ namespace LB{
       Instruction* i = new Instruction();
       i->Type = InstructionType::return_empty;
 
-      currF->func_scope->Instructions.push_back(i);
+      currS->Instructions.push_back(i);
     }
   };
 
@@ -334,7 +334,7 @@ namespace LB{
       i->Items.push_back(it);
       parsed_items.clear();
 
-      currF->func_scope->Instructions.push_back(i);
+      currS->Instructions.push_back(i);
     }
   };
 
@@ -348,7 +348,7 @@ namespace LB{
         }
         parsed_items.clear();
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
     }
   };
   
@@ -368,7 +368,7 @@ namespace LB{
         parsed_items.clear();
         parsed_strings.clear();
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
     }
   };
 
@@ -388,7 +388,7 @@ namespace LB{
         parsed_items.clear();
         parsed_strings.clear();
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
     }
   };
 
@@ -398,7 +398,7 @@ namespace LB{
             auto currF = p.functions.back();
             Instruction* i = new Instruction();
             i->Type = InstructionType::continue_instruction;
-            currF->func_scope->Instructions.push_back(i);
+            currS->Instructions.push_back(i);
         }
   };
     
@@ -408,7 +408,7 @@ namespace LB{
             auto currF = p.functions.back();
             Instruction* i = new Instruction();
             i->Type = InstructionType::break_instruction;
-            currF->func_scope->Instructions.push_back(i);
+            currS->Instructions.push_back(i);
          }
   };
         
@@ -490,13 +490,16 @@ namespace LB{
 
             var->varType = type; 
             i->Items.push_back(var);
+            // put var into scope's map of var name to Item*
+            currS->varName_to_Item[var->labelName] = var;
+
         }
 
         num_dim = 0;
         parsed_type = "";
         parsed_items.clear();
 
-        currF->func_scope->Instructions.push_back(i);
+        currS->Instructions.push_back(i);
       }
   };
 
@@ -524,6 +527,12 @@ namespace LB{
         newItem->labelName = in.string();
         num_dim = 0;
         currF->arguments.push_back(newItem);
+        
+        if(currF->func_scope == nullptr)
+            std::cerr << "nullptr dereference in arg_var.\n";
+        else
+            currS->varName_to_Item[newItem->labelName] = newItem;
+            //currF->func_scope->varName_to_Item[newItem->labelName] = newItem;
     }
   };
 
