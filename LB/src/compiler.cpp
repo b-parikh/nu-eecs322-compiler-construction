@@ -62,6 +62,12 @@ int main(
    * Parse the input file.
    */
   auto p = LB::parse_file(argv[optind]);
+  std::cerr << "print map\n";
+  for(auto& fp : p.functions) {
+      for(auto& sp : fp->func_scope->varName_to_Item) {
+          std::cerr << sp.first << "\n";
+      }
+  }
 
   /* 
    * Print the source program.

@@ -12,6 +12,7 @@
 
 #include <LB.h>
 
+
 namespace LB{
   
   /* 
@@ -21,6 +22,7 @@ namespace LB{
   std::vector<std::string> parsed_strings;
   std::string parsed_type = "";
   int num_dim = 0;
+  std::string currFuncName = "";
 
   Instruction* currI;
   std::vector<std::string> fp_list;
@@ -66,6 +68,7 @@ namespace LB{
   template<> struct action < Label_rule > {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
+      // no need to save this into the name to Item map as it isn't a variable
       auto i = new Item();
       i->labelName = in.string();
       i->itemType = Atomic_Type::label;
@@ -73,15 +76,38 @@ namespace LB{
     }
   };
 
+  /*
+   * For all vars that aren't function arguments.
+   * If the var is within init_var instruction then create new Item and store in scope map (actual storing done in init_var action).
+   * If the var has already been initialized inside curr scope, then just use the Item created by a previous initialization (recall Item from scope map).
+   */
   template<> struct action < var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-        auto i = new Item();
-        i->itemType = Atomic_Type::var;
-	    i->labelName = in.string();
-	    parsed_items.push_back(i);
-		if(currS)
-          currS->varName_to_Item[in.string()] = i; //put var into currS's varName_to_Item map
+        std::cerr << "var action for " << in.string() << '\n';
+        // at function header, so no scope has been declared; this is for function arguments
+        // function arguments will be completely dealt with in arg_var
+        if(currS == nullptr) {
+//            auto i = new Item();
+//            i->itemType = Atomic_Type::var;
+//    	      i->labelName = in.string();
+//            parsed_items.push_back(i);
+            return;
+        }
+
+        // in the middle of a scope
+        auto isItemInScope = currS->varName_to_Item.find(in.string());
+        // if the item is already initialized in the scope then don't create a new Item and return the already created Item
+        if(isItemInScope != currS->varName_to_Item.end()) {
+            parsed_items.push_back(isItemInScope->second);
+        }
+        // create new item as this is the first time the Item has been encountered (init_var)
+        else {
+            auto i = new Item();
+            i->itemType = Atomic_Type::var;
+    	    i->labelName = in.string();
+    	    parsed_items.push_back(i);
+        }
     }
   };
 
@@ -478,7 +504,7 @@ namespace LB{
           std::cerr << "Incorrect var type: " << parsed_type << '\n';
 		}
 
-        // all declarations are stored in parsed_items
+        // all Items have already been created in var action and are stored in parsed_items
         // all declarations have the same type
         for(auto& var : parsed_items) {
             if(type == VarType::arr_type)
@@ -491,8 +517,10 @@ namespace LB{
             var->varType = type; 
             i->Items.push_back(var);
             // put var into scope's map of var name to Item*
-            currS->varName_to_Item[var->labelName] = var;
-
+            if(currS->varName_to_Item.find(var->labelName) != currS->varName_to_Item.end())
+                std::cerr << "Var already exists in this scope. Why are you reinitializing it, you twat.\n";
+            else 
+                currS->varName_to_Item[var->labelName] = var;
         }
 
         num_dim = 0;
@@ -503,10 +531,17 @@ namespace LB{
       }
   };
 
+  /*
+   * For function arguments.
+   * Creates a new Item for the function argument.
+   * Stores the Item within arguments vector.
+   * Stores the Item within scope map.
+   */
    template<> struct action < arg_var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-        Function* currF = p.functions.back();
+        std::cerr << "in arg_var\n";
+        std::cerr << in.string() << "\n";
         Item* newItem = new Item();
         newItem->itemType = Atomic_Type::var;
         if(parsed_type == "int64") {
@@ -526,24 +561,33 @@ namespace LB{
 
         newItem->labelName = in.string();
         num_dim = 0;
+
+        Function* currF = p.functions.back();
         currF->arguments.push_back(newItem);
         
-        if(currF->func_scope == nullptr)
+        if(currF->func_scope == nullptr) {
             std::cerr << "nullptr dereference in arg_var.\n";
-        else
+        } else {
+            // store the new argument inside the scope's map
             currS->varName_to_Item[newItem->labelName] = newItem;
-            //currF->func_scope->varName_to_Item[newItem->labelName] = newItem;
+        }
+    }
+  };
+
+  template<> struct action < function_name > {
+    template < typename Input >
+    static void apply (const Input &in, Program &p) {
+        currFuncName = in.string();
     }
   };
 
    template<> struct action < Function_declare > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
+      //std::cerr << "In function_declare for " << in.string() << "\n";
       auto newF = new Function();
-
-      // function level scope; parent is nullptr
+      // create function scope here so we can immediately push function args into it
       auto newS = new Scope(); 
-      newS->level = scope_level; 
       newF->func_scope = newS;
       currS = newS;
 
@@ -568,8 +612,10 @@ namespace LB{
       parsed_type = "";
 
 	  // Function name
-      newF->name = parsed_items.back()->labelName;
-	  parsed_items.clear();
+      //newF->name = parsed_items.back()->labelName;
+      newF->name = currFuncName;
+      //std::cerr << "newF name is " << currFuncName << ".\n";
+      currFuncName = "";
 
       p.functions.push_back(newF);
 
@@ -581,18 +627,31 @@ namespace LB{
    template<> struct action < scope_begin > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
+           //std::cerr << "scope begin\n";
            scope_level++; // we've gone down one level
-           // level 0 is function scope; function scope created in Function_declare
-           if(scope_level == 0)
-              return;
 
-           // new scope deeper than function scope
-           auto newS = new Scope();
-           newS->parent_scope = currS;
-           scopeStack.push_back(currS);
+           // level 0 is function scope
+           if(scope_level == 0) {
+               //auto newF = p.functions.back();
+               // function level scope's parent is nullptr
+               //newS->level = scope_level; 
+               //newF->func_scope = newS;
+               //currS = newS;
+            
+               // taking care of function arguments 
+//               for(auto& itp : parsed_items) {
+//                   currS->varName_to_Item[itp->labelName] = itp;
+//               }
+//               parsed_items.clear();
+               return;
+           }
 
-           // set new scope to current scope
-           currS = newS;
+           else {
+               auto newS = new Scope();
+               newS->parent_scope = currS; // new scope deeper than function scope
+               scopeStack.push_back(currS); // store currS for later
+               currS = newS;
+           }
        }
    };
    

@@ -502,6 +502,9 @@ namespace LB{
 
  struct arg_type:
      var_type {};
+ 
+ struct function_name:
+     var {};
 
   struct Function_declare:
 	pegtl::seq<
@@ -510,7 +513,8 @@ namespace LB{
         void_type
       >,
 	  seps,
-      var 
+      //var
+      function_name 
 	> {};
   
   struct Function_rule:
