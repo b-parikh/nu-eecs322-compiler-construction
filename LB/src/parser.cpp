@@ -400,7 +400,7 @@ namespace LB{
 
   template<> struct action < while_instruction > {
     template < typename Input > static void apply (const Input &in, Program &p) {
-	    auto currF = p.functions.back();
+	    //auto currF = p.functions.back();
         Instruction* i = new Instruction();
         i->Type = InstructionType::while_instruction;
         // t, t, label1, label2
@@ -627,7 +627,7 @@ namespace LB{
    template<> struct action < scope_begin > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
-           //std::cerr << "scope begin\n";
+           std::cerr << "scope begin\n";
            scope_level++; // we've gone down one level
 
            // level 0 is function scope
@@ -647,6 +647,11 @@ namespace LB{
            }
 
            else {
+               // store the new scope as an instruction to know when to go to child scope
+               Instruction* i = new Instruction();
+               i->Type = InstructionType::scope_begin;
+               currS->Instructions.push_back(i);
+
                auto newS = new Scope();
                newS->parent_scope = currS; // new scope deeper than function scope
                scopeStack.push_back(currS); // store currS for later

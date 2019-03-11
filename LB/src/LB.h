@@ -63,6 +63,12 @@ namespace LB {
         Scope* parent_scope = nullptr; // if nullptr, then first level scope
         std::vector<Scope*> children_scopes;
         std::map<std::string, Item*> varName_to_Item;
+
+        /* Used when generating code:
+         * Whenever a scope_begin instruction is encountered, the child scope at this index is accessed.
+         * The instructions within this child scope are converted to LA, and then this index is incremented.
+         */
+        int child_scopes_generated = 0; 
     };
   
     /*

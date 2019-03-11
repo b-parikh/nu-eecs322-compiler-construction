@@ -135,7 +135,7 @@ namespace LB{
 		return oper_str;
 	}
 
-    std::vector<std::vector<string>> convert_instruction(Instruction* ip, std::string newVarLabel, int& varNameCounter, std::string newLabel, int& labelNameCounter) {
+    std::vector<std::vector<string>> convert_instruction(Scope* currS, Instruction* ip, std::string newVarLabel, int& varNameCounter, std::string newLabel, int& labelNameCounter, std::ofstream& outputFile) {
         std::vector<std::vector<string>> ret_vectors;
 		std::vector<string> ret_strings;
 
@@ -284,6 +284,16 @@ namespace LB{
             ret_strings.push_back(ip->Items[3]->labelName);
             ret_vectors.push_back(ret_strings);
 
+		} else if(ip->Type == InstructionType::init_var) {
+			std::string var_type = get_arg_type(ip->Items[0]);
+
+			for(auto &var : ip->Items) {
+				ret_strings.push_back(var_type);
+				ret_strings.push_back(var->labelName);
+				ret_vectors.push_back(ret_strings);
+				ret_strings.clear();
+			}
+
 		} else if(ip->Type == InstructionType::while_instruction) {
 			//TODO
 
@@ -293,31 +303,42 @@ namespace LB{
 		} else if(ip->Type == InstructionType::break_instruction) {
 			//TODO
 
-		} else if(ip->Type == InstructionType::scope_begin) {
-			//TODO
-
-//		} else if(ip->Type == InstructionType::scope_end) {
-			//TODO
-
  		} else if(ip->Type == InstructionType::print) {
-			ret_strings.push_back("print");
+		    ret_strings.push_back("print");
 			ret_strings.push_back("(");
 			ret_strings.push_back(ip->Items[0]->labelName);
 			ret_strings.push_back(")");
 
             ret_vectors.push_back(ret_strings);
-       } else { //init_var
-			std::string var_type = get_arg_type(ip->Items[0]);
 
-			for(auto &var : ip->Items) {
-				ret_strings.push_back(var_type);
-				ret_strings.push_back(var->labelName);
-				ret_vectors.push_back(ret_strings);
-				ret_strings.clear();
-			}
-        }
+//		} else if(ip->Type == InstructionType::scope_end) {
+			//TODO
 
-		return ret_vectors;
+       } else { // scope_begin
+           // go to the child scope designated by child_scope_generated
+           currS = currS->children_scopes[currS->child_scopes_generated];
+
+           for(auto& ip : currS->Instructions) {
+               std::vector<std::vector<std::string>> to_print = 
+                   convert_instruction(currS, ip, newVarLabel, varNameCounter, newLabel, labelNameCounter, outputFile);
+               
+   			   if (!to_print.empty()) { //init_var does not print anything for L3
+   			       for(auto vec_str : to_print) {
+                       outputFile << "\t";
+                       for(auto str : vec_str)
+                           outputFile << str << ' ';
+                       outputFile << '\n';
+                   }
+   		       }
+           }
+           
+           currS = currS->parent_scope; // go back to parent scope 
+           currS->child_scopes_generated++;
+
+           ret_vectors.clear();
+       }
+
+	   return ret_vectors;
     } 
 
     void generate_code(Program p){
@@ -337,6 +358,14 @@ namespace LB{
 		  func_name->labelName = fp->name;
 		  func_name->itemType = Atomic_Type::label;
 
+          // to generate new labels and variables
+		  std::string longest_label = get_longest_label(fp);
+		  std::string longest_variable = get_longest_variable(fp);
+          int varNameCounter = 0;
+          int labelNameCounter = 0;
+
+          // to flatten scopes 
+          
 		  // PRINT initial line of the function
           outputFile << get_return_type(fp) << " " << func_name->labelName << " (";
 		  int arg_size = fp->arguments.size();
@@ -347,15 +376,11 @@ namespace LB{
 		  }
 		  outputFile << ") {\n";
 
-          // to generate new labels and variables
-		  std::string longest_label = get_longest_label(fp);
-		  std::string longest_variable = get_longest_variable(fp);
-          int varNameCounter = 0;
-          int labelNameCounter = 0;
-          
-          for(auto &ip : fp->func_scope->Instructions) {
+          // current scope is used when scope_begin is encountered in convert_instruction
+          auto currS = fp->func_scope;
+          for(auto &ip : currS->Instructions) {
 			//std::cerr<< int(ip->Type) <<'\n';
-			std::vector<std::vector<string>> to_print = convert_instruction(ip, longest_variable, varNameCounter, longest_label, labelNameCounter);
+			std::vector<std::vector<string>> to_print = convert_instruction(currS, ip, longest_variable, varNameCounter, longest_label, labelNameCounter, outputFile);
 			if (!to_print.empty()) { //init_var does not print anything for L3
 			  for(auto vec_str : to_print) {
                 outputFile << "\t";
