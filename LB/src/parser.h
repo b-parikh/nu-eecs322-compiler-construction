@@ -422,7 +422,6 @@ namespace LB{
 	  > 
     > {};
 
-
  struct call:
    pegtl::seq<
     seps,
@@ -454,8 +453,14 @@ namespace LB{
   struct scope_begin:
       pegtl::one<'{'> {};
 
+  struct scope_begin_instruction:
+      scope_begin {};
+  
   struct scope_end:
       pegtl::one<'}'> {};
+
+  struct scope_end_instruction:
+      scope_end {};
 
   struct continue_instruction:
     pegtl::string<'c','o','n','t','i','n','u','e'> {};
@@ -482,7 +487,7 @@ namespace LB{
      pegtl::seq<pegtl::at<return_value>, return_value>,
      pegtl::seq<pegtl::at<return_empty>, return_empty>,
      pegtl::seq<pegtl::at<scope_begin>, scope_begin>, // scope as an instruction
-     //pegtl::seq<pegtl::at<scope_end>, scope_end>,
+     pegtl::seq<pegtl::at<scope_end>, scope_end>,
      pegtl::seq<pegtl::at<print>, print>,
      pegtl::seq<pegtl::at<call>, call>,
      pegtl::seq<pegtl::at<assign>, assign>
@@ -542,9 +547,9 @@ namespace LB{
       scope_begin,
       seps,
       Instructions_rule,
-      seps,
-      //pegtl::one< '}' >
-      scope_end,
+      //pegtl::one< '}' >,
+      //scope_end,
+      //seps_no_linebreak
 	  seps
     > {};
 

@@ -341,8 +341,10 @@ namespace LB{
   template<> struct action < return_empty > {
     template< typename Input >
 	static void apply( const Input & in, Program & p){
-	  auto currF = p.functions.back();
       Instruction* i = new Instruction();
+      auto it = new Item();
+      it->labelName = "return";
+      i->Items.push_back(it);
       i->Type = InstructionType::return_empty;
 
       currS->Instructions.push_back(i);
@@ -630,9 +632,15 @@ namespace LB{
            std::cerr << "scope begin\n";
            scope_level++; // we've gone down one level
 
-           // level 0 is function scope
+           // level 0 is function scope and now taken care of in Function_declare
            if(scope_level == 0) {
-               //auto newF = p.functions.back();
+               auto i = new Instruction();
+               i->Type = InstructionType::scope_end;
+               auto it = new Item();
+               it->labelName = in.string();
+               i->Items.push_back(it);
+               currS->Instructions.push_back(i);
+
                // function level scope's parent is nullptr
                //newS->level = scope_level; 
                //newF->func_scope = newS;
@@ -648,9 +656,9 @@ namespace LB{
 
            else {
                // store the new scope as an instruction to know when to go to child scope
-               Instruction* i = new Instruction();
-               i->Type = InstructionType::scope_begin;
-               currS->Instructions.push_back(i);
+//               Instruction* i = new Instruction();
+//               i->Type = InstructionType::scope_begin;
+//               currS->Instructions.push_back(i);
 
                auto newS = new Scope();
                newS->parent_scope = currS; // new scope deeper than function scope
@@ -660,20 +668,61 @@ namespace LB{
        }
    };
    
-   template<> struct action < scope_end > {
+//   template<> struct action < scope_begin_instruction > {
+//     template< typename Input >
+//         static void apply( const Input & in, Program & p){
+//             auto currF = p.functions.back();
+//             Instruction* i = new Instruction();
+//             i->Type = InstructionType::scope_begin;
+//             currS->Instructions.push_back(i);
+//         }
+//   };
+
+    template<> struct action < scope_end > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
+         //std::cerr << currS->Instructions.size() << '\n';
+         Instruction* i = new Instruction();
+         i->Type = InstructionType::scope_end;
+         auto newItem = new Item();
+         newItem->labelName = in.string();
+         i->Items.push_back(newItem);
+         currS->Instructions.push_back(i);
+
+         std::cerr << "scope level: " << scope_level << ".\n";
+         for(auto& ip : currS->Instructions) {
+             for(auto& itp : ip->Items) {
+                 std::cerr << itp->labelName << ' ';
+             }
+             std::cerr << '\n';
+         }
+         
          scope_level--; // we've gone up one level
 		 if(scopeStack.size() > 0) { // scope above function scope exists
            auto prevS = scopeStack.back(); 
+           //std::cerr << "New upper level has " << prevS->children_scopes.size() << " child scopes before push back.\n";
            scopeStack.pop_back();
            prevS->children_scopes.push_back(currS); // store current scope into higher level scope
+           //std::cerr << "New upper level has " << prevS->children_scopes.size() << " child scopes after push back.\n";
+           //std::cerr << prevS->children_scopes[0]->Instructions.size() << '\n';
            
            // set higher level scope to current scope
            currS = prevS;
+
+           //std::cerr << currS->Instructions.size() << '\n';
 		 }
+       std::cerr << "scope end called\n";
        }
    };
+
+//   template<> struct action < scope_end_instruction > {
+//     template< typename Input >
+//         static void apply( const Input & in, Program & p){
+//             Instruction* i = new Instruction();
+//             i->Type = InstructionType::scope_end;
+//             currS->Instructions.push_back(i);
+//         }
+//   };
 
   //Scope* currS = nullptr; // this scope will have instructions pushed into it
   //std::vector<Scope*> scopeStack; // holds parent scopes

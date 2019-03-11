@@ -2,4 +2,7 @@
 
 #include <LB.h>
 
-namespace LB {}
+namespace LB {
+    void flattenScopes(Program &p, std::string newVarLabel, int&varNameCounter);
+
+}

@@ -249,6 +249,7 @@ namespace LB{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::return_empty) { // as it is
+            std::cerr << "return empty called from code generator\n";
 			ret_strings.push_back("return");
 
             ret_vectors.push_back(ret_strings);
@@ -345,6 +346,8 @@ namespace LB{
       /* 
        * Open the output file.
       */
+
+      std::cerr << "generating code\n";
       std::ofstream outputFile;
       outputFile.open("prog.a");
 
