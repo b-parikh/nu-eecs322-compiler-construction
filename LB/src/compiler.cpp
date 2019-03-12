@@ -14,6 +14,7 @@
 
 #include <parser.h>
 #include <code_generator.h>
+#include <utils.h>
 
 using namespace std;
 
@@ -62,12 +63,15 @@ int main(
    * Parse the input file.
    */
   auto p = LB::parse_file(argv[optind]);
+
+  #ifdef DEBUG_OPT
   for(auto& fp : p.functions) {
       std::cerr << "print map for " << fp->name <<  "\n";
       for(auto& sp : fp->func_scope->varName_to_Item) {
           std::cerr << sp.first << "\n";
       }
   }
+  #endif
 
   /* 
    * Print the source program.

@@ -249,7 +249,8 @@ namespace LB{
 
             ret_vectors.push_back(ret_strings);
 		} else if(ip->Type == InstructionType::return_empty) { // as it is
-            std::cerr << "return empty called from code generator\n";
+            DEBUG_LOG("return empty called from code generator");
+            //std::cerr << "return empty called from code generator\n";
 			ret_strings.push_back("return");
 
             ret_vectors.push_back(ret_strings);
@@ -312,10 +313,12 @@ namespace LB{
 
             ret_vectors.push_back(ret_strings);
 
-//		} else if(ip->Type == InstructionType::scope_end) {
+	   } else if(ip->Type == InstructionType::scope_end) {
+           DEBUG_LOG("scope_end in code_generator");
 			//TODO
 
        } else { // scope_begin
+           DEBUG_LOG("scope_begin in code_generator");
            // go to the child scope designated by child_scope_generated
            currS = currS->children_scopes[currS->child_scopes_generated];
 
@@ -347,7 +350,7 @@ namespace LB{
        * Open the output file.
       */
 
-      std::cerr << "generating code\n";
+      DEBUG_LOG("Generating code");
       std::ofstream outputFile;
       outputFile.open("prog.a");
 

@@ -84,7 +84,8 @@ namespace LB{
   template<> struct action < var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-        std::cerr << "var action for " << in.string() << '\n';
+        DEBUG_LOG("Parser: Var action for " + in.string());
+        //std::cerr << "var action for " << in.string() << '\n';
         // at function header, so no scope has been declared; this is for function arguments
         // function arguments will be completely dealt with in arg_var
         if(currS == nullptr) {
@@ -542,8 +543,9 @@ namespace LB{
    template<> struct action < arg_var > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
-        std::cerr << "in arg_var\n";
-        std::cerr << in.string() << "\n";
+        DEBUG_LOG("Parser: In arg_var. Parsed string is:  " + in.string());
+        //std::cerr << "in arg_var\n";
+        //std::cerr << in.string() << "\n";
         Item* newItem = new Item();
         newItem->itemType = Atomic_Type::var;
         if(parsed_type == "int64") {
@@ -586,6 +588,7 @@ namespace LB{
    template<> struct action < Function_declare > {
     template < typename Input >
     static void apply (const Input &in, Program &p) {
+      DEBUG_LOG("Parser: In function_declare for " + in.string());
       //std::cerr << "In function_declare for " << in.string() << "\n";
       auto newF = new Function();
       // create function scope here so we can immediately push function args into it
@@ -616,7 +619,6 @@ namespace LB{
 	  // Function name
       //newF->name = parsed_items.back()->labelName;
       newF->name = currFuncName;
-      //std::cerr << "newF name is " << currFuncName << ".\n";
       currFuncName = "";
 
       p.functions.push_back(newF);
@@ -629,7 +631,8 @@ namespace LB{
    template<> struct action < scope_begin > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
-           std::cerr << "scope begin\n";
+           DEBUG_LOG("Parser: In scope begin.");
+           //std::cerr << "scope begin\n";
            scope_level++; // we've gone down one level
 
            // level 0 is function scope and now taken care of in Function_declare
@@ -662,6 +665,7 @@ namespace LB{
 
                auto newS = new Scope();
                newS->parent_scope = currS; // new scope deeper than function scope
+               newS->level = scope_level;
                scopeStack.push_back(currS); // store currS for later
                currS = newS;
            }
@@ -681,7 +685,7 @@ namespace LB{
     template<> struct action < scope_end > {
        template < typename Input >
        static void apply(const Input &in, Program &p) {
-         //std::cerr << currS->Instructions.size() << '\n';
+         DEBUG_LOG("Parser: In scope end.");
          Instruction* i = new Instruction();
          i->Type = InstructionType::scope_end;
          auto newItem = new Item();
@@ -689,43 +693,29 @@ namespace LB{
          i->Items.push_back(newItem);
          currS->Instructions.push_back(i);
 
-         std::cerr << "scope level: " << scope_level << ".\n";
+         #ifdef DEBUG_OPT
+         DEBUG_LOG("Parser: Instructions in scope level " + currS->level);
          for(auto& ip : currS->Instructions) {
              for(auto& itp : ip->Items) {
                  std::cerr << itp->labelName << ' ';
              }
              std::cerr << '\n';
          }
+         #endif
          
          scope_level--; // we've gone up one level
 		 if(scopeStack.size() > 0) { // scope above function scope exists
            auto prevS = scopeStack.back(); 
-           //std::cerr << "New upper level has " << prevS->children_scopes.size() << " child scopes before push back.\n";
            scopeStack.pop_back();
            prevS->children_scopes.push_back(currS); // store current scope into higher level scope
-           //std::cerr << "New upper level has " << prevS->children_scopes.size() << " child scopes after push back.\n";
-           //std::cerr << prevS->children_scopes[0]->Instructions.size() << '\n';
            
            // set higher level scope to current scope
            currS = prevS;
 
            //std::cerr << currS->Instructions.size() << '\n';
 		 }
-       std::cerr << "scope end called\n";
        }
    };
-
-//   template<> struct action < scope_end_instruction > {
-//     template< typename Input >
-//         static void apply( const Input & in, Program & p){
-//             Instruction* i = new Instruction();
-//             i->Type = InstructionType::scope_end;
-//             currS->Instructions.push_back(i);
-//         }
-//   };
-
-  //Scope* currS = nullptr; // this scope will have instructions pushed into it
-  //std::vector<Scope*> scopeStack; // holds parent scopes
 
   Program parse_file (char *fileName){
 
